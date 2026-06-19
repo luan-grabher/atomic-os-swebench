@@ -220,7 +220,7 @@ const INVARIANTS = [
 ];
 
 const here = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(here, '..', '..', '..');
+const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(here, '..', '..', '..');
 const ATOMIC_DIR = path.join(REPO_ROOT, '.atomic');
 export const BASELINE_FILE = path.join(ATOMIC_DIR, 'security-baseline.json');
 const LEGACY_BASELINE = path.join(here, '.security-baseline.json');

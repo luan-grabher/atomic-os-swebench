@@ -98,6 +98,11 @@ const FORBIDDEN: { re: RegExp; reason: string }[] = [
     reason:
       'the locked security auditor (security-invariants.mjs) must not be moved/chmod/overwritten.',
   },
+  {
+    re: /(?:chmod|chflags|mv|rm|cp|tee|>>?)\s*[^\n]*no-hardcoded-reality-audit/,
+    reason:
+      'the locked PULSE auditor (no-hardcoded-reality-audit.ts) must not be moved/chmod/overwritten.',
+  },
   // Catchable evasions surfaced by the closeout audit. A flat regex over a
   // `/bin/bash -c` string is best-effort DEFENSE-IN-DEPTH, NOT a boundary.
   // Explicit shell eval, alias definitions, and source/dot script execution
@@ -666,6 +671,13 @@ function runViaBroker(
     tempRoot: brokerTempRoot,
     timeoutMs,
   };
+  // Thread the active workspace root to the broker so a broker shared across hosts
+  // can resolve effect/temp roots against the caller's workspace (not just REPO_ROOT)
+  // when an isolated worktree (e.g. the elevation workspace) drives the exec.
+  const workspaceRoot = activeWorkspaceRoot();
+  if (workspaceRoot && workspaceRoot !== REPO_ROOT) {
+    reqObj.workspaceRoot = workspaceRoot;
+  }
   if (env) reqObj.env = env;
   if (stdin !== undefined) reqObj.stdin = stdin;
   const res = childProcess.spawnSync(process.execPath, [clientPath, sockPath], {

@@ -100,9 +100,10 @@ export interface ArgEditResult {
  * or null if the argument doesn't exist.
  */
 // Returns the index just past a string/template/comment span starting at i, else i unchanged. The
-// arg scanners below must SKIP these inert spans: a comma/paren inside "a, b" or `x,${f(1,2)}` or a
+// arg scanners below MUST skip these inert spans: a comma/paren inside "a, b" or `x,${f(1,2)}` or a
 // // comment is NOT an argument boundary. Without this, insert/replace/findArg corrupted code by
-// counting commas inside string/template literals (injecting an argument INSIDE a literal).
+// counting commas inside string/template literals (e.g. emit("a, b", x) -> emit("a, 99, b", x)),
+// persisting ok:true and passing syntax+typecheck — a silent-corruption facade.
 function skipInert(text: string, i: number): number {
   const c = text[i];
   if (c === '/' && text[i + 1] === '/') { let j = i + 2; while (j < text.length && text[j] !== '\n') j++; return j; }

@@ -92,7 +92,16 @@ const ENTRY = [
   'gates/closure-meta-gate.ts',
 ].map((f) => path.join(dir, f));
 const OUT = path.join(dir, 'dist');
-const BUILD_OUT = fs.mkdtempSync(path.join(os.tmpdir(), `atomic-edit-dist-${process.pid}-`));
+const BUILD_OUT = (() => {
+  try {
+    return fs.mkdtempSync(path.join(os.tmpdir(), `atomic-edit-dist-${process.pid}-`));
+  } catch (e) {
+    // Fallback when the system tmpdir is unreadable/unwritable (e.g. sandboxed
+    // hosts or effect-snapshot deadlock conditions): stage the build beside the
+    // sources so a blessed rebuild can still proceed.
+    return fs.mkdtempSync(path.join(dir, `.build-tmp-${process.pid}-`));
+  }
+})();
 const REQUIRED_DIST_ARTIFACTS = [
   'server.js',
   'server-helpers-hot-reload.js',
@@ -263,7 +272,18 @@ atomic-edit build FAILED (${errors.length} error(s))
   // lsp-semantic dynamic gate. Copy it beside the compiled gates so the gate's
   // `dirname(import.meta.url)/lsp-router.mjs` resolves at runtime from dist/gates.
   fs.mkdirSync(path.join(BUILD_OUT, 'gates'), { recursive: true });
-  fs.copyFileSync(path.join(path.dirname(path.dirname(path.dirname(dir))), 'tools', 'lsp-mesh', 'lsp-router.mjs'), path.join(BUILD_OUT, 'gates', 'lsp-router.mjs'));
+  // Resolve lsp-router.mjs across both repo layouts: the standalone tools tree
+  // (<repo>/tools/lsp-mesh/lsp-router.mjs) and the co-located layout where the
+  // router lives beside the gate sources (<dir>/gates/lsp-router.mjs). Use
+  // whichever exists so the blessed build works regardless of source topology.
+  {
+    const lspRouterCandidates = [
+      path.join(path.dirname(path.dirname(path.dirname(dir))), 'tools', 'lsp-mesh', 'lsp-router.mjs'),
+      path.join(dir, 'gates', 'lsp-router.mjs'),
+    ];
+    const lspRouterSrc = lspRouterCandidates.find((p) => fs.existsSync(p)) || lspRouterCandidates[0];
+    fs.copyFileSync(lspRouterSrc, path.join(BUILD_OUT, 'gates', 'lsp-router.mjs'));
+  }
 
   try {
     assertRequiredBuildArtifacts(BUILD_OUT);

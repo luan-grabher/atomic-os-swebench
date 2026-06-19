@@ -31,7 +31,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(dir, '..', '..', '..');
+const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(dir, '..', '..', '..');
 const perception = await import(path.join(dir, 'dist', 'gates', 'perception.js'));
 const lens = await import(path.join(dir, 'dist', 'gates', 'lens.js'));
 const { calls } = perception;

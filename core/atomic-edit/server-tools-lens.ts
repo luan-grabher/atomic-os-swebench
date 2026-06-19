@@ -46,6 +46,15 @@ const DIRECT_STRUCTURAL_FILE_EXTS = new Set([
   '.go', '.rs', '.java', '.kt', '.c', '.h', '.cc', '.cpp', '.hpp',
   '.cs', '.php', '.swift', '.scala', '.css', '.scss', '.less', '.sql',
 ]);
+// Extensions atomic's native tree-sitter engine genuinely PARSES (atomic_native_status: python, go,
+// ruby, rust, java, c, cpp, bash). For these, a mere brace-BALANCE check is NOT a syntax verdict —
+// a syntactically-broken-but-brace-balanced file (e.g. Go `x := \n}`) would be falsely reported
+// POSITIVE_WITHIN_DECLARED_BATTERY (a fake-green facade). Since the sync direct-file battery is not a
+// real parser, we make NO positive claim for these (honest UNJUDGED) instead of lying green. The
+// brace-IMBALANCE negative detector still catches obvious breaks; a real parser pass is a follow-up.
+const TREE_SITTER_PARSEABLE_EXTS = new Set([
+  '.py', '.rb', '.sh', '.bash', '.go', '.rs', '.java', '.c', '.h', '.cc', '.cpp', '.hpp',
+]);
 const DIRECT_STRUCTURAL_LABELS: Record<string, string> = {
   '.py': 'Python',
   '.rb': 'Ruby',
@@ -300,6 +309,9 @@ function directNonSourcePositiveReason(relPath: string, content: string): string
   if (DIRECT_STRUCTURAL_FILE_EXTS.has(ext)) {
     const errors = structuralErrors(ext, content);
     if (errors.length > 0) return null;
+    // For languages atomic actually parses, brace-balance is NOT a syntax pass — refuse a positive
+    // claim (honest unjudged) so a broken-but-balanced file is never reported green. Anti-facade.
+    if (TREE_SITTER_PARSEABLE_EXTS.has(ext)) return null;
     return `${directStructuralLanguageName(ext)} text passed Atomic structural balance battery; no type/runtime claim is made.`;
   }
   if (ext === '.md') {

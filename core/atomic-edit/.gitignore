@@ -26,3 +26,14 @@ node-compile-cache/
 .turbo/
 .cache/
 build/
+
+# L03 temp-artifact hygiene closure — proof/runtime scratch that leaked into the
+# source tree on abnormal exit (the temp-artifact-hygiene gate enforces zero NEW
+# leaks; these patterns make any out-of-band leak invisible to git regardless).
+atomic-type-gate-*
+atomic-rt-proof-*
+converge-*-proof-*
+converge-symbol-mutation-proof-*
+readcode-*-root-*
+*.tmp
+.hygiene-canary-leak.*

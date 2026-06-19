@@ -32,6 +32,10 @@ import securityGate from './security-gate.js';
 import testExecutionGate from './test-execution-gate.js';
 import publicContractGate from './public-contract-gate.js';
 import lspSemanticGate from './lsp-semantic-gate.js';
+import pyStrictNullGate from './py-strict-null.js';
+import pyCallArityGate from './py-call-arity.js';
+import pyStructuralTypeGate from './py-structural-type.js';
+import pyUndefNameGate from './py-undef-name.js';
 
 /**
  * Static gates safe in the WRITE direction — each asserts "this write did not
@@ -73,6 +77,14 @@ export const WRITE_GATES: GateModule[] = [
   // no-useless-escape, no-empty, prefer-const). Static, tree-sitter perception; a
   // write may not INTRODUCE one (NEW-only delta); type-aware rules stay deferred.
   structuralLintGate,
+  // Python static-soundness gates (tree-sitter/LSP perception): a write may not
+  // INTRODUCE a NEW strict-null deref, call-arity mismatch, structural-type
+  // violation, or undefined-name reference in Python. NEW-only delta vs prior;
+  // unparseable / cross-module resolution → unjudged.
+  pyStrictNullGate,
+  pyCallArityGate,
+  pyStructuralTypeGate,
+  pyUndefNameGate,
   // Proof #3 security layer: a write may not INTRODUCE a hardcoded secret
   // (AWS/PEM/Stripe-live/GitHub/Slack/Google/JWT shape, or a high-entropy
   // secret-named assignment). Static regex+entropy byte fact; NEW-only delta vs

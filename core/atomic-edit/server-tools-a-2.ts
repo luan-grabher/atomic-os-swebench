@@ -28,7 +28,7 @@ server.registerTool('atomic_replace_operator', {
 server.registerTool('atomic_reorder_list', {
   title: 'Move item in comma-separated list — tracked as movement',
   description: 'Move item fromIndex→toIndex in a { } ( ) or [ ] list. Tracked as movement, not delete+create.',
-  inputSchema: { file: z.string(), line: z.number().int().min(1), column: z.number().int().min(1), fromIndex: z.number().int().min(0), toIndex: z.number().int().min(0), preview: z.boolean().optional() },
+  inputSchema: { file: z.string(), line: z.number().int().min(1), column: z.number().int().min(1), fromIndex: z.number().int().min(0), toIndex: z.number().int().min(0), proofOfIncorrectness: z.string().optional(), preview: z.boolean().optional() },
 }, async (a) => {
   try {
     const { absPath, relPath } = resolveSafeTarget(a.file);
@@ -37,7 +37,7 @@ server.registerTool('atomic_reorder_list', {
     if (!r.validation.ok) return fail('rejected: ' + (r.validation.introduced ?? 'syntax regression'));
     if (r.newText === before) return ok({ ok: true, changed: false, file: relPath });
     if (a.preview ?? false) return ok({ ok: true, preview: true, changed: false, file: relPath, moved: r.moved, fromIndex: r.fromIndex, toIndex: r.toIndex });
-    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_reorder_list', r.validation);
+    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_reorder_list', r.validation, undefined, a.proofOfIncorrectness);
     return ok({ ok: true, changed: true, file: relPath, moved: r.moved, fromIndex: r.fromIndex, toIndex: r.toIndex });
   } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
 });
@@ -45,7 +45,7 @@ server.registerTool('atomic_reorder_list', {
 server.registerTool('atomic_change_signature', {
   title: 'Change function signature — preserve body',
   description: 'Modes: rename_param, add_param, remove_param, add_return_type. Preserves body byte-exact.',
-  inputSchema: { file: z.string(), fnLine: z.number().int().min(1), fnColumn: z.number().int().min(1), mode: z.enum(['rename_param', 'add_param', 'remove_param', 'add_return_type']), paramIndex: z.number().int().min(-1), newValue: z.string(), preview: z.boolean().optional() },
+  inputSchema: { file: z.string(), fnLine: z.number().int().min(1), fnColumn: z.number().int().min(1), mode: z.enum(['rename_param', 'add_param', 'remove_param', 'add_return_type']), paramIndex: z.number().int().min(-1), newValue: z.string(), proofOfIncorrectness: z.string().optional(), preview: z.boolean().optional() },
 }, async (a) => {
   try {
     const { absPath, relPath } = resolveSafeTarget(a.file);
@@ -54,7 +54,7 @@ server.registerTool('atomic_change_signature', {
     if (!r.validation.ok) return fail('rejected: ' + (r.validation.introduced ?? 'syntax regression'));
     if (r.newText === before) return ok({ ok: true, changed: false, file: relPath });
     if (a.preview ?? false) return ok({ ok: true, preview: true, changed: false, file: relPath });
-    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_change_signature', r.validation);
+    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_change_signature', r.validation, undefined, a.proofOfIncorrectness);
     return ok({ ok: true, changed: true, file: relPath });
   } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
 });
@@ -94,7 +94,7 @@ server.registerTool('atomic_add_decorator', {
 server.registerTool('atomic_replace_decorator', {
   title: 'Replace a decorator/annotation — preserve target',
   description: 'Swap decorator on line before target. Finds the matching decorator and replaces it.',
-  inputSchema: { file: z.string(), targetLine: z.number().int().min(2), oldDecorator: z.string(), newDecorator: z.string(), preview: z.boolean().optional() },
+  inputSchema: { file: z.string(), targetLine: z.number().int().min(2), oldDecorator: z.string(), newDecorator: z.string(), proofOfIncorrectness: z.string().optional(), preview: z.boolean().optional() },
 }, async (a) => {
   try {
     const { absPath, relPath } = resolveSafeTarget(a.file);
@@ -102,7 +102,7 @@ server.registerTool('atomic_replace_decorator', {
     const r = replaceDecorator(relPath, before, a.targetLine, a.oldDecorator, a.newDecorator);
     if (!r.validation.ok) return fail('rejected: ' + (r.validation.introduced ?? 'syntax regression'));
     if (a.preview ?? false) return ok({ ok: true, preview: true, changed: false, file: relPath });
-    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_replace_decorator', r.validation);
+    writeWithTrace(relPath, absPath, before, r.newText, 'atomic_replace_decorator', r.validation, undefined, a.proofOfIncorrectness);
     return ok({ ok: true, changed: true, file: relPath });
   } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
 });

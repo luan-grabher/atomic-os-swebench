@@ -71,6 +71,7 @@ const ENTRY = [
   'gates/test-execution-gate.ts',
   'gates/lint-fix-gate.ts',
   'gates/temporal-session-gate.ts',
+  'gates/py-strict-null.ts',
   'gates/lens.ts',
   'gates/repair.ts',
   'gates/algebra.ts',
@@ -92,7 +93,7 @@ const ENTRY = [
   'gates/closure-meta-gate.ts',
 ].map((f) => path.join(dir, f));
 const OUT = path.join(dir, 'dist');
-const BUILD_OUT = fs.mkdtempSync(path.join(os.tmpdir(), `atomic-edit-dist-${process.pid}-`));
+const BUILD_OUT = (() => { try { return fs.mkdtempSync(path.join(os.tmpdir(), `atomic-edit-dist-${process.pid}-`)); } catch (e) { return fs.mkdtempSync(path.join(dir, `.build-tmp-${process.pid}-`)); } })();
 const REQUIRED_DIST_ARTIFACTS = [
   'server.js',
   'server-helpers-hot-reload.js',
@@ -107,6 +108,7 @@ const REQUIRED_DIST_ARTIFACTS = [
   'trace.js',
   'gates/contract.js',
   'gates/algebra.js',
+  'gates/py-strict-null.js',
   'gates/converge-operator.js',
   'gates/reachability-gate.proof.js',
   'gates/binding-gate.proof.js',
@@ -263,7 +265,7 @@ atomic-edit build FAILED (${errors.length} error(s))
   // lsp-semantic dynamic gate. Copy it beside the compiled gates so the gate's
   // `dirname(import.meta.url)/lsp-router.mjs` resolves at runtime from dist/gates.
   fs.mkdirSync(path.join(BUILD_OUT, 'gates'), { recursive: true });
-  fs.copyFileSync(path.join(path.dirname(path.dirname(path.dirname(dir))), 'tools', 'lsp-mesh', 'lsp-router.mjs'), path.join(BUILD_OUT, 'gates', 'lsp-router.mjs'));
+  fs.copyFileSync(path.join(dir, 'gates', 'lsp-router.mjs'), path.join(BUILD_OUT, 'gates', 'lsp-router.mjs'));
 
   try {
     assertRequiredBuildArtifacts(BUILD_OUT);

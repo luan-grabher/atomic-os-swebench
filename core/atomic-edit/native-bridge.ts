@@ -135,6 +135,9 @@ interface TsModule {
 let TS: TsModule | null = null;
 let inited = false;
 const loadedLangs = new Map<string, unknown>();
+// Set when a parse throws an Emscripten Aborted() — the shared web-tree-sitter WASM heap is then
+// poisoned and every later parse would also fail. parserFor() re-inits the runtime when this is set.
+let wasmPoisoned = false;
 
 let initPromise: Promise<boolean> | null = null;
 
@@ -166,6 +169,19 @@ const parsers = new Map<string, TsParser>();
 const languageLoadPromises = new Map<string, Promise<unknown>>();
 
 async function parserFor(alias?: string): Promise<TsParser | null> {
+  // Recover from a poisoned WASM heap: a prior Emscripten Aborted() leaves the shared runtime dead,
+  // so re-init it and drop the Language objects + cached parsers bound to the old instance before
+  // handing out a parser.
+  if (wasmPoisoned) {
+    wasmPoisoned = false;
+    TS = null;
+    inited = false;
+    initPromise = null;
+    loadedLangs.clear();
+    languageLoadPromises.clear();
+    parsers.clear();
+    await ensureNativeReady();
+  }
   if (!TS || !alias || !(alias in GRAMMARS)) return null;
   if (!loadedLangs.has(alias)) {
     if (!languageLoadPromises.has(alias)) {
@@ -184,6 +200,18 @@ async function parserFor(alias?: string): Promise<TsParser | null> {
   return parsers.get(alias)!;
 }
 
+/** Parse guarded against an Emscripten Aborted()/throw on one file: flags the shared WASM heap
+ *  poisoned (parserFor re-inits next call) and returns null, so the caller marks THAT file unjudged
+ *  instead of crashing the whole multi-file call. The historical "intermittent" abort signature. */
+function safeParseTree(parser: TsParser, text: string): TsTree | null {
+  try {
+    return parser.parse(text);
+  } catch {
+    wasmPoisoned = true;
+    return null;
+  }
+}
+
 // --------------------------- ast-grep matcher ---------------------------
 
 const PFX = 'ZZMV';
@@ -193,7 +221,8 @@ const UNWRAP = new Set(['module', 'program', 'source_file', 'expression_statemen
 const u16ToByte = (s: string, i: number): number => Buffer.byteLength(s.slice(0, i), 'utf8');
 
 function compilePattern(parser: TsParser, src: string): TsNode {
-  const t = parser.parse(toIdent(src));
+  const t = safeParseTree(parser, toIdent(src));
+  if (!t) return { type: ' NOMATCH', text: '', namedChildCount: 0, childCount: 0, namedChildren: [] } as unknown as TsNode;
   let n = t.rootNode;
   while (UNWRAP.has(n.type)) {
     const k = n.namedChildren.find((c: TsNode) => c.type !== 'ERROR' && !c.isMissing);
@@ -309,7 +338,8 @@ export async function astGrep(opts: AstFindOptions): Promise<AstFindResult> {
     if (!parser) continue;
     let code: string;
     try { code = fs.readFileSync(f, 'utf8'); } catch { continue; }
-    const t = parser.parse(code);
+    const t = safeParseTree(parser, code);
+    if (!t) { parseErrors.push(f); continue; }
     let anyMatch = false;
     for (const pat of opts.patterns ?? []) {
       const P = compilePattern(parser, pat);
@@ -344,7 +374,8 @@ export async function astEditDry(opts: AstReplaceOptions): Promise<AstReplaceRes
     if (!parser) continue;
     let code: string;
     try { code = fs.readFileSync(f, 'utf8'); } catch { continue; }
-    const t = parser.parse(code);
+    const t = safeParseTree(parser, code);
+    if (!t) continue;
     let count = 0;
     for (const [pat, tmpl] of Object.entries(opts.rewrites ?? {})) {
       const P = compilePattern(parser, pat);
@@ -376,8 +407,16 @@ export async function summarize(opts: Record<string, unknown>): Promise<Record<s
   const alias = (opts.lang as string) || extLang(opts.path as string);
   const parser = await parserFor(alias);
   if (!parser) return { parsed: false, language: alias ?? 'generic', totalLines: code.split('\n').length, segments: [] };
-  const t = parser.parse(code);
-  const DEF = new Set(['function_definition', 'class_definition', 'method', 'function_declaration', 'method_declaration', 'type_declaration', 'class']);
+  const t = safeParseTree(parser, code);
+  if (!t) return { parsed: false, language: alias ?? 'generic', totalLines: code.split('\n').length, segments: [] };
+  const DEF = new Set([
+    'function_definition', 'class_definition', 'method', 'function_declaration', 'method_declaration',
+    'type_declaration', 'class',
+    // TS/JS type-level declarations the outline was silently dropping (it surfaced only
+    // function/class, hiding ~83% of a types-heavy file's top-level surface — a navigation hazard):
+    'class_declaration', 'abstract_class_declaration', 'interface_declaration',
+    'type_alias_declaration', 'enum_declaration',
+  ]);
   const segments: unknown[] = [];
   let errs = 0;
   const walk = (n: TsNode) => {
@@ -422,7 +461,8 @@ export async function validate(code: string, lang?: string): Promise<{ realParse
   await ensureNativeReady();
   const parser = await parserFor(lang);
   if (!parser) return { realParser: false, errorCount: -1, parsed: false };
-  const t = parser.parse(code);
+  const t = safeParseTree(parser, code);
+  if (!t) return { realParser: false, errorCount: -1, parsed: false };
   let e = 0;
   const stack: TsNode[] = [t.rootNode as TsNode];
   while (stack.length) {
@@ -464,7 +504,8 @@ export async function astNodes(
   await ensureNativeReady();
   const parser = await parserFor(lang);
   if (!parser) return null;
-  const t = parser.parse(content);
+  const t = safeParseTree(parser, content);
+  if (!t) return null;
   const out: AstNode[] = [];
   const stack: TsNode[] = [t.rootNode as TsNode];
   while (stack.length) {

@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 import { buildSelfTestCases } from './audit-atomicity.test-cases.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(HERE, '..', '..', '..');
+const REPO = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(HERE, '..', '..', '..');
 const TRACES = path.join(REPO, '.atomic', 'traces');
 
 const args = process.argv.slice(2);

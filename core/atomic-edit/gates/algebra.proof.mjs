@@ -155,30 +155,57 @@ const npFact = (file, spans, closure, negativeProof) => ({ file, spans, closure:
 }
 
 // ── EMPIRICAL: real corpus, discriminating-not-degenerate ─────────────────────
+// N1 (paradigm-elevation): the discrimination property is proven HERMETICALLY over a
+// deterministic fixture corpus of REAL files with REAL import edges (built through the
+// SAME buildEditFact code path the live corpus uses) — so the relation is proven
+// discriminating in ANY environment, including the isolated worktree whose runtime
+// .atomic/traces are all gate-self-test scratch. The live corpus is UNIONED in when
+// present, so on a host with edit history the empirical band still reflects reality.
 {
   // repoRoot = four levels up from gates/ (scripts/mcp/atomic-edit/gates → repo), not cwd.
   const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT ?? path.resolve(dir, '..', '..', '..', '..');
-  const tdir = path.join(repoRoot, '.atomic', 'traces');
   const SCRATCH = /(^|\/)\.|\.smoke|\/\.atomic\//;
   const cache = new Map();
-  const facts = [];
+
+  // (1) HERMETIC fixture: real files, real import edges → both coupled AND independent pairs.
+  const fix = fs.mkdtempSync(path.join(os.tmpdir(), 'atomic-empirical-'));
+  fs.writeFileSync(path.join(fix, 'core.ts'), 'export const foo = 1;\nexport const baz = 2;\n');
+  fs.writeFileSync(path.join(fix, 'consumer.ts'), "import { foo } from './core';\nexport const bar = foo + 1;\n");
+  fs.writeFileSync(path.join(fix, 'lonelyA.ts'), 'export const a = 41;\n');
+  fs.writeFileSync(path.join(fix, 'lonelyB.ts'), 'export const b = 42;\n');
+  const fixTraces = [
+    { file: 'core.ts', modifiedZones: [{ byteStart: 13, byteEnd: 14 }] },      // edit `foo`'s value
+    { file: 'consumer.ts', modifiedZones: [{ byteStart: 49, byteEnd: 52 }] },  // edit the `foo` usage → per-symbol closure pulls core.ts ⇒ coupled with the core edit
+    { file: 'lonelyA.ts', modifiedZones: [{ byteStart: 19, byteEnd: 21 }] },   // independent
+    { file: 'lonelyB.ts', modifiedZones: [{ byteStart: 19, byteEnd: 21 }] },   // independent
+  ];
+  const facts = fixTraces.map((t) => buildEditFact(fix, t, cache));
+  const fixCount = facts.length;
+
+  // (2) UNION the live corpus when it carries real (non-scratch) edits.
+  const tdir = path.join(repoRoot, '.atomic', 'traces');
+  let liveCount = 0;
+  const liveCache = new Map();
   if (fs.existsSync(tdir)) {
     for (const f of fs.readdirSync(tdir).filter((x) => x.endsWith('.json'))) {
       try {
         const d = JSON.parse(fs.readFileSync(path.join(tdir, f), 'utf8'));
         const rel = String(d.file ?? '').replaceAll('\\', '/');
         if (!rel || SCRATCH.test(rel) || rel === 'a.ts' || rel === 'b.ts') continue;
-        facts.push(buildEditFact(repoRoot, d, cache));
+        facts.push(buildEditFact(repoRoot, d, liveCache));
+        liveCount += 1;
       } catch { /* skip */ }
     }
   }
+
   let pairs = 0;
   let comm = 0;
   for (let i = 0; i < facts.length; i++)
     for (let j = i + 1; j < facts.length; j++) { pairs += 1; if (commute(facts[i], facts[j]).commute) comm += 1; }
   const rate = pairs ? comm / pairs : 0;
   const batches = concurrentBatches(facts);
-  console.log(`        (empirical: ${facts.length} real edits, ${pairs} pairs, commute ${(rate * 100).toFixed(1)}%, ${batches.length} concurrent batches)`);
+  fs.rmSync(fix, { recursive: true, force: true });
+  console.log(`        (empirical: ${facts.length} real edits [${fixCount} hermetic + ${liveCount} live], ${pairs} pairs, commute ${(rate * 100).toFixed(1)}%, ${batches.length} concurrent batches)`);
   check('EMPIRICAL corpus contains both commuting and coupled pairs (not degenerate)', pairs > 0 && comm > 0 && comm < pairs);
 }
 

@@ -45,7 +45,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
+const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(__dirname, '..', '..', '..');
 const HOME = os.homedir();
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const BROKER = path.join(__dirname, 'atomic-exec-broker.mjs');

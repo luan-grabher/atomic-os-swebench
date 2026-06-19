@@ -206,6 +206,7 @@ export function registerToolsLocate(server: McpServer): void {
         line: z.number().int().min(1),
         column: z.number().int().min(1),
         newName: z.string().min(1),
+        proofOfIncorrectness: z.string().optional().describe('required (>=20 chars) only when the rename net-removes correct bytes'),
         preview: z.boolean().optional(),
       },
     },
@@ -233,7 +234,7 @@ export function registerToolsLocate(server: McpServer): void {
             method: r.method,
           });
         }
-        writeWithTrace(relPath, absPath, before, r.newText, 'atomic_rename_symbol_universal', r.validation);
+        writeWithTrace(relPath, absPath, before, r.newText, 'atomic_rename_symbol_universal', r.validation, undefined, a.proofOfIncorrectness);
         log(`universal rename ${r.oldName}->${r.newName}: ${r.occurrences} occurrences via ${r.method}`);
         return ok({
           ok: true,

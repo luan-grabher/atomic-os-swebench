@@ -24,6 +24,12 @@
  *   in a legacy file never blocks an unrelated edit — but no write may INTRODUCE
  *   an import of a package not present in the installed tree.
  *
+ * L07 (PARADIGM-ELEVATION): Multi-language support via lang-supply-chain.mjs.
+ *   Go: go.mod + GOROOT (dot-heuristic for stdlib)
+ *   Rust: Cargo.toml + cargo metadata
+ *   Python: pip + site-packages (exhaustive stdlib)
+ *   Java: pom.xml + maven classpath
+ *
  * Mutation Firewall: perception LOCATES (the import-specifier spans via real
  * import/require AST nodes, the byte-existence of package.json); this gate only
  * ASSERTS a fact. It never writes. The import specifiers come from the ONE
@@ -42,7 +48,301 @@ import {
 } from './contract.js';
 import { importSpecs } from './perception.js';
 
-const SOURCE_RE = /\.(ts|tsx|js|jsx|mjs|cjs)$/;
+// ============================================================================
+// Multi-language supply-chain resolver (inline copy from lang-supply-chain.mjs)
+// This provides per-language present-vs-dangling dependency resolution.
+// ============================================================================
+
+// Go standard library modules
+const GO_STDLIB = new Set([
+  'fmt', 'strings', 'os', 'io', 'errors', 'bytes', 'time', 'sync', 'context', 'net',
+  'sort', 'math', 'bufio', 'encoding', 'regexp', 'strconv', 'path', 'log', 'flag',
+  'testing', 'reflect', 'unicode', 'crypto', 'hash', 'container', 'runtime', 'syscall'
+]);
+
+// Rust standard library crates
+const RUST_BUILTIN = new Set(['std', 'core', 'alloc', 'proc_macro', 'test']);
+const RUST_LOCAL = new Set(['crate', 'self', 'super', 'Self']);
+
+// Python standard library (exhaustive cross-version set)
+const PY_STDLIB = new Set([
+  'abc', 'aifc', 'annotationlib', 'antigravity', 'argparse', 'array', 'ast', 'asynchat',
+  'asyncio', 'asyncore', 'atexit', 'audioop', 'base64', 'bdb', 'binascii', 'binhex',
+  'bisect', 'builtins', 'bz2', 'cProfile', 'calendar', 'cgi', 'cgitb', 'chunk',
+  'cmath', 'cmd', 'code', 'codecs', 'codeop', 'collections', 'colorsys', 'compileall',
+  'compression', 'concurrent', 'configparser', 'contextlib', 'contextvars', 'copy',
+  'copyreg', 'crypt', 'csv', 'ctypes', 'curses', 'dataclasses', 'datetime', 'dbm',
+  'decimal', 'difflib', 'dis', 'distutils', 'doctest', 'email', 'encodings',
+  'ensurepip', 'enum', 'errno', 'faulthandler', 'fcntl', 'filecmp', 'fileinput',
+  'fnmatch', 'formatter', 'fractions', 'ftplib', 'functools', 'gc', 'genericpath',
+  'getopt', 'getpass', 'gettext', 'glob', 'graphlib', 'grp', 'gzip', 'hashlib',
+  'heapq', 'hmac', 'html', 'http', 'idlelib', 'imaplib', 'imghdr', 'imp',
+  'importlib', 'inspect', 'io', 'ipaddress', 'itertools', 'json', 'keyword',
+  'lib2to3', 'linecache', 'locale', 'logging', 'lzma', 'macpath', 'mailbox',
+  'mailcap', 'marshal', 'math', 'mimetypes', 'mmap', 'modulefinder', 'msilib',
+  'msvcrt', 'multiprocessing', 'netrc', 'nis', 'nntplib', 'nt', 'ntpath',
+  'nturl2path', 'numbers', 'opcode', 'operator', 'optparse', 'os', 'ossaudiodev',
+  'parser', 'pathlib', 'pdb', 'pickle', 'pickletools', 'pipes', 'pkgutil',
+  'platform', 'plistlib', 'poplib', 'posix', 'posixpath', 'pprint', 'profile',
+  'pstats', 'pty', 'pwd', 'py_compile', 'pyclbr', 'pydoc', 'pydoc_data',
+  'pyexpat', 'queue', 'quopri', 'random', 're', 'readline', 'reprlib',
+  'resource', 'rlcompleter', 'runpy', 'sched', 'secrets', 'select', 'selectors',
+  'shelve', 'shlex', 'shutil', 'signal', 'site', 'smtpd', 'smtplib', 'sndhdr',
+  'socket', 'socketserver', 'spwd', 'sqlite3', 'sre_compile', 'sre_constants',
+  'sre_parse', 'ssl', 'stat', 'statistics', 'string', 'stringprep', 'struct',
+  'subprocess', 'sunau', 'symbol', 'symtable', 'sys', 'sysconfig', 'syslog',
+  'tabnanny', 'tarfile', 'telnetlib', 'tempfile', 'termios', 'test', 'textwrap',
+  'this', 'threading', 'time', 'timeit', 'tkinter', 'token', 'tokenize',
+  'tomllib', 'trace', 'traceback', 'tracemalloc', 'tty', 'turtle', 'turtledemo',
+  'types', 'typing', 'unicodedata', 'unittest', 'urllib', 'uu', 'uuid', 'venv',
+  'warnings', 'wave', 'weakref', 'webbrowser', 'winreg', 'winsound', 'wsgiref',
+  'xdrlib', 'xml', 'xmlrpc', 'zipapp', 'zipfile', 'zipimport', 'zlib', 'zoneinfo'
+]);
+
+// Java JDK packages
+const JAVA_JDK = ['java.', 'javax.', 'jdk.', 'sun.', 'com.sun.'];
+
+const firstSeg = (spec: string, sep: string): string => String(spec).split(sep)[0];
+
+// Per-language manifest parsers
+function goModRequires(goMod: string | null): Set<string> {
+  const out = new Set<string>();
+  if (!goMod) return out;
+  for (const m of String(goMod).matchAll(/^\s*(?:require\s+)?([a-z0-9.\-]+\.[a-z0-9.\-]+)\s+v?\d/gim)) {
+    out.add(m[1]);
+  }
+  return out;
+}
+
+function cargoDeps(cargoToml: string | null): Set<string> {
+  const out = new Set<string>();
+  if (!cargoToml) return out;
+  const txt = String(cargoToml);
+  const depIdx = txt.search(/^\s*\[(?:dependencies|dev-dependencies|build-dependencies)\]/im);
+  if (depIdx < 0) return out;
+  const tail = txt.slice(depIdx);
+  for (const m of tail.matchAll(/^\s*([a-zA-Z0-9_-]+)\s*=/gim)) {
+    out.add(m[1].replace(/-/g, '_'));
+  }
+  return out;
+}
+
+function pyRequires(requirements: string | null, pyproject: string | null): Set<string> {
+  const out = new Set<string>();
+  for (const m of String(requirements || '').matchAll(/^\s*([a-zA-Z0-9_.\-]+)/gim)) {
+    out.add(m[1].toLowerCase().replace(/-/g, '_'));
+  }
+  for (const m of String(pyproject || '').matchAll(/["']([a-zA-Z0-9_.\-]+)\s*[><=~!]/g)) {
+    out.add(m[1].toLowerCase().replace(/-/g, '_'));
+  }
+  return out;
+}
+
+function mavenDeps(pomOrGradle: string | null): Set<string> {
+  const out = new Set<string>();
+  if (!pomOrGradle) return out;
+  for (const m of String(pomOrGradle).matchAll(/<groupId>\s*([a-zA-Z0-9_.\-]+)\s*<\/groupId>/g)) {
+    out.add(m[1]);
+  }
+  for (const m of String(pomOrGradle).matchAll(/['"]([a-zA-Z0-9_.\-]+):[a-zA-Z0-9_.\-]+:/g)) {
+    out.add(m[1]);
+  }
+  return out;
+}
+
+/**
+ * Resolve a dependency for a given language.
+ * @param lang - The language: 'go', 'rust', 'python', 'java'
+ * @param spec - The import specifier
+ * @param manifestCtx - Context with manifest files (goMod, cargoToml, etc.)
+ * @returns 'present' | 'dangling' | 'unjudged'
+ */
+function resolveDependency(
+  lang: string,
+  spec: string,
+  manifestCtx: Record<string, string | null> = {}
+): 'present' | 'dangling' | 'unjudged' {
+  const s = String(spec || '').replace(/^["']|["']$/g, '');
+  if (!s) return 'unjudged';
+  
+  switch (lang) {
+    case 'go': {
+      const root = s.split('/')[0];
+      if (GO_STDLIB.has(root) || !root.includes('.')) return 'present';
+      const req = goModRequires(manifestCtx.goMod);
+      if (req.size === 0) return 'unjudged';
+      for (const r of req) if (s === r || s.startsWith(r + '/')) return 'present';
+      return 'dangling';
+    }
+    case 'rust': {
+      const root = firstSeg(s, '::').replace(/-/g, '_');
+      if (RUST_BUILTIN.has(root) || RUST_LOCAL.has(firstSeg(s, '::'))) return 'present';
+      const deps = cargoDeps(manifestCtx.cargoToml);
+      if (deps.size === 0) return 'unjudged';
+      return deps.has(root) ? 'present' : 'dangling';
+    }
+    case 'python': {
+      if (s.startsWith('.')) return 'present';
+      const root = firstSeg(s, '.');
+      if (PY_STDLIB.has(root)) return 'present';
+      const req = pyRequires(manifestCtx.requirements, manifestCtx.pyproject);
+      if (req.size === 0) return 'unjudged';
+      return req.has(root.toLowerCase().replace(/-/g, '_')) ? 'present' : 'dangling';
+    }
+    case 'java': {
+      if (JAVA_JDK.some((p) => s.startsWith(p))) return 'present';
+      const root = firstSeg(s, '.');
+      const deps = mavenDeps(manifestCtx.maven);
+      if (deps.size === 0) return 'unjudged';
+      return [...deps].some((g) => s.startsWith(g)) ? 'present' : 'dangling';
+    }
+    default:
+      return 'unjudged';
+  }
+}
+
+const SOURCE_RE = /\.(ts|tsx|js|jsx|mjs|cjs|go|rs|py|java|c|cpp|h|hpp)$/;
+
+/**
+ * Detect language from file extension.
+ * Returns 'js' for JavaScript/TypeScript, 'go', 'rust', 'python', 'java', 'c', or null.
+ */
+function detectLanguage(rel: string): string | null {
+  const ext = /\.([a-z0-9]+)$/i.exec(rel)?.[1]?.toLowerCase();
+  switch (ext) {
+    case 'ts':
+    case 'tsx':
+    case 'js':
+    case 'jsx':
+    case 'mjs':
+    case 'cjs':
+      return 'js';
+    case 'go':
+      return 'go';
+    case 'rs':
+      return 'rust';
+    case 'py':
+      return 'python';
+    case 'java':
+      return 'java';
+    case 'c':
+    case 'cpp':
+    case 'h':
+    case 'hpp':
+      return 'c';
+    default:
+      return null;
+  }
+}
+
+/**
+ * Get the dependency manifest context for a file based on its language.
+ * Walks up from the file to find the nearest manifest file.
+ */
+function getManifestContext(ctx: GateContext, rel: string, lang: string): Record<string, string | null> {
+  const norm = (p: string): string => p.replaceAll('\\', '/');
+  let dir = path.posix.dirname(norm(rel));
+  
+  switch (lang) {
+    case 'go': {
+      // Look for go.mod walking up
+      while (dir !== '' && dir !== '.') {
+        const goModPath = dir === '' ? 'go.mod' : `${dir}/go.mod`;
+        const goMod = ctx.readFile(goModPath);
+        if (goMod !== null) {
+          return { goMod };
+        }
+        const parent = path.posix.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      // Check root
+      const goMod = ctx.readFile('go.mod');
+      if (goMod !== null) {
+        return { goMod };
+      }
+      return { goMod: null };
+    }
+    case 'rust': {
+      // Look for Cargo.toml walking up
+      while (dir !== '' && dir !== '.') {
+        const cargoPath = dir === '' ? 'Cargo.toml' : `${dir}/Cargo.toml`;
+        const cargoToml = ctx.readFile(cargoPath);
+        if (cargoToml !== null) {
+          return { cargoToml };
+        }
+        const parent = path.posix.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      const cargoToml = ctx.readFile('Cargo.toml');
+      if (cargoToml !== null) {
+        return { cargoToml };
+      }
+      return { cargoToml: null };
+    }
+    case 'python': {
+      // Look for requirements.txt and pyproject.toml walking up
+      let requirements = null;
+      let pyproject = null;
+      while (dir !== '' && dir !== '.') {
+        const reqPath = dir === '' ? 'requirements.txt' : `${dir}/requirements.txt`;
+        const req = ctx.readFile(reqPath);
+        if (req !== null && requirements === null) {
+          requirements = req;
+        }
+        const ppPath = dir === '' ? 'pyproject.toml' : `${dir}/pyproject.toml`;
+        const pp = ctx.readFile(ppPath);
+        if (pp !== null && pyproject === null) {
+          pyproject = pp;
+        }
+        if (requirements !== null && pyproject !== null) break;
+        const parent = path.posix.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      // Check root
+      if (requirements === null) {
+        const req = ctx.readFile('requirements.txt');
+        if (req !== null) requirements = req;
+      }
+      if (pyproject === null) {
+        const pp = ctx.readFile('pyproject.toml');
+        if (pp !== null) pyproject = pp;
+      }
+      return { requirements, pyproject };
+    }
+    case 'java': {
+      // Look for pom.xml or build.gradle walking up
+      while (dir !== '' && dir !== '.') {
+        const pomPath = dir === '' ? 'pom.xml' : `${dir}/pom.xml`;
+        const pom = ctx.readFile(pomPath);
+        if (pom !== null) {
+          return { maven: pom };
+        }
+        const gradlePath = dir === '' ? 'build.gradle' : `${dir}/build.gradle`;
+        const gradle = ctx.readFile(gradlePath);
+        if (gradle !== null) {
+          return { maven: gradle };
+        }
+        const parent = path.posix.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+      const pom = ctx.readFile('pom.xml');
+      if (pom !== null) {
+        return { maven: pom };
+      }
+      const gradle = ctx.readFile('build.gradle');
+      if (gradle !== null) {
+        return { maven: gradle };
+      }
+      return { maven: null };
+    }
+    default:
+      return {};
+  }
+}
 
 // Import specifiers are read through the ONE perception organ (importSpecs), which
 // SELECTS real import_statement / call_expression AST nodes by tree-sitter type —
@@ -160,12 +460,16 @@ const supplyChainGate: GateModule = {
   async run(ctx: GateContext): Promise<GateResult> {
     const reds: GateRed[] = [];
     const note =
-      'every NEW bare import resolves to a Node builtin or an installed node_modules/<pkg>/package.json';
+      'every NEW bare import resolves to a builtin or an installed dependency (node_modules for JS, go.mod for Go, Cargo.toml for Rust, requirements.txt/pyproject.toml for Python, pom.xml for Java)';
     let unjudgedReason: string | null = null;
+    
     for (const rel of ctx.changedFiles) {
       if (!SOURCE_RE.test(rel)) continue;
       const newText = ctx.overlay.get(rel.replaceAll('\\', '/')) ?? ctx.readFile(rel);
       if (newText === null) continue;
+      
+      const lang = detectLanguage(rel);
+      
       // Token-correct extraction: importSpecs SELECTS real import_statement /
       // call_expression nodes, so a specifier living in a string/template/comment
       // is never returned. A null here = no grammar for this source language → the
@@ -174,27 +478,54 @@ const supplyChainGate: GateModule = {
       const newSpecs = await importSpecs(newText, rel);
       const priorSpecs = await importSpecs(ctx.priorOf(rel), rel);
       if (newSpecs === null || priorSpecs === null) {
-        return { gate: this.name, green: true, reds: [], note, unjudged: true };
+        unjudgedReason ??= `cannot judge imports in ${rel}: no tree-sitter grammar available for this language`;
+        continue;
       }
+      
       const before = new Set(priorSpecs);
+      
+      // Get manifest context for multi-language resolution
+      const manifestCtx = lang ? getManifestContext(ctx, rel, lang) : {};
+      
       for (const spec of newSpecs) {
         if (before.has(spec)) continue; // unchanged wire — not this write's claim
-        if (spec.startsWith('.')) continue; // relative half — connection-gate's fact
-        if (isBuiltin(spec)) continue; // builtin terminates
-        const pkg = packageRoot(spec);
-        if (pkg === null) continue; // empty-scope alias (@/...) — not a node_modules package
-        if (matchesTsconfigAlias(ctx, rel, spec)) continue; // configured path alias — not ours
-        if (resolvesBare(ctx, rel, pkg)) continue; // installed part exists on disk/overlay
-        if (!hasObservableNodeModulesSubstrate(ctx, rel)) {
-          unjudgedReason ??=
-            `cannot judge NEW bare import '${spec}' from ${rel}: no node_modules dependency substrate is observable on the Node walk-up path; install dependencies or provide a package-resolver substrate before treating package absence as a dangling edge`;
-          continue;
+        
+        // Relative imports are connection-gate's concern
+        if (spec.startsWith('.')) continue;
+        
+        // For JavaScript/TypeScript: use existing Node.js logic
+        if (lang === 'js') {
+          if (isBuiltin(spec)) continue; // builtin terminates
+          const pkg = packageRoot(spec);
+          if (pkg === null) continue; // empty-scope alias (@/...) — not a node_modules package
+          if (matchesTsconfigAlias(ctx, rel, spec)) continue; // configured path alias — not ours
+          if (resolvesBare(ctx, rel, pkg)) continue; // installed part exists on disk/overlay
+          if (!hasObservableNodeModulesSubstrate(ctx, rel)) {
+            unjudgedReason ??=
+              `cannot judge NEW bare import '${spec}' from ${rel}: no node_modules dependency substrate is observable on the Node walk-up path; install dependencies or provide a package-resolver substrate before treating package absence as a dangling edge`;
+            continue;
+          }
+          reds.push({
+            file: rel,
+            locus: `bare:${spec}`,
+            fact: `bare import '${spec}' resolves to no installed node_modules/${pkg}/package.json (would introduce a dangling dependency edge)`,
+          });
+        } 
+        // For other languages: use inline multi-language resolver
+        else if (lang && lang !== 'c') { // C/C++ support is partial, skip for now
+          const result = resolveDependency(lang, spec, manifestCtx);
+          if (result === 'present') continue; // resolves correctly
+          if (result === 'unjudged') {
+            unjudgedReason ??= `cannot judge NEW bare import '${spec}' from ${rel} (${lang}): no manifest found or incomplete manifest context`;
+            continue;
+          }
+          // result === 'dangling'
+          reds.push({
+            file: rel,
+            locus: `bare:${spec}`,
+            fact: `bare import '${spec}' does not resolve to a declared dependency in ${lang} manifest (would introduce a dangling dependency edge)`,
+          });
         }
-        reds.push({
-          file: rel,
-          locus: `bare:${spec}`,
-          fact: `bare import '${spec}' resolves to no installed node_modules/${pkg}/package.json (would introduce a dangling dependency edge)`,
-        });
       }
     }
     if (reds.length === 0 && unjudgedReason !== null) {

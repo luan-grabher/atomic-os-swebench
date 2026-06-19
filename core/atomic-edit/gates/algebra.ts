@@ -37,6 +37,103 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// ── CACHE PERSISTENCE FOR CLOSURE COMPUTATION (CRIT-011) ────────────────────
+// Persistent on-disk cache for import resolution to improve performance on large repos.
+// Cache is stored per-repo and keyed by file path + mtime for invalidation.
+
+const CACHE_DIR_NAME = '.atomic-closure-cache';
+
+interface CacheEntry {
+  imports: string[];
+  mtime: number;
+}
+
+interface CacheManifest {
+  version: number;
+  files: Record<string, CacheEntry>;
+}
+
+function getCacheDir(repoRoot: string): string {
+  return path.join(repoRoot, CACHE_DIR_NAME);
+}
+
+function getCachePath(repoRoot: string): string {
+  return path.join(getCacheDir(repoRoot), 'closure-cache.json');
+}
+
+/**
+ * Load persistent cache from disk for a repository.
+ * Returns null if cache doesn't exist or is invalid.
+ */
+function loadPersistentCache(repoRoot: string): Map<string, Set<string>> | null {
+  const cachePath = getCachePath(repoRoot);
+  if (!fs.existsSync(cachePath)) return null;
+
+  try {
+    const data = JSON.parse(fs.readFileSync(cachePath, 'utf8')) as CacheManifest;
+    if (data.version !== 1) return null; // Version mismatch
+
+    const cache = new Map<string, Set<string>>();
+    for (const [rel, entry] of Object.entries(data.files)) {
+      const absPath = path.join(repoRoot, rel);
+      // Invalidate if file was modified since cache was written
+      if (fs.existsSync(absPath)) {
+        try {
+          const currentMtime = fs.statSync(absPath).mtimeMs;
+          if (currentMtime > entry.mtime) continue; // File modified, invalidate
+        } catch {
+          continue; // Can't stat, skip
+        }
+      }
+      cache.set(rel, new Set(entry.imports));
+    }
+    return cache;
+  } catch {
+    return null; // Corrupted cache, ignore
+  }
+}
+
+/**
+ * Save cache to disk for persistence across calls.
+ * Only saves entries that are still valid (file exists and mtime matches).
+ */
+function savePersistentCache(repoRoot: string, cache: Map<string, Set<string>>): void {
+  const cacheDir = getCacheDir(repoRoot);
+  const cachePath = getCachePath(repoRoot);
+
+  try {
+    // Ensure cache directory exists
+    if (!fs.existsSync(cacheDir)) {
+      fs.mkdirSync(cacheDir, { recursive: true });
+    }
+
+    const manifest: CacheManifest = {
+      version: 1,
+      files: {}
+    };
+
+    // Convert cache to serializable format with mtime validation
+    for (const [rel, imports] of cache) {
+      const absPath = path.join(repoRoot, rel);
+      if (!fs.existsSync(absPath)) continue; // File no longer exists
+
+      try {
+        const mtime = fs.statSync(absPath).mtimeMs;
+        manifest.files[rel] = {
+          imports: Array.from(imports),
+          mtime
+        };
+      } catch {
+        // Can't stat, skip this entry
+      }
+    }
+
+    fs.writeFileSync(cachePath, JSON.stringify(manifest, null, 2), 'utf8');
+  } catch {
+    // Silently ignore write failures (permissions, etc.)
+  }
+}
+
 /**
  * FASE-0.1 — the negative-action receipt an EditFact carries, so the verified-edit algebra
  * (e) operates over edits that include their (a) inverted-default justification, not spans
@@ -246,8 +343,20 @@ export function closureOf(
   repoRoot: string,
   rel: string,
   cache: Map<string, Set<string>> = new Map(),
-  maxNodes = 2000,
+  maxNodes = 10000,
 ): { set: Set<string>; capped: boolean } {
+  // CRIT-011: Load persistent cache if no cache provided
+  if (cache.size === 0) {
+    const persistentCache = loadPersistentCache(repoRoot);
+    if (persistentCache) {
+      // Merge persistent cache with provided cache
+      for (const [key, value] of persistentCache) {
+        if (!cache.has(key)) {
+          cache.set(key, new Set(value));
+        }
+      }
+    }
+  }
   const seen = new Set<string>([rel]);
   const stack = [rel];
   let capped = false;
@@ -265,6 +374,13 @@ export function closureOf(
     }
     if (capped) break;
   }
+
+  // CRIT-011: Save cache to disk for persistence across calls
+  // Only save if we loaded persistent cache initially (indicates caller wants persistence)
+  if (cache.size > 0) {
+    savePersistentCache(repoRoot, cache);
+  }
+
   return { set: seen, capped };
 }
 
@@ -413,7 +529,7 @@ export function perSymbolClosureOf(
   rel: string,
   spans: Array<[number, number]>,
   cache: Map<string, Set<string>> = new Map(),
-  maxNodes = 2000,
+  maxNodes = 10000,
 ): { set: Set<string>; capped: boolean } {
   const fileLevel = (): { set: Set<string>; capped: boolean } =>
     closureOf(repoRoot, rel, cache, maxNodes);

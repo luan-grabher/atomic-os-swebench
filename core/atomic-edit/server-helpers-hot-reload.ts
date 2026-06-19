@@ -1,6 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { z } from 'zod';
 import { activeWorkspaceRoot } from './guard.js';
 
 export const SINGLE_TOOL_CALL_ENV = 'ATOMIC_SINGLE_TOOL_CALL';
@@ -45,7 +46,7 @@ interface ToolServerLike {
   registerTool: RegisterTool;
 }
 
-export type HotToolRegistry = Map<string, ToolCallback>;
+export type HotToolRegistry = Map<string, { callback: ToolCallback; inputSchema?: unknown }>;
 
 export interface FreshnessResult {
   fresh: boolean;
@@ -193,7 +194,7 @@ export function installHotReloadingToolCallbacks(
   const originalRegisterTool = target.registerTool.bind(target);
 
   target.registerTool = ((name: string, config: unknown, callback: ToolCallback): unknown => {
-    registry.set(name, callback);
+    registry.set(name, { callback, inputSchema: (config as { inputSchema?: unknown } | undefined)?.inputSchema });
     const wrapped: ToolCallback = async (args, extra) => {
       // Resource-owning bridges (e.g. chrome_devtools_*) always run in-process —
       // delegating them would break session continuity and risk wedging the
@@ -228,12 +229,13 @@ export async function runSingleToolCallFromEnv(
     return true;
   }
 
-  const callback = registry.get(toolName);
-  if (!callback) {
+  const entry = registry.get(toolName);
+  if (!entry) {
     process.stdout.write(JSON.stringify({ ok: false, error: `unknown Atomic tool: ${toolName}` }) + '\n');
     process.exitCode = 1;
     return true;
   }
+  const { callback, inputSchema } = entry;
 
   let args: unknown = {};
   try {
@@ -242,6 +244,37 @@ export async function runSingleToolCallFromEnv(
     process.stdout.write(JSON.stringify({ ok: false, error: `invalid ${SINGLE_TOOL_ARGS_ENV}: ${error instanceof Error ? error.message : String(error)}` }) + '\n');
     process.exitCode = 1;
     return true;
+  }
+
+  // The single-call path bypasses the MCP transport's argument validation, so enforce the tool's
+  // declared Zod inputSchema HERE — a missing/empty required field becomes a clean validation error
+  // instead of an unguarded handler crash (-Infinity, "reading length/trim/includes", raw ENOENT…).
+  // We keep unknown keys (handlers that read extras are unaffected); the try/catch makes it a no-op
+  // for any tool whose inputSchema is not a plain Zod raw shape. .loose() (zod v4) is the unknown-key
+  // pass-through; if the installed zod surface predates it, fall back to v3's .passthrough().
+  if (inputSchema && typeof inputSchema === 'object') {
+    try {
+      const obj = z.object(inputSchema as z.ZodRawShape);
+      const open = typeof (obj as { loose?: unknown }).loose === 'function'
+        ? (obj as unknown as { loose: () => typeof obj }).loose()
+        : (obj as unknown as { passthrough: () => typeof obj }).passthrough();
+      const parsed = open.safeParse(args);
+      if (!parsed.success) {
+        process.stdout.write(
+          JSON.stringify({
+            ok: false,
+            error: `invalid args for ${toolName}: ${parsed.error.issues
+              .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
+              .join('; ')}`,
+          }) + '\n',
+        );
+        process.exitCode = 1;
+        return true;
+      }
+      args = parsed.data;
+    } catch {
+      // inputSchema is not a plain Zod raw shape (or zod threw building it) — skip validation.
+    }
   }
 
   try {

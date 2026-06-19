@@ -18,7 +18,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const REPO = path.resolve(HERE, '..', '..', '..');
+const REPO = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(HERE, '..', '..', '..');
 const TRACES = path.join(REPO, '.atomic', 'traces');
 const args = process.argv.slice(2);
 const strict = args.includes('--strict');

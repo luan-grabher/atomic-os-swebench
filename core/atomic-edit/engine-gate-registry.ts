@@ -61,6 +61,24 @@ import { createRequire } from 'node:module';
 // `require` global is NOT defined at runtime — the sync gate loader builds one with
 // createRequire so a gate module may pull node builtins if it ever needs to.
 const moduleRequire = createRequire(import.meta.url);
+// SECURITY: a registry gate module is a PURE function over EditGateContext, executed at the
+// byte-floor WRITE path inside a vm. Exposing the real createRequire let a malicious/compromised
+// .atomic/gates/registry.json module `require('child_process').execSync(...)` → arbitrary code
+// execution on every guarded write (RCE). A gate needs none of that. safeRequire is FAIL-CLOSED:
+// only a small allowlist of pure-computation builtins is permitted; child_process/fs/net/http/vm/
+// module/os/process/worker_threads/… and every non-builtin package are refused — neutralizing the
+// RCE primitive even if untrusted gate code runs in the sandbox.
+const GATE_REQUIRE_ALLOWLIST = new Set([
+  'path', 'util', 'crypto', 'assert', 'url', 'querystring', 'string_decoder', 'punycode', 'zlib', 'buffer', 'events',
+]);
+function safeRequire(spec: string): unknown {
+  const bare = String(spec).replace(/^node:/, '');
+  if (GATE_REQUIRE_ALLOWLIST.has(bare)) return moduleRequire(spec);
+  throw new Error(
+    `gate module require(${JSON.stringify(spec)}) refused: a gate is a pure function and may only load ` +
+      `pure builtins (${[...GATE_REQUIRE_ALLOWLIST].join(', ')}); '${bare}' is denied to prevent code execution at the byte floor`,
+  );
+}
 
 /** Where the admitted-gate registry lives (same path the CLI's gateRegistryPath() uses). */
 export const GATE_REGISTRY_REL = path.join('.atomic', 'gates', 'registry.json');
@@ -243,10 +261,10 @@ export function loadGateModuleSync(repoRoot: string, entry: RegistryEntry): Regi
   let mod: RegistryGateModule | null = null;
   try {
     const src = fs.readFileSync(abs, 'utf8');
-    const sandbox: { module: { exports: Record<string, unknown> }; exports: Record<string, unknown>; require: NodeRequire } = {
+    const sandbox: { module: { exports: Record<string, unknown> }; exports: Record<string, unknown>; require: (spec: string) => unknown } = {
       module: { exports: {} },
       exports: {},
-      require: moduleRequire,
+      require: safeRequire,
     };
     sandbox.exports = sandbox.module.exports;
     const context = vm.createContext(sandbox);

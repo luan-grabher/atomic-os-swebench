@@ -255,15 +255,20 @@ export function writeWithTrace(
   operator: string,
   validation: ValidationResult,
   negativeActionProof?: NegativeActionProof,
+  proofOfIncorrectness?: string,
 ): void {
   let provenNegativeAction = negativeActionProof;
   if (!provenNegativeAction) {
+    // Thread the caller's disproof so substitution/replace operators (rename/replace_*) are
+    // committable for net-removing edits the same way the non-universal rename is — without it,
+    // tools that omit a proof param were permanently un-committable (preview ok, commit refused).
     provenNegativeAction = requireNegativeProofForRemovedBytes({
       action: operator,
       target: relPath,
       targetUnit: 'file',
       before,
       after,
+      proofOfIncorrectness,
     });
   }
   atomicWrite(absPath, after);

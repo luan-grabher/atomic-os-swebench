@@ -27,8 +27,9 @@ export function registerToolsDispatch(server: McpServer): void {
     },
     async (a) => {
       try {
+        if (typeof a.toolName !== 'string' || a.toolName.trim().length === 0)
+          return fail('toolName is required (a registered Atomic tool name string)');
         const toolName = a.toolName.trim();
-        if (toolName.length === 0) return fail('toolName is required');
         if (toolName === ATOMIC_DISPATCH_TOOL_NAME) {
           return fail('atomic_dispatch_tool refuses self-dispatch to prevent recursive fresh-runtime spawning');
         }

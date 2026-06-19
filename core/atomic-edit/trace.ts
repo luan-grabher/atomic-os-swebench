@@ -430,6 +430,42 @@ function snapshotDirFor(trace: AtomicEditTrace): string {
   return path.join(proofLedgerRootFor(trace), '.atomic', 'snapshots');
 }
 
+let traceWriteCount = 0;
+const TRACE_GC_EVERY = 256;
+const TRACE_GC_MAX = 8000;
+const TRACE_GC_KEEP = 4000;
+/**
+ * Bounded-history GC for the proof-chain ledger. When a trace dir exceeds TRACE_GC_MAX op_*.json
+ * files it deletes the OLDEST by mtime down to TRACE_GC_KEEP. The newest are kept, so the file
+ * .atomic/HEAD points to (always the most recent write) survives. Runs at most once per
+ * TRACE_GC_EVERY writes. Named tradeoff: chain walk-back beyond the kept window is pruned — recent
+ * history stays verifiable, deep history is bounded. Fixes the unbounded 12k+-file ledger leak.
+ */
+export function reapTraces(traceDir: string): { pruned: number; kept: number } {
+  try {
+    const entries = fs
+      .readdirSync(traceDir)
+      .filter((n) => n.endsWith('.json') && !n.endsWith('.tmp'));
+    if (entries.length <= TRACE_GC_MAX) return { pruned: 0, kept: entries.length };
+    const stat = entries
+      .map((n) => {
+        const p = path.join(traceDir, n);
+        let m = 0;
+        try { m = fs.statSync(p).mtimeMs; } catch { /* unreadable → treat as oldest */ }
+        return { p, m };
+      })
+      .sort((a, b) => a.m - b.m); // oldest first
+    const toDelete = stat.slice(0, Math.max(0, stat.length - TRACE_GC_KEEP));
+    let pruned = 0;
+    for (const f of toDelete) {
+      try { fs.unlinkSync(f.p); pruned += 1; } catch { /* ignore individual failures */ }
+    }
+    return { pruned, kept: entries.length - pruned };
+  } catch {
+    return { pruned: 0, kept: 0 }; // dir missing/unreadable → no-op
+  }
+}
+
 /**
  * Persist the trace. Fail-closed: returns the selected repo-relative path on success,
  * or an error string on failure — never throws, never blocks the edit.
@@ -511,6 +547,9 @@ export function writeTrace(
     fs.writeFileSync(headTmp, trace.chainHash);
     fs.renameSync(headTmp, headPath);
 
+    // Opportunistic bounded-history GC (cheap: one readdir at most every TRACE_GC_EVERY writes).
+    if (++traceWriteCount % TRACE_GC_EVERY === 0) reapTraces(traceDir);
+
     return { tracePath: receiptPathFor(repoRoot, abs), chainHash: trace.chainHash, snapshotPath };
   } catch (e) {
     return { traceWriteError: e instanceof Error ? e.message : String(e) };
@@ -527,8 +566,14 @@ export function shapePayload(
   base: Record<string, unknown>,
   parts: { inlinePreview: string; legacyDiff?: string; trace: AtomicEditTrace },
 ): Record<string, unknown> {
-  const persisted = writeTrace(parts.trace);
   const t = parts.trace;
+  // A PREVIEW must persist NOTHING: it has no rollback target and a non-applied op must never enter
+  // the proof chain (advancing .atomic/HEAD for a preview would corrupt the tamper-evident ledger).
+  // Previously writeTrace ran unconditionally here — so every preview wrote a trace + advanced HEAD,
+  // making "preview persists nothing" false and driving the .atomic/traces growth.
+  const persisted = t.preview
+    ? ({ tracePath: undefined, traceWriteError: undefined } as ReturnType<typeof writeTrace>)
+    : writeTrace(parts.trace);
   // Camada 2 — compact human block FIRST, so the native CLI TUI shows this
   // (not raw JSON) as the edit's visual proof. This is what replaces the
   // banned native line-diff on screen.
@@ -538,9 +583,11 @@ export function shapePayload(
     protectedFile: 'no',
     sha256: 'ok',
   } as const;
-  const traceLine = persisted.tracePath
-    ? `Trace: ${persisted.tracePath}`
-    : `Trace error: ${persisted.traceWriteError ?? 'unknown'}`;
+  const traceLine = t.preview
+    ? 'Trace: (preview — nothing persisted)'
+    : persisted.tracePath
+      ? `Trace: ${persisted.tracePath}`
+      : `Trace error: ${persisted.traceWriteError ?? 'unknown'}`;
   const headline = t.preview ? '✅ Atomic edit preview (not written)' : '✅ Atomic edit applied';
   const summary =
     `${headline}\n\n` +

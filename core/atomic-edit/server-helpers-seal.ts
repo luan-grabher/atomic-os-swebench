@@ -180,7 +180,19 @@ export function verifyAtomicSealEnvelope(seal: unknown): AtomicSealVerification 
   const artifactCheck = verifyPayloadArtifactHashes(seal.payload);
   const artifactHashesValid = artifactCheck.valid;
   const artifactCustodyValid = artifactHashesValid !== false;
-  const sealValid = schemaValid && hashValid && artifactCustodyValid && (signatureAlg === 'none' || signatureValid === true);
+  // FORGE/DOWNGRADE DEFENSE (alg:none): an attacker who strips a real seal's HMAC signature and sets
+  // signatureAlg:'none' previously still passed sealValid (only hash+schema were re-checked). When a
+  // signing key IS available (ATOMIC_SEAL_KEY present), a legit seal would be hmac-signed — so an
+  // alg:none seal is a downgrade and must be REJECTED. alg:none remains acceptable ONLY when no key
+  // exists at all (genuine hash-only, tamper-evident-but-unsigned, honestly labeled).
+  const keyPresent = sealSigningKey() !== null;
+  const signatureAcceptable =
+    signatureAlg === 'hmac-sha256'
+      ? signatureValid === true
+      : signatureAlg === 'none'
+        ? !keyPresent
+        : false;
+  const sealValid = schemaValid && hashValid && artifactCustodyValid && signatureAcceptable;
   const signatureLimit = signatureAlg === 'hmac-sha256'
     ? signatureValid === null
       ? 'ATOMIC_SEAL_KEY is not present; hash can be checked but issuer signature cannot be verified.'

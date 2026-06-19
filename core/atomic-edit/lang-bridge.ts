@@ -173,8 +173,15 @@ const EXT_VALIDATORS: Record<string, {
 /** Extensions covered by tree-sitter fallback (tried when native parser unavailable). */
 const TREE_SITTER_FALLBACK_EXTS = new Set([
   '.java', '.kt', '.c', '.h', '.cc', '.cpp', '.hpp', '.cs',
-  '.swift', '.scala', '.php', '.css', '.scss', '.less', '.sql', '.html',
+  '.swift', '.scala', '.php', '.css', '.sql', '.html',
   '.go', '.rs',
+  // NOTE: .scss/.less are deliberately NOT here. No faithful tree-sitter grammar for
+  // them is installed; routing them to the css grammar still false-positives valid
+  // SCSS vars ($x) / LESS vars (@x), and the prior `.scss/.less -> javascript` route
+  // refused valid input outright (a P2 soundness violation, the L06 bug class). They
+  // fall through to STRUCTURAL balance (engine.ts) — honest `language:"structural"`,
+  // catches the common brace/string breakage, never false-positives valid syntax.
+  // Locked by gates/lang-misrouting.proof.mjs.
 ]);
 
 /** Map extension to tree-sitter language tag for validation. */
@@ -186,7 +193,9 @@ const EXT_TO_TS_LANG_PRE: Record<string, string> = {
   '.swift': 'cpp',
   '.scala': 'java',
   '.php': 'cpp',
-  '.css': 'css', '.scss': 'javascript', '.less': 'javascript',
+  '.css': 'css',
+  // .scss/.less intentionally omitted — see TREE_SITTER_FALLBACK_EXTS note (no faithful
+  // grammar; mis-routing to javascript/css false-positives valid input → structural fallback).
   '.sql': 'sql',
   '.html': 'html',
   '.go': 'go',
@@ -319,8 +328,7 @@ const EXT_TO_TS_LANG: Record<string, string> = {
   '.scala': 'java',                      // Scala approximate grammar fallback
   '.php': 'cpp',                         // PHP approximate grammar fallback
   '.css': 'css',
-  '.scss': 'javascript',
-  '.less': 'javascript',
+  // .scss/.less intentionally omitted — see TREE_SITTER_FALLBACK_EXTS note.
   '.sql': 'sql',
   '.html': 'html',
   '.go': 'go',

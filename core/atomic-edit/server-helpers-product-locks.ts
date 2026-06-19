@@ -156,12 +156,31 @@ export function chooseIntegration(
 ): ProductIntegrationProfile {
   if (explicit) return PRODUCT_INTEGRATIONS[explicit];
   const normalized = lowerText(goal);
+  // Specificity weighting: a keyword shared by FEWER integrations is more discriminating, so a rare
+  // keyword ('whatsapp','stripe') outweighs a generic one ('mensagem') that several integrations share.
+  // Fixes the count + first-declared-wins tie that mis-routed a WhatsApp goal to chat_persistence.
+  const keywordDocFreq = new Map<string, number>();
+  for (const docId of PRODUCT_INTEGRATION_IDS) {
+    if (docId === 'generic_product_flow') continue;
+    for (const keyword of PRODUCT_INTEGRATIONS[docId].keywords) {
+      const k = lowerText(keyword);
+      keywordDocFreq.set(k, (keywordDocFreq.get(k) ?? 0) + 1);
+    }
+  }
   const candidates = PRODUCT_INTEGRATION_IDS.filter((id) => id !== 'generic_product_flow')
     .map((id) => {
       const profile = PRODUCT_INTEGRATIONS[id];
-      const score = profile.keywords.filter((keyword) =>
-        normalized.includes(lowerText(keyword)),
-      ).length;
+      const identity = lowerText(`${profile.id} ${profile.label}`);
+      const score = profile.keywords.reduce((sum, keyword) => {
+        const k = lowerText(keyword);
+        if (!normalized.includes(k)) return sum;
+        // base = rarity (a keyword shared by fewer integrations is more discriminating); ×3 when the
+        // matched keyword is an IDENTITY token of THIS integration (appears in its id/label) — a brand
+        // hit ('whatsapp' ∈ "WhatsApp oficial") beats a generic domain word ('mensagem'), even when both
+        // are unique, breaking the score tie that mis-routed the WhatsApp goal to chat_persistence.
+        const base = 1 / (keywordDocFreq.get(k) ?? 1);
+        return sum + base * (identity.includes(k) ? 3 : 1);
+      }, 0);
       return { profile, score };
     })
     .sort((a, b) => b.score - a.score);
@@ -457,6 +476,21 @@ export function readLockRecord(id: string): Record<string, unknown> | null {
   return diagnostic.ok && diagnostic.record ? diagnostic.record : null;
 }
 
+// A lock whose heartbeat/start is older than this is flagged stale: auto-locks heartbeat frequently,
+// so a 30-min-silent lock is almost certainly abandoned (a crashed owner). Surfacing ageMs+stale gives
+// callers the TTL signal the status output previously lacked (a 7-day stale lock showed as just "active").
+const LOCK_STALE_TTL_MS = 30 * 60 * 1000;
+function lockAgeMs(record: Record<string, unknown>): number | null {
+  const ts =
+    typeof record.heartbeatTimestampMs === 'number'
+      ? record.heartbeatTimestampMs
+      : typeof record.heartbeatAt === 'string'
+        ? Date.parse(record.heartbeatAt)
+        : typeof record.startedAt === 'string'
+          ? Date.parse(record.startedAt)
+          : NaN;
+  return Number.isFinite(ts) ? Math.max(0, Date.now() - ts) : null;
+}
 export function listLocks(): Record<string, unknown>[] {
   const root = lockRoot();
   if (!fs.existsSync(root)) return [];
@@ -467,7 +501,16 @@ export function listLocks(): Record<string, unknown>[] {
       const id = entry.name;
       const diagnostic = readLockRecordWithDiagnostics(id);
       if (diagnostic.ok && diagnostic.record) {
-        return { ...diagnostic.record, frontId: id, lockReadOk: true, lockFormat: diagnostic.format };
+        const ageMs = lockAgeMs(diagnostic.record);
+        return {
+          ...diagnostic.record,
+          frontId: id,
+          lockReadOk: true,
+          lockFormat: diagnostic.format,
+          ageMs,
+          stale: ageMs === null ? null : ageMs > LOCK_STALE_TTL_MS,
+          staleTtlMs: LOCK_STALE_TTL_MS,
+        };
       }
       return {
         frontId: id,

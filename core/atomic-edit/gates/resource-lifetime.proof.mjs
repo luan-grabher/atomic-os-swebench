@@ -83,7 +83,10 @@ const hasLS = spawnSync('typescript-language-server', ['--version'], { encoding:
 const work = fs.mkdtempSync(path.join(os.tmpdir(), 'atomic-rt-proof-'));
 const tsFile = path.join(work, 'probe.ts');
 fs.writeFileSync(tsFile, 'export const greet = (n: string): string => n;\n');
-const KNOWN = new Set(['probe.ts', 'leaker.mjs']);
+const KNOWN = new Set([
+  'probe.ts', 'leaker.mjs',
+  'reaper-child.mjs', 'control-child.mjs', 'reaper-owner.mjs', 'control-owner.mjs',
+]);
 
 try {
   // ── RT-DETECT (ps-FREE, deterministic, always runs) — the proof CAN go red ────
@@ -109,6 +112,12 @@ try {
     leaked, { canaryPid: canaryPid ?? null, aliveAfterLeakerDeath: leaked, psFree: true });
 
   // ── RT-REAL (ps-based; honest-skip without ps or a language server) ───────────
+  // HONEST SCOPE: this verifies the language-server path stays clean — but the LSP
+  // toolchain self-exits on stdin-EOF when the router dies, so this is a FUNCTIONALITY
+  // + hygiene check, NOT the discriminating leak test. (Disabling the router teardown
+  // still leaves zero orphans here — empirically verified.) The real ~242-proc leak was
+  // the socket-driven broker, which has no EOF trigger; RT-REAP below is its discriminating
+  // test against the production parent-death reaper.
   if (!routerAvailable || !psAvailable || !hasLS) {
     check('RT-REAL: SKIPPED — router, process table, or language server unavailable (honest unjudged)', true,
       { skipped: true, routerAvailable, router, psAvailable, hasLS });
@@ -151,9 +160,52 @@ try {
     else check('RT-REAL/sigterm: no orphaned LS child', true, { lsPid: null });
   }
 
+  // ── RT-REAP (THE discriminating real-leak test) — drives the PRODUCTION reaper ──
+  // The 242-proc/704MB leak was the socket-/poll-driven broker orphaned to ppid=1 on an
+  // ABNORMAL owner death (SIGKILL — uncatchable, so no teardown handler can fire). This
+  // imports the SAME parent-death-reaper.mjs the broker uses, installs it on a broker-shaped
+  // child, then SIGKILLs the child's OWNER (the exact leak trigger) and asserts the child
+  // self-reaps. A byte-identical child WITHOUT the reaper is run as a control: it MUST orphan,
+  // which is what proves this check is discriminating (it can go red) rather than vacuous.
+  const reaperAbs = path.join(dir, '..', 'parent-death-reaper.mjs');
+  async function reapTrial(withReaper) {
+    const tag = withReaper ? 'reaper' : 'control';
+    const childFile = path.join(work, `${tag}-child.mjs`);
+    fs.writeFileSync(childFile, (withReaper
+      ? `import { installParentDeathReaper } from ${JSON.stringify(reaperAbs)};\n` +
+        `installParentDeathReaper({ intervalMs: 150, label: 'rt-reap', onOrphaned: () => process.exit(0) });\n`
+      : '') + "process.stdout.write('C\\n');\nsetInterval(() => {}, 1e9); // socket-broker shape: never self-exits\n");
+    const ownerFile = path.join(work, `${tag}-owner.mjs`);
+    fs.writeFileSync(ownerFile, [
+      "import * as cp from 'node:child_process';",
+      `const c = cp.spawn(process.execPath, [${JSON.stringify(childFile)}], { detached: true, stdio: ['ignore','pipe','ignore'] });`,
+      "c.stdout.on('data', (d) => { if (String(d).includes('C')) process.stdout.write('CHILD_PID=' + c.pid + '\\n'); });",
+      'c.unref();',
+      'setInterval(() => {}, 1e9); // owner stays alive until the proof SIGKILLs it',
+    ].join('\n'));
+    const owner = spawn('node', [ownerFile], { stdio: ['ignore', 'pipe', 'ignore'] });
+    let oout = '';
+    const childPid = await new Promise((res) => {
+      const done = (v) => res(v);
+      owner.stdout.on('data', (d) => { oout += d.toString(); const m = oout.match(/CHILD_PID=(\d+)/); if (m) done(m[1]); });
+      setTimeout(() => done((oout.match(/CHILD_PID=(\d+)/) || [])[1] || null), 5000);
+    });
+    try { owner.kill('SIGKILL'); } catch { /* */ } // ABNORMAL owner death — the leak trigger
+    let aliveAfter = Boolean(childPid);
+    if (childPid) { for (let i = 0; i < 24 && (aliveAfter = alive(childPid)); i += 1) await sleep(150); }
+    if (childPid && alive(childPid)) killPid(childPid); // reap a survivor (control case leaves one)
+    return { childPid: childPid ?? null, orphaned: childPid ? aliveAfter : null };
+  }
+  const reaped = await reapTrial(true);
+  check('RT-REAP/positive: broker-shaped child with the production reaper self-reaps on abnormal owner death',
+    Boolean(reaped.childPid) && reaped.orphaned === false, reaped);
+  const ctrl = await reapTrial(false);
+  check('RT-REAP/discriminates: a byte-identical child WITHOUT the reaper DOES orphan (proof can go red)',
+    Boolean(ctrl.childPid) && ctrl.orphaned === true, ctrl);
+
   // ── RT-CLEAN (always) — no tree pollution (L03 seed) ─────────────────────────
   const stray = fs.readdirSync(work).filter((f) => !KNOWN.has(f));
-  check('RT-CLEAN: router/leaker runs leak zero stray artifacts into the tree', stray.length === 0, { stray });
+  check('RT-CLEAN: router/leaker/reaper runs leak zero stray artifacts into the tree', stray.length === 0, { stray });
 } finally {
   fs.rmSync(work, { recursive: true, force: true });
 }

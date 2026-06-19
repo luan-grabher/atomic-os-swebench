@@ -1,7 +1,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { execSync } from "node:child_process";
 import { z } from "zod/v4";
 import { REPO_ROOT } from "./guard.js";
 import { ok, fail } from "./server-helpers-result.js";
+import { atomicRootFromModule, callFreshAtomicTool } from "./server-helpers-hot-reload.js";
 import {
   createSession, recordEntry, recordProposal, advancePhase, nextStep,
   incrementAttempt, accept, requestRevision, persistTrajectory,
@@ -10,6 +12,28 @@ import {
 } from "./agent-loop.js";
 
 const sessions = new Map<string, AgentSession>();
+
+/** Read the real ok/false + text out of a dispatched tool's MCP envelope (or our single-call shape). */
+function freshResultOk(res: unknown): { ok: boolean; text: string } {
+  const env = res as { content?: Array<{ text?: string }>; isError?: boolean };
+  const text = Array.isArray(env?.content)
+    ? env.content.map((c) => c?.text ?? '').join('\n')
+    : typeof res === 'string' ? res : JSON.stringify(res);
+  let good = env?.isError !== true;
+  try { const j = JSON.parse(text); if (j && typeof j.ok === 'boolean') good = good && j.ok; } catch { /* text is not json */ }
+  return { ok: good, text: text.slice(0, 1500) };
+}
+
+/** Dispatch the proposal's real atomic tool through the real machinery (fresh runtime). This is what
+ *  makes validate/commit ACTUAL gate runs / writes instead of bookkeeping that always says "accepted". */
+async function dispatchProposal(tool: string, args: Record<string, unknown>, extra: Record<string, unknown>): Promise<{ ok: boolean; text: string }> {
+  try {
+    const res = await callFreshAtomicTool(atomicRootFromModule(), process.env, tool, { ...args, ...extra });
+    return freshResultOk(res);
+  } catch (e) {
+    return { ok: false, text: e instanceof Error ? e.message : String(e) };
+  }
+}
 
 function getSession(id: string): AgentSession {
   const cached = sessions.get(id);
@@ -101,7 +125,13 @@ export function registerAgentTools(server: McpServer): void {
     },
   }, async (a) => {
     try {
-      const s=getSession(a.sessionId); if(s.phase!=="propose")throw new Error("Validate after propose"); const ps=Array.from(s.proposals.values()).filter(function(p:AgentProposal){return p.step===s.currentStep}); if(!ps.length)throw new Error("No proposals"); advancePhase(s); const d:AgentDecision={verdict:"accepted",reason:"Validated.",detail:"Tool: "+ps[ps.length-1].tool,evidence:{validation:{language:"typescript",before:0,after:0}}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:true,sessionId:s.sessionId,phase:s.phase,verdict:"accepted"});
+      const s=getSession(a.sessionId); if(s.phase!=="propose")throw new Error("Validate after propose"); const ps=Array.from(s.proposals.values()).filter(function(p:AgentProposal){return p.step===s.currentStep}); if(!ps.length)throw new Error("No proposals");
+      // REAL gate run: dispatch the proposal's tool in PREVIEW through the actual atomic machinery.
+      // A refused/red proposal must NOT advance and must NOT be recorded "accepted" (the prior
+      // hardcoded "Validated." was a rubber-stamp facade contradicting "Validate through atomic gates").
+      const prop=ps[ps.length-1]; const vr=await dispatchProposal(prop.tool, prop.arguments, { preview:true });
+      if(!vr.ok){ const d:AgentDecision={verdict:"needs_revision",reason:"Gate validation FAILED.",detail:vr.text,evidence:{}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:false,sessionId:s.sessionId,phase:s.phase,verdict:"needs_revision",validation:vr.text}); }
+      advancePhase(s); const d:AgentDecision={verdict:"accepted",reason:"Validated through atomic gates.",detail:"Tool: "+prop.tool,evidence:{validation:{language:"typescript",before:0,after:0}}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:true,sessionId:s.sessionId,phase:s.phase,verdict:"accepted"});
     } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
   });
 
@@ -113,7 +143,13 @@ export function registerAgentTools(server: McpServer): void {
     },
   }, async (a) => {
     try {
-      const s=getSession(a.sessionId); if(s.phase!=="validate")throw new Error("Commit after validate"); const ps=Array.from(s.proposals.values()).filter(function(p:AgentProposal){return p.step===s.currentStep}); if(!ps.length)throw new Error("No validated proposals"); advancePhase(s); const d:AgentDecision={verdict:"accepted",reason:"Committed.",detail:"Receipt in .atomic/traces/.",evidence:{}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:true,sessionId:s.sessionId,phase:s.phase,step:s.currentStep});
+      const s=getSession(a.sessionId); if(s.phase!=="validate")throw new Error("Commit after validate"); const ps=Array.from(s.proposals.values()).filter(function(p:AgentProposal){return p.step===s.currentStep}); if(!ps.length)throw new Error("No validated proposals");
+      // REAL write: dispatch the proposal's tool for real (no preview) through the atomic firewall.
+      // The prior handler recorded "Committed. Receipt in .atomic/traces/." WITHOUT ever writing —
+      // a facade. Now a failed write surfaces and does NOT advance.
+      const prop=ps[ps.length-1]; const cr=await dispatchProposal(prop.tool, prop.arguments, { preview:false });
+      if(!cr.ok){ const d:AgentDecision={verdict:"needs_revision",reason:"Commit (atomic write) FAILED.",detail:cr.text,evidence:{}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:false,sessionId:s.sessionId,phase:s.phase,error:cr.text}); }
+      advancePhase(s); const d:AgentDecision={verdict:"accepted",reason:"Committed via atomic write.",detail:cr.text,evidence:{}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:true,sessionId:s.sessionId,phase:s.phase,step:s.currentStep,receipt:cr.text});
     } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
   });
 
@@ -127,7 +163,13 @@ export function registerAgentTools(server: McpServer): void {
     },
   }, async (a) => {
     try {
-      const s=getSession(a.sessionId); if(s.phase!=="commit")throw new Error("Verify after commit"); const dm:Record<string,string>={typecheck:"npx tsc --noEmit",lint:"npx eslint .",test:"npm test"}; const c=a.command||dm[a.verifyType]; advancePhase(s); const d:AgentDecision={verdict:"accepted",reason:"Verified: "+a.verifyType,detail:"Command: "+c,evidence:{testResults:"verification: "+a.verifyType}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:true,sessionId:s.sessionId,phase:s.phase,verifyType:a.verifyType,command:c});
+      const s=getSession(a.sessionId); if(s.phase!=="commit")throw new Error("Verify after commit"); const dm:Record<string,string>={typecheck:"npx tsc --noEmit",lint:"npx eslint .",test:"npm test"}; const c=a.command||dm[a.verifyType];
+      // REALLY execute the verification command and report the REAL result. The prior handler built the
+      // command string then recorded "Verified" WITHOUT running it — a RED test was reported accepted.
+      let vok=true, vout="";
+      try { vout=execSync(c,{cwd:REPO_ROOT,encoding:"utf8",timeout:300000,stdio:["ignore","pipe","pipe"]}).slice(-1500); }
+      catch(e){ vok=false; const ee=e as {stdout?:string;stderr?:string;message?:string}; vout=((ee.stdout||"")+(ee.stderr||"")+(ee.message||"")).slice(-1500); }
+      advancePhase(s); const d:AgentDecision={verdict:vok?"accepted":"needs_revision",reason:(vok?"Verified (passed): ":"Verification FAILED: ")+a.verifyType,detail:"Command: "+c,evidence:{testResults:vout}}; recordEntry(s,d); persistTrajectory(REPO_ROOT,s); return ok({ok:vok,sessionId:s.sessionId,phase:s.phase,verifyType:a.verifyType,command:c,passed:vok,output:vout});
     } catch (e) { return fail(e instanceof Error ? e.message : String(e)); }
   });
 

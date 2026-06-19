@@ -10,7 +10,7 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = path.resolve(dir, '..', '..', '..');
+const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(dir, '..', '..', '..');
 const {
   DISABLE_HOT_RELOAD_ENV,
   FORCE_HOT_RELOAD_ENV,

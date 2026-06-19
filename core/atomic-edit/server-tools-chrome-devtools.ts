@@ -187,7 +187,10 @@ function startCdpBrowserViaBroker(root: string, env: NodeJS.ProcessEnv, timeout:
   const brokerSocket = brokerSocketPath();
   if (!brokerSocket) return null;
 
-  const timeoutForStart = Math.max(5_000, Math.min(timeout, 30_000));
+  // Respect the caller's budget: a small timeoutMs (e.g. a capability probe) must produce a SHORT,
+  // blocking-bounded broker call so it fails fast instead of flooring at 5s+margin and being killed
+  // mid-spawnSync (the unbounded-hang class). Larger budgets still get a full cold-launch window.
+  const timeoutForStart = Math.min(Math.max(1_000, timeout), 30_000);
   const request = {
     command: `/bin/bash ${shellQuote(cdpBrowserLauncherPath())} start`,
     cwd: REPO_ROOT,
@@ -200,7 +203,7 @@ function startCdpBrowserViaBroker(root: string, env: NodeJS.ProcessEnv, timeout:
     cwd: REPO_ROOT,
     input: JSON.stringify(request),
     encoding: 'utf8',
-    timeout: timeoutForStart + 5_000,
+    timeout: timeoutForStart + 2_000,
     maxBuffer: 8 * 1024 * 1024,
   });
 
@@ -267,7 +270,7 @@ async function startCdpBrowser(browserUrl: string, timeout: number): Promise<voi
       const timer = setTimeout(() => {
         child.kill('SIGTERM');
         reject(new Error(`chrome-devtools CDP start timed out for ${browserUrl}`));
-      }, Math.max(5_000, Math.min(timeout, 30_000)));
+      }, Math.min(Math.max(1_000, timeout), 30_000));
       child.on('error', (error) => {
         clearTimeout(timer);
         reject(error);
@@ -530,10 +533,35 @@ async function getSession(options: ChromeBridgeOptions): Promise<ChromeSession> 
   const key = sessionKey(options);
   const existing = sessions.get(key);
   if (existing) return existing;
-  if (resolveMode(options) === 'managed') await ensureManagedBrowser(options);
-  const session = createSession(options);
-  await session.initialized;
-  return session;
+  // HARD budget on session setup so NO chrome tool can hang past its declared timeoutMs. Without
+  // this, a host with no reachable browser cold-launches Chrome + the chrome-devtools-mcp handshake
+  // for ~30-40s; a short-budget caller (capability probe like list_tools) was killed mid-flight — an
+  // unbounded hang. Now it fails CLEAN within budget with an actionable message.
+  const budget = timeoutMs(options.timeoutMs);
+  let timer: NodeJS.Timeout | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(
+      () =>
+        reject(
+          new Error(
+            `chrome-devtools: session setup exceeded ${budget}ms — no reachable browser at the target. ` +
+              'Start a browser (or pass browserUrl), or raise timeoutMs.',
+          ),
+        ),
+      budget,
+    );
+  });
+  const setup = (async (): Promise<ChromeSession> => {
+    if (resolveMode(options) === 'managed') await ensureManagedBrowser(options);
+    const session = createSession(options);
+    await session.initialized;
+    return session;
+  })();
+  try {
+    return await Promise.race([setup, deadline]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 async function callChromeMcp(method: string, params: unknown, options: ChromeBridgeOptions): Promise<unknown> {

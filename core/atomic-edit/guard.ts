@@ -145,9 +145,23 @@ export function intentScopeStatus(): { policyPath: string; policy: LoadedIntentS
 
 export function assertIntentMutationAllowed(absPath: string, subject = "mutation"): void {
   const workspaceRoot = activeWorkspaceRoot();
+  const rel = activeWorkspaceRel(absPath);
+  // ALWAYS-ON (independent of any intent-scope policy): refuse edit-tool writes to atomic's
+  // tamper-evident proof-chain + executable gate registry. These are written ONLY by atomic's
+  // internal machinery (direct fs in trace.ts / saveRegistry), NEVER via the edit-tool write path
+  // (atomicWrite → here). Without this, an agent could atomic_replace_text/create_file the HEAD
+  // chain or inject a gate module into registry.json — corrupting the proof ledger / the floor.
+  if (rel !== null && rel.startsWith(".atomic/")) {
+    const PROTECTED = [".atomic/HEAD", ".atomic/traces/", ".atomic/snapshots/", ".atomic/gates/registry.json"];
+    if (PROTECTED.some((p) => rel === p || rel.startsWith(p))) {
+      throw new Error(
+        "atomic " + subject + " refused: " + rel + " is atomic's tamper-evident proof-chain/registry " +
+          "state — written only by atomic internally, never via an edit tool.",
+      );
+    }
+  }
   const policy = readIntentScopePolicy(workspaceRoot);
   if (!policy) return;
-  const rel = activeWorkspaceRel(absPath);
   if (rel === null || rel.startsWith(".atomic/")) return;
   const forbidden = policy.forbiddenMutationPaths.find((pattern) => scopePatternMatches(pattern, rel));
   if (forbidden) {
@@ -304,6 +318,12 @@ export function workspaceBindingStatus(): Record<string, unknown> {
   return {
     repoRoot: REPO_ROOT,
     activeWorkspaceRoot: activeWorkspaceRoot(),
+    // D1/CRIT-003 honesty: writes go through the broker rooted at REPO_ROOT (fixed at launch). If the
+    // active (read) root is not under REPO_ROOT, writes to it FAIL — surface that, not a bare ok:true.
+    writeCapable: activeWorkspaceRoot() === REPO_ROOT || activeWorkspaceRoot().startsWith(REPO_ROOT.endsWith('/') ? REPO_ROOT : REPO_ROOT + '/'),
+    ...(activeWorkspaceRoot() === REPO_ROOT || activeWorkspaceRoot().startsWith(REPO_ROOT.endsWith('/') ? REPO_ROOT : REPO_ROOT + '/')
+      ? {}
+      : { writeRootWarning: `reads resolve against ${activeWorkspaceRoot()}, but the write broker is rooted at ${REPO_ROOT}; writes will fail until relaunch with ATOMIC_EDIT_REPO_ROOT=${activeWorkspaceRoot()} (D1/CRIT-003)` }),
     declaredBy: sessionWorkspaceRoot !== null ? 'atomic_workspace_bind' : envRoot ? 'environment' : 'repo-root-default',
     envWorkspaceRoot: ENV_WORKSPACE_ROOT || null,
     sessionWorkspaceRoot,

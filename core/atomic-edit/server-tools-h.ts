@@ -87,11 +87,13 @@ server.registerTool(
   },
   async (a) => {
     try {
-      const rawScore = Math.max(
-        ...a.evidence.map((entry) =>
-          verifiedEvidenceWeight(entry.kind, entry.status, entry.artifactPaths),
-        ),
-      );
+      const rawScore = a.evidence.length
+        ? Math.max(
+            ...a.evidence.map((entry) =>
+              verifiedEvidenceWeight(entry.kind, entry.status, entry.artifactPaths),
+            ),
+          )
+        : 0; // empty evidence ⇒ 0, not Math.max() === -Infinity (the single-call path bypasses Zod .min(1))
       const failed = a.evidence.filter((entry) => entry.status === 'failed');
       const productProven = hasVerifiedProductProof(a.evidence);
       let score = rawScore;
@@ -152,11 +154,13 @@ server.registerTool(
   },
   async (a) => {
     try {
-      const trust = Math.max(
-        ...a.validation.map((entry) =>
-          verifiedEvidenceWeight(entry.kind, entry.status, entry.artifactPaths),
-        ),
-      );
+      const trust = a.validation.length
+        ? Math.max(
+            ...a.validation.map((entry) =>
+              verifiedEvidenceWeight(entry.kind, entry.status, entry.artifactPaths),
+            ),
+          )
+        : 0; // empty validation ⇒ 0, not -Infinity (single-call path bypasses Zod .min(1))
       const failing = a.validation.filter((entry) => entry.status === 'failed');
       // productProof requires VERIFIED product evidence (an artifact on disk), not a
       // self-reported passed status — so a receipt cannot claim 100 from a bare
@@ -263,10 +267,18 @@ server.registerTool(
       });
       const blocking = classified.filter((claim) => claim.truth !== 'REAL');
       const refused = classified.filter((claim) => claim.refused === true);
+      // Count refusals BY KIND — a runtime_probe is refused for a missing gateRunId, while
+      // api/db/browser/external_provider are refused for a missing artifactPath. The note must
+      // attribute each honestly (an honesty tool that mislabels its own reason is itself a facade).
+      const refusedProbes = refused.filter((claim) => claim.evidenceKind === 'runtime_probe').length;
+      const refusedArtifacts = refused.length - refusedProbes;
+      const refusalParts: string[] = [];
+      if (refusedProbes > 0)
+        refusalParts.push(`${refusedProbes} runtime_probe(s) sem gateRunId de gate real (use atomic_prove)`);
+      if (refusedArtifacts > 0)
+        refusalParts.push(`${refusedArtifacts} alegacao(oes) sem artifactPath real para verificar`);
       const refusalNote =
-        refused.length > 0
-          ? ` ${refused.length} runtime_probe(s) RECUSADA(s) por falta de gateRunId de gate real (use atomic_prove).`
-          : '';
+        refusalParts.length > 0 ? ` ${refused.length} RECUSADA(s): ${refusalParts.join('; ')}.` : '';
       const summaryForHuman =
         (blocking.length === 0
           ? `Todas as ${classified.length} alegacoes tem prova de comportamento real.`
@@ -360,29 +372,48 @@ server.registerTool(
   {
     title: 'Read the current product/atomic continuity state',
     description:
-      'Summarizes progress docs, workboard, active locks, and the next honest action. Use at the start of a session so continuation comes from verified repo state, not chat memory.',
+      'Summarizes progress docs, workboard, locks, PULSE certificate, runtime evidence, and the next honest action. Use at the start of a session so continuation comes from verified repo state, not chat memory.',
     inputSchema: {},
   },
   async () => {
     try {
       const progress = readTextOptional('docs/ai/ATOMIC_EDIT_PROGRESS.md');
       const workboard = readTextOptional('docs/ai/ATOMIC_EDIT_WORKBOARD.md');
-      const locks = listLocks();
+      const cert =
+        readJsonOptional<Record<string, unknown>>('PULSE_CERTIFICATE.json') ??
+        readJsonOptional<Record<string, unknown>>('.pulse/current/PULSE_CERTIFICATE.json');
+      const runtime = readJsonOptional<Record<string, unknown>>(
+        '.pulse/current/PULSE_RUNTIME_EVIDENCE.json',
+      );
+      const gates =
+        cert && typeof cert.gates === 'object' && cert.gates !== null
+          ? (cert.gates as Record<string, unknown>)
+          : {};
+      const runtimePass = gates.runtimePass as Record<string, unknown> | undefined;
+      const pulseStatus = typeof cert?.status === 'string' ? cert.status : 'unknown';
+      const score = typeof cert?.score === 'number' ? cert.score : null;
+      const runtimeSummary =
+        typeof runtime?.summary === 'string' ? runtime.summary : 'runtime evidence missing';
       const nextAction =
-        locks.length > 0
-          ? 'concluir ou liberar os locks ativos antes de abrir nova frente'
-          : 'continuar a partir do workboard/progress verificado no repo';
+        pulseStatus === 'CERTIFIED'
+          ? 'usar o principio em trabalho de produto; nao reconstruir tooling sem regressao objetiva'
+          : runtimePass?.status === 'fail'
+            ? 'corrigir ou anexar evidencia runtime observada antes de declarar producao'
+            : 'atacar o proximo gate PULSE vermelho com evidencia de produto';
       const summaryForHuman =
-        `Continuidade: locks ativos: ${locks.length}. ` +
-        `Progress: ${progress ? 'presente' : 'ausente'}. Workboard: ${workboard ? 'presente' : 'ausente'}. ` +
-        `Proxima acao: ${nextAction}.`;
+        `Continuidade: PULSE=${pulseStatus}${score === null ? '' : ` score=${score}`}. ` +
+        `Runtime: ${runtimeSummary}. Locks ativos: ${listLocks().length}. Proxima acao: ${nextAction}.`;
       return ok({
         ok: true,
         summaryForHuman,
         summary: summaryForHuman,
         progressPresent: Boolean(progress),
         workboardPresent: Boolean(workboard),
-        locks,
+        pulseStatus,
+        pulseScore: score,
+        runtimeSummary,
+        runtimePass: runtimePass ?? null,
+        locks: listLocks(),
         nextAction,
       });
     } catch (e) {
