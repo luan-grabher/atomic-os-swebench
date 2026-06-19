@@ -14,3 +14,7 @@ __pycache__/
 .env
 **/deepseek*.toml
 !core/config/deepseek.example.toml
+
+# atomic-edit slim bundle (built by core/agent/atomic-bundle.sh — never committed)
+core/agent/atomic-edit-bundle.tgz
+atomic-edit-bundle.tgz

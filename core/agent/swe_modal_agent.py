@@ -34,6 +34,20 @@ CONDA = ("export PYTHONIOENCODING=utf-8 LANG=C.UTF-8 LC_ALL=C.UTF-8 && "
 APP = modal.App.lookup("swe-agent-parallel", create_if_missing=True)
 _print_lock = threading.Lock()
 
+# ── ATOMIC EDIT A/B FLAG (WAVE C1) ───────────────────────────────────────────────────────────────
+# ATOMIC=on routes the `str_replace` tool through the unified atomic-edit GOVERNED headless CLI
+# (core/atomic-edit/headless-edit.mjs) running INSIDE the sandbox against the real /testbed file,
+# instead of the thin inline `sb_str_replace` (str.replace + py_compile). Everything else — brain,
+# loop, history, baseline, PASS_TO_PASS/FAIL_TO_PASS judging — is IDENTICAL, so the ONLY independent
+# variable between the ON and OFF arms is the edit mechanism (a clean attributable A/B).
+# Default OFF ⇒ byte-identical to the prior agent (the control arm is untouched).
+ATOMIC = os.environ.get("ATOMIC", "off").strip().lower() == "on"
+# The slim bundle (built by core/agent/atomic-bundle.sh): dist closure + minimal typescript +
+# headless-edit.mjs. ~1.6M tgz / ~8.8M unpacked (vs 490M full node_modules).
+ATOMIC_BUNDLE = os.environ.get("ATOMIC_BUNDLE", str(Path(__file__).resolve().parent / "atomic-edit-bundle.tgz"))
+# Unpacks to /root/atomic-edit/ inside the sandbox; the entrypoint is headless-edit.mjs there.
+ATOMIC_SANDBOX_DIR = "/root/atomic-edit"
+
 
 def log(iid, msg):
     with _print_lock:
@@ -84,6 +98,26 @@ TOOLS = [
     {"type": "function", "function": {"name": "run_tests", "description": "Run the failing+regression tests. Returns pass/fail + output. Call after edits.",
         "parameters": {"type": "object", "properties": {}}}},
 ]
+
+# ATOMIC=on: the governed editor REFUSES byte-removing edits unless the model justifies the deletion.
+# Add an OPTIONAL `proof` parameter to str_replace ONLY in the ON arm — the OFF arm's schema (above)
+# stays byte-identical so the control prompt is unchanged. The model supplies `proof` when `new`
+# deletes/shortens code (proofOfIncorrectness: why the removed bytes are incorrect/dead, >=20 chars).
+if ATOMIC:
+    TOOLS = [dict(t) for t in TOOLS]
+    for _t in TOOLS:
+        if _t["function"]["name"] == "str_replace":
+            _t["function"] = dict(_t["function"])
+            _t["function"]["description"] = (
+                "Atomic GOVERNED edit: replace the EXACT unique text `old` with `new`. Fails if not found, "
+                "not unique, or result is not valid Python. If your edit REMOVES or SHORTENS code (deletes "
+                "bytes), you MUST also pass `proof`: a >=20-char justification of why the removed bytes are "
+                "incorrect/dead/redundant — otherwise the deletion is REFUSED. Pure additions need no proof. "
+                "Make the MINIMAL change.")
+            _t["function"]["parameters"] = {"type": "object", "properties": {
+                "path": {"type": "string"}, "old": {"type": "string"}, "new": {"type": "string"},
+                "proof": {"type": "string", "description": "REQUIRED only when the edit removes/shortens code: why the removed bytes are non-correct/dead (>=20 chars)."}},
+                "required": ["path", "old", "new"]}
 
 SYS = ("You are an expert engineer fixing a real bug in a Python repo, graded by a hidden test suite. "
        "Work in the project SOURCE ONLY (never read tests or site-packages). Strategy: (1) locate the exact "
@@ -286,6 +320,13 @@ def solve(inst, f2p, p2p, test_cmd, block_files, max_steps=80):
         # locate phase into 1 — the traceback names the exact source frame to fix. Not a leak: it is the
         # identical f2p output the agent already receives from run_tests, just delivered at step 0.
         _ft0, _ = sbexec(sb, f"{CONDA} && {f2p_cmd}")
+        # ATOMIC=on: provision node + stage the governed headless-edit bundle. Done ONCE per sandbox,
+        # AFTER the baseline is measured on the pristine tree (so the A/B baseline is identical — node
+        # is staged in /root, never touching /testbed). On failure we abort the instance rather than
+        # silently editing via the OFF path (that would break A/B attribution).
+        atomic_node = None
+        if ATOMIC:
+            atomic_node = _atomic_provision(sb, iid)
         messages = [{"role": "system", "content": SYS},
                     {"role": "user", "content": f"Bug/issue:\n\n{inst['problem_statement'][:6000]}\n\n"
                         f"The repo is checked out at /testbed and your shell is ALREADY there — use paths RELATIVE "
@@ -421,7 +462,10 @@ def solve(inst, f2p, p2p, test_cmd, block_files, max_steps=80):
                         res, _ = sbexec(sb, f"cd /testbed && P={shlex.quote(pth)} N={shlex.quote(a.get('name',''))} python3 -c \"import base64;exec(base64.b64decode('{_b64}').decode())\"")
                         res = (res or "(empty)")[:3500]
                 elif fn == "str_replace":
-                    res = sb_str_replace(sb, a.get("path", ""), a.get("old", ""), a.get("new", ""), block_files)
+                    if ATOMIC:
+                        res = sb_atomic_str_replace(sb, atomic_node, a.get("path", ""), a.get("old", ""), a.get("new", ""), a.get("proof", ""), block_files)
+                    else:
+                        res = sb_str_replace(sb, a.get("path", ""), a.get("old", ""), a.get("new", ""), block_files)
                     if str(res).startswith("OK"):
                         reads_since_edit = 0; read_breaks = 0; last_steered_diff = None  # a real edit landed — reset breaker state (releases the hard read-lockout so the model can read to refine)
                 elif fn == "run_tests":
@@ -586,6 +630,103 @@ def solve(inst, f2p, p2p, test_cmd, block_files, max_steps=80):
         if sb is not None:
             try: sb.terminate()
             except Exception: pass
+
+
+def _atomic_provision(sb, iid):
+    """Stage the slim atomic-edit bundle into the sandbox and guarantee a `node` runtime.
+
+    NODE-IN-SANDBOX PLAN (honest): the swebench prebuilt eval images are ubuntu+miniconda Python
+    testbeds — they do NOT ship node. We provision it from the conda-forge channel that miniconda is
+    already configured with (build_instance_image appends conda-forge), via `conda install -y nodejs`
+    into the SAME `testbed` env. This needs network at sandbox runtime (Modal sandboxes have egress),
+    keeps the A/B images byte-identical (no node baked into the OFF image — node only appears when
+    ATOMIC=on, at runtime), and adds no apt dependency. Fallback order: existing node on PATH →
+    conda nodejs. If neither yields node, we surface a hard ATOMIC_PROVISION error and the run aborts
+    (we do NOT silently fall back to the OFF editor — that would corrupt the A/B attribution).
+    Returns the absolute `node` binary path to use for headless-edit invocations.
+    """
+    # 1) is node already present?
+    nb, rc = sbexec(sb, "command -v node || true")
+    nb = (nb or "").strip().splitlines()[0].strip() if nb else ""
+    if not nb:
+        log(iid, "atomic: node not on PATH — installing nodejs via conda-forge into testbed env")
+        _o, _rc = sbexec(sb, f"{CONDA} && conda install -y -c conda-forge nodejs >/dev/null 2>&1; "
+                             "command -v node || echo /opt/miniconda3/envs/testbed/bin/node", timeout=900)
+        nb = (_o or "").strip().splitlines()[-1].strip()
+    # 2) verify node actually runs
+    ver, rc = sbexec(sb, f"{shlex.quote(nb)} --version 2>&1 || true")
+    if not (ver or "").strip().startswith("v"):
+        raise RuntimeError(f"ATOMIC_PROVISION: no usable node in sandbox (got {ver!r}); cannot run governed edits")
+    # 3) upload + unpack the slim bundle (FS API → no ARG_MAX limit)
+    data = Path(ATOMIC_BUNDLE).read_bytes()
+    with sb.open("/tmp/atomic-edit-bundle.tgz", "wb") as f:
+        f.write(data)
+    sbexec(sb, "rm -rf /root/atomic-edit && mkdir -p /root && tar -xzf /tmp/atomic-edit-bundle.tgz -C /root")
+    # 4) self-test the unpacked bundle on a throwaway .py so a broken upload fails LOUDLY, once
+    st = (
+        "import json,subprocess,os\n"
+        "open('/tmp/_at.py','w').write('def f(x):\\n    return x + 1\\n')\n"
+        "open('/tmp/_o','w').write('return x + 1')\n"
+        "open('/tmp/_n','w').write('return x + 1  # atomic selftest')\n"
+        f"r=subprocess.run([{json.dumps(nb)},'{ATOMIC_SANDBOX_DIR}/headless-edit.mjs','/tmp/_at.py','/tmp/_o','/tmp/_n'],capture_output=True,text=True)\n"
+        "print(r.stdout.strip() or r.stderr.strip())\n"
+    )
+    b64 = base64.b64encode(st.encode()).decode()
+    out, _ = sbexec(sb, f"python3 -c \"import base64;exec(base64.b64decode('{b64}').decode())\"")
+    if '"ok": true' not in out and '"ok":true' not in out:
+        raise RuntimeError(f"ATOMIC_PROVISION: bundle selftest failed in sandbox: {out[:400]}")
+    log(iid, f"atomic: node {ver.strip()} ready; headless-edit bundle staged + selftest GREEN")
+    return nb
+
+
+def sb_atomic_str_replace(sb, node_bin, path, old, new, proof, block_files):
+    """ON-path edit: route through the unified atomic-edit GOVERNED headless CLI inside the sandbox.
+
+    Same guarantees the MCP atomic_replace_text tool gives (the SAME engine code), now on /testbed:
+      • unique verbatim match (refuses not-found / ambiguous),
+      • REAL CPython ast.parse syntax gate (refuses a result that is not valid Python),
+      • inverted-byte-default governance: a byte-REMOVING edit REQUIRES a `proof` (proofOfIncorrectness,
+        >=20 chars). Deletions without a proof are REFUSED — the model must justify removed bytes.
+    Mirrors sb_str_replace's return contract: a string starting with 'OK' means the edit landed.
+    """
+    if any(b in path for b in block_files):
+        return "REFUSED: cannot edit hidden test file."
+    p = path if path.startswith("/") else "/testbed/" + path
+    # Hand old/new/proof to the sandbox as FILES (no shell-quoting hell on multi-line code), then run
+    # the headless CLI and translate its JSON verdict into the agent's OK/REFUSED string contract.
+    driver = (
+        "import json,subprocess,os,sys\n"
+        "d=json.loads(sys.stdin.read())\n"
+        "p=d['path']\n"
+        "if not os.path.exists(p): print('REFUSED: no such file'); sys.exit()\n"
+        "open('/tmp/_old','w').write(d['old']); open('/tmp/_new','w').write(d['new'])\n"
+        "argv=[d['node'], d['cli'], p, '/tmp/_old', '/tmp/_new']\n"
+        "if d.get('proof'):\n  open('/tmp/_proof','w').write(d['proof']); argv.append('/tmp/_proof')\n"
+        "r=subprocess.run(argv,capture_output=True,text=True)\n"
+        "out=(r.stdout or '').strip() or (r.stderr or '').strip()\n"
+        "try: v=json.loads(out.splitlines()[-1])\n"
+        "except Exception: print('REFUSED (atomic headless, unparsed): '+out[:600]); sys.exit()\n"
+        "if v.get('ok'):\n"
+        "  nb=v.get('negativeBytesAdmitted')\n"
+        "  tag=' [negative-bytes admitted: removed %s, proof %sc]'%(nb['removedByteCount'],nb['proofLength']) if nb else ''\n"
+        "  print('OK: edit applied + atomic-governed (lang=%s, syntax %s->%s)%s'%(v.get('language'),v.get('syntaxBefore'),v.get('syntaxAfter'),tag))\n"
+        "else:\n"
+        "  reason=v.get('reason'); err=v.get('error') or v.get('introduced') or ''\n"
+        "  if reason=='NEGATIVE_BYTES_NO_PROOF':\n"
+        "    print('REFUSED (atomic governance): this edit REMOVES bytes. To delete/replace code you MUST pass a `proof` argument (>=20 chars) explaining why the removed bytes are incorrect/dead. Re-send str_replace with a `proof`.')\n"
+        "  elif reason=='SYNTAX_REGRESSION':\n"
+        "    print('REFUSED (atomic syntax guard): result is not valid Python: %s'%err)\n"
+        "  elif reason=='MATCH':\n"
+        "    print('REFUSED: %s'%err)\n"
+        "  else:\n"
+        "    print('REFUSED (atomic): %s %s'%(reason,err))\n"
+    )
+    payload = json.dumps({"path": p, "old": old, "new": new, "proof": proof or "",
+                          "node": node_bin, "cli": f"{ATOMIC_SANDBOX_DIR}/headless-edit.mjs"})
+    b64 = base64.b64encode(driver.encode()).decode()
+    pl = payload.replace("'", "'\\''")
+    out, _ = sbexec(sb, f"printf '%s' '{pl}' | python3 -c \"import base64;exec(base64.b64decode('{b64}').decode())\"")
+    return out.strip() or "(no output)"
 
 
 def sb_str_replace(sb, path, old, new, block_files):
