@@ -130,7 +130,7 @@ function main() {
     results,
     'caller proofCommands are additive and cannot replace mandatory validators',
     source.includes('normalizeSelfExpansionProofCommands') &&
-      /const proofCommands = normalizeSelfExpansionProofCommands\(a\.proofCommands\);/.test(source) &&
+      /(?:const|let) proofCommands = normalizeSelfExpansionProofCommands\(a\.proofCommands\);/.test(source) &&
       !source.includes("a.proofCommands ?? ['node build.mjs', 'node codex-atomic-only-hook.proof.mjs --json']"),
     {
       hasNormalizer: source.includes('normalizeSelfExpansionProofCommands'),
@@ -232,7 +232,7 @@ function main() {
       source.includes("command.includes('vitest-package-suite')") &&
       source.includes("command.includes('multilang-supply-chain-resolver')") &&
       source.includes("command.includes('compiled-mcp-y-certificate')") &&
-      source.includes('return 90000'),
+      /return 600000;/.test(source),
     {
       hasTypeBudget: source.includes("command.includes('type-soundness-gate')"),
       hasAlgebraBudget: source.includes("command.includes('algebra.proof.mjs')"),
@@ -241,7 +241,7 @@ function main() {
       hasVitestPackageBudget: source.includes("command.includes('vitest-package-suite')"),
       hasMultilangSupplyChainBudget: source.includes("command.includes('multilang-supply-chain-resolver')"),
       hasCompiledCertificateBudget: source.includes("command.includes('compiled-mcp-y-certificate')"),
-      hasNinetySecondBudget: source.includes('return 90000'),
+      hasLivenessBudget: /return 600000;/.test(source),
     },
   );
   record(
