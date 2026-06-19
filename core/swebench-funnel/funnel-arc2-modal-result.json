@@ -1,0 +1,3884 @@
+{
+  "summary": {
+    "benchmark": "arc2",
+    "model": "deepseek-v4-pro",
+    "tasks": 120,
+    "budget": 6,
+    "byArm": {
+      "first-attempt": {
+        "solveRate": 0.0,
+        "solved": 0,
+        "total": 120
+      },
+      "blind-retry": {
+        "solveRate": 0.0,
+        "solved": 0,
+        "total": 120
+      },
+      "scalar-funnel": {
+        "solveRate": 0.0,
+        "solved": 0,
+        "total": 120
+      },
+      "unified-funnel": {
+        "solveRate": 0.0,
+        "solved": 0,
+        "total": 120
+      }
+    },
+    "headline": {
+      "firstAttempt": 0.0,
+      "unifiedFunnel": 0.0,
+      "liftOverFirstAttempt_pp": 0.0,
+      "liftOverBlindRetry_pp": 0.0
+    },
+    "cost": {
+      "promptTokens": 0,
+      "completionTokens": 0,
+      "usd": 0.0
+    },
+    "wallSeconds": 25.399088144302368
+  },
+  "results": [
+    {
+      "taskId": "0934a4d8",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "0934a4d8",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "135a2760",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "0934a4d8",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "135a2760",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "0934a4d8",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "136b0064",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "135a2760",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "135a2760",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "136b0064",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "136b0064",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "13e47133",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "136b0064",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "13e47133",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "13e47133",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "142ca369",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "142ca369",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "142ca369",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16b78196",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16b78196",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16b78196",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "142ca369",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16b78196",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "13e47133",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16de56c4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16de56c4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16de56c4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "16de56c4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1818057f",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1818057f",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "195c6913",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1818057f",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "195c6913",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "195c6913",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1ae2feb7",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1ae2feb7",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "195c6913",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20270e3b",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20270e3b",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1ae2feb7",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1818057f",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20270e3b",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20270e3b",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20a9e565",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20a9e565",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "1ae2feb7",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20a9e565",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "21897d95",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "21897d95",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "21897d95",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "221dfab4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "221dfab4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "21897d95",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "221dfab4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "221dfab4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "20a9e565",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "247ef758",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "247ef758",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "247ef758",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "247ef758",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "269e22fb",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "269e22fb",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "269e22fb",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "271d71e2",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "271d71e2",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "271d71e2",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "269e22fb",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "28a6681f",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "271d71e2",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "28a6681f",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "28a6681f",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "28a6681f",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "291dc1e1",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "291dc1e1",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2b83f449",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2b83f449",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2b83f449",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "291dc1e1",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2ba387bc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2b83f449",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2ba387bc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2ba387bc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2c181942",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2ba387bc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2c181942",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "291dc1e1",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2c181942",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2d0172a1",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2d0172a1",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2c181942",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2d0172a1",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "2d0172a1",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "31f7f899",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "31f7f899",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "332f06d7",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "332f06d7",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "332f06d7",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "35ab12c3",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "35ab12c3",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "35ab12c3",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "36a08778",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "36a08778",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "332f06d7",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "36a08778",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "38007db0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "36a08778",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "38007db0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "31f7f899",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "35ab12c3",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "38007db0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "31f7f899",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "38007db0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3a25b0d8",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3a25b0d8",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3dc255db",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3a25b0d8",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3dc255db",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3dc255db",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3e6067c3",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3dc255db",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3a25b0d8",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3e6067c3",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3e6067c3",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "409aa875",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "446ef5d2",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "3e6067c3",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "409aa875",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "409aa875",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "446ef5d2",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "409aa875",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "446ef5d2",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "45a5af55",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "45a5af55",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "45a5af55",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4a21e3da",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c3d4a41",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "446ef5d2",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4a21e3da",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "45a5af55",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4a21e3da",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c3d4a41",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4a21e3da",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c3d4a41",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c416de3",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c416de3",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c416de3",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c7dc4dd",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c7dc4dd",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c416de3",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c3d4a41",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4e34c42c",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c7dc4dd",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4e34c42c",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4c7dc4dd",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4e34c42c",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "4e34c42c",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "53fb4810",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "53fb4810",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "581f7754",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5545f144",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "53fb4810",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "581f7754",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "581f7754",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5545f144",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58490d8a",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "581f7754",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58490d8a",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5961cc34",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5545f144",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58490d8a",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5545f144",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58f5dbd5",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58f5dbd5",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58f5dbd5",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58f5dbd5",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "53fb4810",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "58490d8a",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5961cc34",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5961cc34",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5961cc34",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5dbc8537",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5dbc8537",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5dbc8537",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "5dbc8537",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "62593bfd",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "62593bfd",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "64efde09",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "62593bfd",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "64efde09",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "64efde09",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "64efde09",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "65b59efc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "65b59efc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "65b59efc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "62593bfd",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "65b59efc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "67e490f4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "67e490f4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "67e490f4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e453dd6",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e4f6532",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e453dd6",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e453dd6",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e453dd6",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e4f6532",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6ffbe589",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e4f6532",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6ffbe589",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "71e489b6",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "71e489b6",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6e4f6532",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7491f3cf",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "71e489b6",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7491f3cf",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "78332cb0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "71e489b6",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6ffbe589",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7666fa5d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7666fa5d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7666fa5d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7666fa5d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "78332cb0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "78332cb0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "6ffbe589",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "78332cb0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7491f3cf",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b0280bc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b0280bc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b3084d4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7491f3cf",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b3084d4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b3084d4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b5033c1",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b5033c1",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b5033c1",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b3084d4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b0280bc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b5033c1",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b0280bc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b80bb43",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "67e490f4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b80bb43",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b80bb43",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7c66cb00",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7c66cb00",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7ed72f31",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7ed72f31",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7c66cb00",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7ed72f31",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7ed72f31",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "800d221b",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7c66cb00",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "800d221b",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "80a900e0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "800d221b",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "800d221b",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "7b80bb43",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8698868d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "80a900e0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "80a900e0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8698868d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88bcf3b4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "80a900e0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8698868d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8698868d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88e364bc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88bcf3b4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "89565ca0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88e364bc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "89565ca0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "898e7135",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "89565ca0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88e364bc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88e364bc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88bcf3b4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "88bcf3b4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "898e7135",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "89565ca0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "898e7135",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b7bacbf",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "898e7135",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b7bacbf",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b9c3697",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8e5c0c38",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b7bacbf",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b9c3697",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8e5c0c38",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b7bacbf",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8e5c0c38",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b9c3697",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f215267",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f215267",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f215267",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8b9c3697",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f215267",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f3a5a89",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f3a5a89",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f3a5a89",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8f3a5a89",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9385bd28",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9385bd28",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9385bd28",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "97d7923e",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "97d7923e",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9385bd28",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "97d7923e",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9aaea919",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "8e5c0c38",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "97d7923e",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9aaea919",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9bbf930d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "981571dc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9bbf930d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "981571dc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9aaea919",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9bbf930d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "981571dc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a251c730",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9aaea919",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a251c730",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a251c730",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a251c730",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a25697e4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a25697e4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "9bbf930d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a32d8b75",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a25697e4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a395ee82",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a395ee82",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a32d8b75",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a32d8b75",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a25697e4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a395ee82",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a47bf94d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "981571dc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a47bf94d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a395ee82",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a47bf94d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a6f40cea",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a6f40cea",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a6f40cea",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a6f40cea",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a47bf94d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "aa4ec2a5",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "a32d8b75",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "abc82100",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "aa4ec2a5",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b0039139",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "abc82100",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b0039139",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b0039139",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "aa4ec2a5",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b0039139",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "abc82100",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b10624e5",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b5ca7ac4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b10624e5",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "abc82100",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b10624e5",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b5ca7ac4",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b5ca7ac4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b10624e5",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b99e7126",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b6f77b65",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b6f77b65",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b6f77b65",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b99e7126",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b99e7126",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b6f77b65",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b9e38dc0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b99e7126",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b9e38dc0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "aa4ec2a5",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b9e38dc0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "bf45cf4b",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "bf45cf4b",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "bf45cf4b",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c4d067a0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "bf45cf4b",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c4d067a0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b9e38dc0",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c4d067a0",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c4d067a0",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c7f57c3e",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "b5ca7ac4",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c7f57c3e",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cb2d8a2c",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c7f57c3e",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cb2d8a2c",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cb2d8a2c",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cbebaa4b",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "c7f57c3e",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d35bdbdc",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cbebaa4b",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d59b0160",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d35bdbdc",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d35bdbdc",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d59b0160",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d59b0160",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cbebaa4b",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d59b0160",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d35bdbdc",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cb2d8a2c",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "da515329",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "da515329",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db0c5428",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d8e07eb2",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "cbebaa4b",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db0c5428",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d8e07eb2",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d8e07eb2",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dbff022c",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db695cfb",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db0c5428",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db695cfb",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db695cfb",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dbff022c",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dbff022c",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db0c5428",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dbff022c",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dd6b8c4b",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "da515329",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "db695cfb",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dd6b8c4b",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dd6b8c4b",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "de809cff",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "de809cff",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "da515329",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dd6b8c4b",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "de809cff",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "de809cff",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e12f9a14",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dfadab01",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dfadab01",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e12f9a14",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dfadab01",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e12f9a14",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e3721c99",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e3721c99",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "dfadab01",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e3721c99",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e376de54",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e376de54",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e376de54",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e8686506",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e3721c99",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e12f9a14",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e87109e9",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e8686506",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e87109e9",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e376de54",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e87109e9",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e8686506",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e87109e9",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "edb79dae",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "edb79dae",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "edb79dae",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "eee78d87",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "edb79dae",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f560132c",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "d8e07eb2",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "eee78d87",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "eee78d87",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f560132c",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f560132c",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f931b4a8",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "eee78d87",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f931b4a8",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f931b4a8",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "e8686506",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f931b4a8",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "fc7cae8d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "f560132c",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "faa9f03d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "fc7cae8d",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "fc7cae8d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "faa9f03d",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "fc7cae8d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "faa9f03d",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    },
+    {
+      "taskId": "faa9f03d",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 0,
+      "pout": 0
+    }
+  ]
+}

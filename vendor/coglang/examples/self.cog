@@ -1,0 +1,9 @@
+# CogLang — the `self` primitive: a program reading its OWN live state (self-model).
+let a = 0.9 ~ 0.9        # confident reading
+let b = 0.5 ~ 0.5        # shaky reading
+goal "a is trustworthy" when a     # 0.9 >= 0.7 -> MET
+print self.goals         # 1 goal declared so far
+print self.met           # 1 met so far
+goal "b is trustworthy" when b     # 0.5 < 0.7 -> unmet
+print self.met           # still 1 met (b did not clear the floor)
+print self.confidence    # mean confidence of bindings: mean(0.9, 0.5) = 0.700

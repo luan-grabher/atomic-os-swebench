@@ -1,0 +1,34 @@
+{
+  "model": "deepseek-v4-pro",
+  "protocol": "4-arm (first-attempt/blind-retry/scalar-funnel/unified-funnel), Modal fan-out",
+  "humaneval": {
+    "tasks": 164,
+    "byArm": {
+      "first-attempt": 0.8658536585365854,
+      "blind-retry": 0.9512195121951219,
+      "scalar-funnel": 0.9085365853658537,
+      "unified-funnel": 0.9878048780487805
+    },
+    "liftVsFirst_pp": 12.195121951219512,
+    "liftVsBlind_pp": 3.658536585365857,
+    "status": "clean"
+  },
+  "arc_agi_1": {
+    "tasksPaired": 301,
+    "tasksTotal": 400,
+    "byArm": {
+      "first-attempt": 0.05647840531561462,
+      "blind-retry": 0.11627906976744186,
+      "scalar-funnel": 0.132890365448505,
+      "unified-funnel": 0.12956810631229235
+    },
+    "liftVsFirst_pp": 7.308970099667772,
+    "liftVsBlind_pp": 1.3289036544850488,
+    "status": "partial \u2014 DeepSeek balance ran out at ~301/400; paired over the tasks where all 4 arms ran"
+  },
+  "arc_agi_2": {
+    "tasks": 120,
+    "status": "BLOCKED \u2014 DeepSeek balance exhausted (HTTP 402) before any call; needs top-up"
+  },
+  "honest_conclusion": "The FUNNEL (retry-until-verified) moves the end-task number substantially (HumanEval +12.2pp, ARC-1 +7.3pp \u2014 doubles it) \u2014 it reveals the model capability ceiling. The atomic-SPECIFIC differentiator (granular recomputable feedback vs blind re-sampling) separates modestly on HumanEval (+3.7pp) but NOT on ARC (+1.3pp, within noise): where the model fails for lack of abstraction capability (ARC, P~0), granular feedback cannot create capability. Honest, not the optimistic +30-40pp."
+}

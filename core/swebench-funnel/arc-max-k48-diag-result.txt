@@ -1,0 +1,7 @@
+=== ARC-MAX RESULT (arc1, deepseek-v4-pro, k=48, D4-augmented ensemble) ===
+  pass@1: 25.0% (6/24)
+  pass@2: 29.2% (7/24)   [ARC allows 2 attempts]
+  tasks with >=1 train-valid program: 29.2%  (the funnel's reach / model ceiling proxy)
+  cost ~$5.51 | 576s
+Stopping app - local entrypoint completed.
+✓ App completed. View run at 

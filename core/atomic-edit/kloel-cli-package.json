@@ -1,0 +1,34 @@
+{
+  "name": "kloel-cli",
+  "version": "1.0.0",
+  "description": "Kloel CLI — The Atomic Envelope AI coding agent. First agent with byte-level atomic proof for every action. Powered by DeepSeek V4 Pro.",
+  "bin": {
+    "kloel": "./kloel-cli.mjs"
+  },
+  "main": "kloel-cli.mjs",
+  "type": "module",
+  "keywords": [
+    "ai-coding-agent",
+    "atomic-envelope",
+    "byte-level-proof",
+    "zero-error-coding",
+    "deepseek",
+    "cli",
+    "mcp",
+    "atomic-edit"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danielgonzagat/atomic-os"
+  },
+  "author": "Daniel Penin",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node kloel-cli.mjs",
+    "bench": "node kloel-cli.mjs bench",
+    "self-improve": "node kloel-cli.mjs bench --suite swebench"
+  }
+}

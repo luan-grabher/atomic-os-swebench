@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "benchmark": "arc1",
+    "model": "deepseek-v4-pro",
+    "tasks": 24,
+    "k": 48,
+    "pass@1": 0.25,
+    "pass@2": 0.2916666666666667,
+    "tasksWithValidCandidate": 0.2916666666666667,
+    "cost_usd": 5.50880172,
+    "wallSeconds": 576.3041710853577
+  }
+}

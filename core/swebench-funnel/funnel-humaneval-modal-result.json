@@ -1,0 +1,5292 @@
+{
+  "summary": {
+    "benchmark": "humaneval",
+    "model": "deepseek-v4-pro",
+    "tasks": 164,
+    "budget": 6,
+    "byArm": {
+      "first-attempt": {
+        "solveRate": 0.8658536585365854,
+        "solved": 142,
+        "total": 164
+      },
+      "blind-retry": {
+        "solveRate": 0.9512195121951219,
+        "solved": 156,
+        "total": 164
+      },
+      "scalar-funnel": {
+        "solveRate": 0.9085365853658537,
+        "solved": 149,
+        "total": 164
+      },
+      "unified-funnel": {
+        "solveRate": 0.9878048780487805,
+        "solved": 162,
+        "total": 164
+      }
+    },
+    "headline": {
+      "firstAttempt": 0.8658536585365854,
+      "unifiedFunnel": 0.9878048780487805,
+      "liftOverFirstAttempt_pp": 12.195121951219512,
+      "liftOverBlindRetry_pp": 3.658536585365857
+    },
+    "cost": {
+      "promptTokens": 150579,
+      "completionTokens": 811168,
+      "usd": 0.771218025
+    },
+    "wallSeconds": 283.687805891037
+  },
+  "results": [
+    {
+      "taskId": "HumanEval/0",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 149,
+      "pout": 448
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 300
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 106,
+      "pout": 289
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 106,
+      "pout": 307
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 106,
+      "pout": 346
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 149,
+      "pout": 623
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 357
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 106,
+      "pout": 508
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 224
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 547
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 117,
+      "pout": 380
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 737
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 117,
+      "pout": 394
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 391
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 736
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 368
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 434
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 588
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 276
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 528
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 198
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 289
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 208
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 286
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 316
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 80,
+      "pout": 233
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 261
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 427,
+      "pout": 894
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 1021
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 258
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 858
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 587
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 453
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 121,
+      "pout": 494
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 460
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 358
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 608
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 340
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 195,
+      "pout": 281
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 487,
+      "pout": 991
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 80,
+      "pout": 506
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 93,
+      "pout": 382
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 195,
+      "pout": 354
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 672
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 517
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 328
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 63,
+      "pout": 245
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 63,
+      "pout": 178
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 340
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 747
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 745
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 364
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 428
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 63,
+      "pout": 251
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 69,
+      "pout": 202
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 882
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 553
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 804
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 298,
+      "pout": 1678
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 63,
+      "pout": 303
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 69,
+      "pout": 234
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 390,
+      "pout": 556
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 146,
+      "pout": 547
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 109,
+      "pout": 399
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 443
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 69,
+      "pout": 254
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 433
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 146,
+      "pout": 438
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 84,
+      "pout": 335
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 693
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 146,
+      "pout": 424
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 255
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 237
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 580
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 940
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 120,
+      "pout": 258
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 699
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 446,
+      "pout": 1104
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 335
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 503
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 69,
+      "pout": 258
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 422,
+      "pout": 1299
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 109,
+      "pout": 446
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 493
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 138,
+      "pout": 368
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 94,
+      "pout": 281
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 332,
+      "pout": 1135
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 120,
+      "pout": 377
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 94,
+      "pout": 331
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 146,
+      "pout": 550
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 449,
+      "pout": 1190
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 94,
+      "pout": 286
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 272
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 302
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 242
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 94,
+      "pout": 360
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 111,
+      "pout": 547
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 120,
+      "pout": 466
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 338
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 1193
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 133,
+      "pout": 241
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 642
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 133,
+      "pout": 191
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 150
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 187,
+      "pout": 311
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 147,
+      "pout": 299
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 222,
+      "pout": 570
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 535
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 133,
+      "pout": 309
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 190
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 147,
+      "pout": 402
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 120,
+      "pout": 636
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 297,
+      "pout": 1082
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 147,
+      "pout": 382
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 284
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 1105
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 133,
+      "pout": 432
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 112,
+      "pout": 354
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 599
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 625
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 168,
+      "pout": 787
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 112,
+      "pout": 390
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 566
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 112,
+      "pout": 414
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 265
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 256
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 284
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 430,
+      "pout": 886
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 112,
+      "pout": 484
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 437
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 182,
+      "pout": 608
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 233
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 256
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 174,
+      "pout": 807
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 384,
+      "pout": 755
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 189,
+      "pout": 590
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 559,
+      "pout": 968
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 215
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 296,
+      "pout": 771
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 174,
+      "pout": 886
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 484
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 175,
+      "pout": 552
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 529
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 264
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 264
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 293
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 147,
+      "pout": 789
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 175,
+      "pout": 553
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 344
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 284,
+      "pout": 2193
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 332
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 121,
+      "pout": 410
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 175,
+      "pout": 614
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 175,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 189,
+      "pout": 738
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 337
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 174,
+      "pout": 982
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 392
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 571,
+      "pout": 1608
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 72,
+      "pout": 363
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 785
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 288
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 189,
+      "pout": 903
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 121,
+      "pout": 609
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 174,
+      "pout": 1133
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 4,
+      "pin": 528,
+      "pout": 1874
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 187,
+      "pout": 888
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 135,
+      "pout": 242
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 173,
+      "pout": 444
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 121,
+      "pout": 559
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 528
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 535
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 135,
+      "pout": 340
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 113,
+      "pout": 1024
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 135,
+      "pout": 331
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 582
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 70,
+      "pout": 461
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 465
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 286
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 391,
+      "pout": 1328
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 189,
+      "pout": 762
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 449
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 95,
+      "pout": 871
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 135,
+      "pout": 472
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 110,
+      "pout": 319
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 425,
+      "pout": 1518
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 110,
+      "pout": 379
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 110,
+      "pout": 364
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 70,
+      "pout": 579
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 110,
+      "pout": 418
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 113,
+      "pout": 1187
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 513
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 82,
+      "pout": 480
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 418
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 352
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 533,
+      "pout": 1562
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 535
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 173,
+      "pout": 723
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 70,
+      "pout": 621
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 998
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 351
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 95,
+      "pout": 997
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 397,
+      "pout": 1488
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 253
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 384,
+      "pout": 1709
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 173,
+      "pout": 853
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 113,
+      "pout": 1331
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 82,
+      "pout": 610
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 70,
+      "pout": 710
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 121,
+      "pout": 900
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 267
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 82,
+      "pout": 645
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 187,
+      "pout": 1172
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 598
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 746
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 436
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 391
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 236,
+      "pout": 322
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 249,
+      "pout": 135
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 333,
+      "pout": 337
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 236,
+      "pout": 353
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 605
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 516
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 186,
+      "pout": 320
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 173,
+      "pout": 987
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 287
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 236,
+      "pout": 385
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 313
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 333,
+      "pout": 404
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 186,
+      "pout": 477
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 95,
+      "pout": 1178
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 249,
+      "pout": 270
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 333,
+      "pout": 349
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 249,
+      "pout": 376
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 186,
+      "pout": 416
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 113,
+      "pout": 1455
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 333,
+      "pout": 526
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 378,
+      "pout": 1076
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 292,
+      "pout": 2109
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 668
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 688
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 681
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 82,
+      "pout": 812
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 704
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 709
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 501
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 186,
+      "pout": 522
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 216,
+      "pout": 410
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 320,
+      "pout": 191
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 576
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 249,
+      "pout": 604
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 176,
+      "pout": 423
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 320,
+      "pout": 202
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 216,
+      "pout": 489
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 551,
+      "pout": 1736
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 164,
+      "pout": 281
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 143,
+      "pout": 242
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 143,
+      "pout": 264
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 143,
+      "pout": 306
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 197
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 178
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 164,
+      "pout": 340
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 176,
+      "pout": 549
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 252
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 216,
+      "pout": 572
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 216,
+      "pout": 636
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 792
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 1014
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 176,
+      "pout": 662
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 1077
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 1009
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 164,
+      "pout": 345
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 840
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 687
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 154,
+      "pout": 219
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 979
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 876
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 154,
+      "pout": 277
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 154,
+      "pout": 231
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 164,
+      "pout": 543
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 76,
+      "pout": 274
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 143,
+      "pout": 426
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 76,
+      "pout": 324
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 503
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 76,
+      "pout": 373
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 103,
+      "pout": 482
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 837
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 154,
+      "pout": 401
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 695
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 95,
+      "pout": 1755
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 1021
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 224,
+      "pout": 297
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 320,
+      "pout": 901
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 260
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 224,
+      "pout": 310
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 226
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 187,
+      "pout": 1939
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 76,
+      "pout": 460
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 249
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 224,
+      "pout": 359
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 1028
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 933
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 176,
+      "pout": 931
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 224,
+      "pout": 388
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 281,
+      "pout": 468
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 131,
+      "pout": 699
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 677
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 320,
+      "pout": 986
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 986
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 101,
+      "pout": 958
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 281,
+      "pout": 589
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2,
+      "pin": 214,
+      "pout": 1495
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 480,
+      "pout": 2738
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 156,
+      "pout": 429
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 305
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 281,
+      "pout": 609
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 294,
+      "pout": 899
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 696,
+      "pout": 1490
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 456
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 119,
+      "pout": 217
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 470
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 155,
+      "pout": 612
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 991
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 307,
+      "pout": 447
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 1222
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 281,
+      "pout": 711
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 236,
+      "pout": 1359
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 196
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 517
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 156,
+      "pout": 454
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 576
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 307,
+      "pout": 525
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 280
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 131,
+      "pout": 929
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 698
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 398
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 989
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 98,
+      "pout": 365
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 750
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 1071
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 726,
+      "pout": 3533
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 153,
+      "pout": 478
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 1133
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 66,
+      "pout": 1136
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 156,
+      "pout": 754
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 625
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 119,
+      "pout": 600
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 647
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 153,
+      "pout": 432
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 155,
+      "pout": 859
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 516
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 153,
+      "pout": 498
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 156,
+      "pout": 906
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 294,
+      "pout": 1551
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 297,
+      "pout": 348
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 825
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 119,
+      "pout": 565
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 230,
+      "pout": 305
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 325,
+      "pout": 207
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 155,
+      "pout": 767
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 804
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 294,
+      "pout": 1477
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 501
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 230,
+      "pout": 258
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 297,
+      "pout": 394
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 519
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 819
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 1154
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 119,
+      "pout": 844
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 519
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 325,
+      "pout": 298
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 307,
+      "pout": 960
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 230,
+      "pout": 392
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 127,
+      "pout": 573
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 230,
+      "pout": 430
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 155,
+      "pout": 1047
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 172,
+      "pout": 247
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 137,
+      "pout": 560
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 131,
+      "pout": 1236
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 990
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 297,
+      "pout": 604
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 611
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 1078
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 185,
+      "pout": 262
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 185,
+      "pout": 221
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 620
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 127,
+      "pout": 686
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 185,
+      "pout": 218
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 1117
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 111,
+      "pout": 157
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 528
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 906
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 111,
+      "pout": 303
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 726
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 185,
+      "pout": 339
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 307,
+      "pout": 1384
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 285,
+      "pout": 3072
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 172,
+      "pout": 418
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 153,
+      "pout": 975
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 111,
+      "pout": 373
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 776
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 325,
+      "pout": 510
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 707
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 172,
+      "pout": 485
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 127,
+      "pout": 938
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 127,
+      "pout": 901
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 172,
+      "pout": 542
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 859
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 218,
+      "pout": 693
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 1193
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 1644
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 297,
+      "pout": 835
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 1198
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 971
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 218,
+      "pout": 696
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 801
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 118,
+      "pout": 277
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 294,
+      "pout": 2148
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 1092
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 325,
+      "pout": 700
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 196,
+      "pout": 617
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 151,
+      "pout": 793
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 235,
+      "pout": 326
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 404
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 348,
+      "pout": 556
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 145,
+      "pout": 1115
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 696,
+      "pout": 3570
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 218,
+      "pout": 736
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 118,
+      "pout": 388
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 218,
+      "pout": 874
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 166,
+      "pout": 972
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 196,
+      "pout": 737
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 111,
+      "pout": 725
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 148,
+      "pout": 399
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 148,
+      "pout": 312
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 235,
+      "pout": 490
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 131,
+      "pout": 1956
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 196,
+      "pout": 790
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 235,
+      "pout": 507
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 1065
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 148,
+      "pout": 442
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 235,
+      "pout": 571
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 118,
+      "pout": 503
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 595
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 1255
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 1674
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 669
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 538
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 413
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 201,
+      "pout": 787
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 118,
+      "pout": 627
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 496
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 169,
+      "pout": 740
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 169,
+      "pout": 759
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 348,
+      "pout": 1005
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 279
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 794
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 607
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 463
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 494
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 115,
+      "pout": 1399
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 2468
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 575
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 416
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 839
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1092,
+      "pout": 3497
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 196,
+      "pout": 1152
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 179,
+      "pout": 362
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 179,
+      "pout": 329
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 282,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 671
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 287
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 927
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 279,
+      "pout": 623
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 148,
+      "pout": 840
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 524
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 279,
+      "pout": 651
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 330
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 169,
+      "pout": 929
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 347
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 372
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 771
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 450
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 348,
+      "pout": 1259
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 219
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 348,
+      "pout": 1188
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 167,
+      "pout": 475
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 276,
+      "pout": 853
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 130,
+      "pout": 2029
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 479
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 279,
+      "pout": 762
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 282,
+      "pout": 908
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 276,
+      "pout": 899
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 162,
+      "pout": 440
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 124,
+      "pout": 355
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 162,
+      "pout": 403
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 102,
+      "pout": 383
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 930
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 935
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 102,
+      "pout": 494
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3,
+      "pin": 560,
+      "pout": 4347
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 233
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 470
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 102,
+      "pout": 555
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 92,
+      "pout": 799
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 282,
+      "pout": 1126
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 276
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 276,
+      "pout": 983
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 358
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 238,
+      "pout": 413
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 102,
+      "pout": 490
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 279,
+      "pout": 1009
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 582
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 171,
+      "pout": 323
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 266
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 171,
+      "pout": 442
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 282,
+      "pout": 1289
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 178,
+      "pout": 300
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 1463
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 238,
+      "pout": 517
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 171,
+      "pout": 406
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 116,
+      "pout": 631
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 162,
+      "pout": 619
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 191
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 162,
+      "pout": 657
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 203
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 238,
+      "pout": 679
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 242
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 169,
+      "pout": 1378
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 641
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 238,
+      "pout": 729
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 630
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 179,
+      "pout": 1124
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 205
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 1260
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 107,
+      "pout": 367
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 296,
+      "pout": 228
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 209,
+      "pout": 372
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 488
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 171,
+      "pout": 815
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3,
+      "pin": 508,
+      "pout": 4127
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 234,
+      "pout": 563
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 269
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 157,
+      "pout": 244
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 209,
+      "pout": 460
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 157,
+      "pout": 292
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 1120
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 89,
+      "pout": 283
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 234,
+      "pout": 677
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 1183
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 209,
+      "pout": 657
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 797
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 89,
+      "pout": 366
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 89,
+      "pout": 459
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 708
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 591
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 444
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 89,
+      "pout": 484
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 234,
+      "pout": 786
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 422
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 459
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 209,
+      "pout": 902
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 630
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 298,
+      "pout": 352
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 298,
+      "pout": 343
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 516
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 671
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 298,
+      "pout": 377
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 188,
+      "pout": 962
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 126,
+      "pout": 525
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 1336
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 255,
+      "pout": 1912
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 720,
+      "pout": 1732
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 296,
+      "pout": 731
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 128,
+      "pout": 370
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 577
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 926
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 250
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 296,
+      "pout": 689
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 251,
+      "pout": 983
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 179,
+      "pout": 1400
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 296,
+      "pout": 806
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 307
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 128,
+      "pout": 424
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 128,
+      "pout": 449
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 157,
+      "pout": 788
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 838
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 1286
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 255,
+      "pout": 2016
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 188,
+      "pout": 1281
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 228,
+      "pout": 599
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 188,
+      "pout": 1366
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 128,
+      "pout": 505
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 1376
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 228,
+      "pout": 653
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 908
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 177,
+      "pout": 2201
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 833
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 577
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 298,
+      "pout": 1149
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 157,
+      "pout": 1002
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 134,
+      "pout": 774
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 1550
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 99,
+      "pout": 730
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 234,
+      "pout": 1566
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 188,
+      "pout": 1654
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 1169
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3,
+      "pin": 673,
+      "pout": 5238
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1,
+      "pin": 140,
+      "pout": 1587
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 1212
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 228,
+      "pout": 1023
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 915
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 255,
+      "pout": 2336
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 961,
+      "pout": 4994
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 228,
+      "pout": 1072
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 1151
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 129,
+      "pout": 1228
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 142,
+      "pout": 1436
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 192,
+      "pout": 2975
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1,
+      "pin": 132,
+      "pout": 2266
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 162,
+      "pout": 3072
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1,
+      "pin": 165,
+      "pout": 2983
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 417,
+      "pout": 3072
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1238,
+      "pout": 5887
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1,
+      "pin": 136,
+      "pout": 3072
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 4,
+      "pin": 917,
+      "pout": 6786
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 3,
+      "pin": 387,
+      "pout": 3165
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1716,
+      "pout": 7964
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 445,
+      "pout": 5459
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 570,
+      "pout": 5507
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2,
+      "pin": 386,
+      "pout": 5807
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3,
+      "pin": 615,
+      "pout": 5594
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1194,
+      "pout": 9925
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1316,
+      "pout": 11049
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 6,
+      "pin": 1142,
+      "pout": 10085
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1034,
+      "pout": 10269
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1081,
+      "pout": 11370
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1084,
+      "pout": 12176
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1553,
+      "pout": 11623
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 3329,
+      "pout": 14147
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1630,
+      "pout": 13505
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 4,
+      "pin": 768,
+      "pout": 11047
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1710,
+      "pout": 15152
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 2771,
+      "pout": 16582
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 5,
+      "pin": 2085,
+      "pout": 14334
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1307,
+      "pout": 18432
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1135,
+      "pout": 18432
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 816,
+      "pout": 18432
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1131,
+      "pout": 17996
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6,
+      "pin": 972,
+      "pout": 18432
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 1127,
+      "pout": 18432
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 6,
+      "pin": 3023,
+      "pout": 18005
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6,
+      "pin": 2657,
+      "pout": 18432
+    }
+  ]
+}

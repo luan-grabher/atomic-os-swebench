@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-lkg/
+dist.broken-last/
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+.venv/
+.z3venv/
+# segredos — nunca commitar
+**/config.json
+*.env
+.env
+**/deepseek*.toml
+!core/config/deepseek.example.toml

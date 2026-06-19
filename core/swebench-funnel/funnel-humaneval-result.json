@@ -1,0 +1,3988 @@
+{
+  "summary": {
+    "benchmark": "HumanEval",
+    "model": "deepseek-v4-pro",
+    "tasks": 164,
+    "budget": 6,
+    "temperature": 0.7,
+    "byArm": {
+      "first-attempt": {
+        "solveRate": 0.9329268292682927,
+        "solved": 153,
+        "total": 164,
+        "meanAttemptsOfSolved": 1
+      },
+      "blind-retry": {
+        "solveRate": 0.975609756097561,
+        "solved": 160,
+        "total": 164,
+        "meanAttemptsOfSolved": 1.1375
+      },
+      "scalar-funnel": {
+        "solveRate": 0.9695121951219512,
+        "solved": 159,
+        "total": 164,
+        "meanAttemptsOfSolved": 1.069182389937107
+      },
+      "unified-funnel": {
+        "solveRate": 0.9817073170731707,
+        "solved": 161,
+        "total": 164,
+        "meanAttemptsOfSolved": 1.049689440993789
+      }
+    },
+    "headline": {
+      "firstAttempt": 0.9329268292682927,
+      "unifiedFunnel": 0.9817073170731707,
+      "liftOverFirstAttempt_pp": 4.8780487804877986,
+      "liftOverBlindRetry_pp": 0.6097560975609762
+    },
+    "cost": {
+      "calls": 757,
+      "promptTokens": 132885,
+      "completionTokens": 735104,
+      "usd": 0.6973454550000001,
+      "retries": 0,
+      "failures": 0
+    },
+    "wallSeconds": 236.598
+  },
+  "results": [
+    {
+      "taskId": "HumanEval/0",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/0",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/1",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/2",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/3",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/4",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/5",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/6",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/7",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/8",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/9",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/10",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/11",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/12",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/13",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/14",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/15",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/16",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/17",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/18",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/19",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/20",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/21",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/22",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/23",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/24",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/25",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/26",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/27",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/28",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/29",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/30",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/31",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/32",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/33",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/34",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/35",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/36",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/37",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/38",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/39",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/40",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/41",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/42",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/43",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/44",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/45",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/46",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/47",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/48",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/49",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "blind-retry",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/50",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/51",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/52",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/53",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/54",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/55",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/56",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/57",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/58",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/59",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/60",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/61",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/62",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/63",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/64",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/65",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/66",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/67",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/68",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/69",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/70",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/71",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/72",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/73",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/74",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/75",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3
+    },
+    {
+      "taskId": "HumanEval/76",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/77",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/78",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/79",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/80",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/81",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/82",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/83",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/84",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/85",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/86",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/87",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/88",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/89",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/90",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/91",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/92",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/93",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/94",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/95",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/96",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/97",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/98",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/99",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/100",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/101",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/102",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/103",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/104",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/105",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/106",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/107",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/108",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/109",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/110",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/111",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/112",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/113",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/114",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/115",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/116",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 4
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/117",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/118",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/119",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/120",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/121",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/122",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/123",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/124",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/125",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/126",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/127",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/128",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/129",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/130",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/131",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 4
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "scalar-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/132",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/133",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3
+    },
+    {
+      "taskId": "HumanEval/134",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/135",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/136",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/137",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/138",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/139",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/140",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/141",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/142",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/143",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/144",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 2
+    },
+    {
+      "taskId": "HumanEval/145",
+      "arm": "unified-funnel",
+      "solved": false,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/146",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/147",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 6
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/148",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/149",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/150",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/151",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/152",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/153",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/154",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/155",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/156",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/157",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/158",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/159",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/160",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/161",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "first-attempt",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/162",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "first-attempt",
+      "solved": false,
+      "attempts": 1
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "blind-retry",
+      "solved": true,
+      "attempts": 3
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "scalar-funnel",
+      "solved": true,
+      "attempts": 3
+    },
+    {
+      "taskId": "HumanEval/163",
+      "arm": "unified-funnel",
+      "solved": true,
+      "attempts": 1
+    }
+  ]
+}

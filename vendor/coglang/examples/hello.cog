@@ -1,0 +1,10 @@
+# CogLang v0 — cognitive primitives as first-class language features.
+# uncertainty<T>: a value carries its confidence; goal: an objective met only when confident.
+let sensorA = 0.9 ~ 0.95     # reading 0.9, 95% confident
+let sensorB = 0.8 ~ 0.80     # reading 0.8, 80% confident
+let fused = sensorA * sensorB   # confidence PROPAGATES: 0.95 * 0.80 = 0.76
+print fused
+goal "trust the fused estimate" when fused
+let weak = sensorA * sensorB * sensorB   # confidence decays: 0.95*0.80*0.80 = 0.608
+print weak
+goal "trust the weak estimate" when weak

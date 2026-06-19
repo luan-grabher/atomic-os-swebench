@@ -1,0 +1,7 @@
+{
+  "astropy__astropy-12907": {
+    "instance_id": "astropy__astropy-12907",
+    "model_name_or_path": "atomic-baseline-deepseek-v4-pro",
+    "model_patch": "diff --git a/astropy/modeling/separable.py b/astropy/modeling/separable.py\nindex 1234567..abcdefg 100644\n--- a/astropy/modeling/separable.py\n+++ b/astropy/modeling/separable.py\n@@ -XX,XX +XX,XX @@ def separability_matrix(transform):\n     if isinstance(transform, CompoundModel):\n         if transform.op == '&':\n-            left = _separable(transform.left)\n-            right = _separable(transform.right)\n+            left = separability_matrix(transform.left)\n+            right = separability_matrix(transform.right)\n             return _combine_parallel(left, right)\n         elif transform.op == '|':\n-            left = _separable(transform.left)\n-            right = _separable(transform.right)\n+            left = separability_matrix(transform.left)\n+            right = separability_matrix(transform.right)\n             return _combine_serial(left, right)\n         else:\n             raise ValueError(f\"Unknown operator {transform.op}\")\n     else:\n         n_out = transform.n_outputs\n         n_in = transform.n_inputs\n         return np.ones((n_out, n_in), dtype=bool)\n"
+  }
+}

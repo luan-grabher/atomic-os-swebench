@@ -1,0 +1,14 @@
+{
+  "name": "atomic-memory",
+  "version": "1.0.0",
+  "description": "Semantic intent ledger MCP server for the Atomic ecosystem",
+  "main": "server.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "zod": "^3.23.0"
+  }
+}

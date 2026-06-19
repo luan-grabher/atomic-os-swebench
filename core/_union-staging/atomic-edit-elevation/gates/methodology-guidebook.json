@@ -1,0 +1,42 @@
+{
+  "_doc": "PARADIGM PART D A-G4: the C-I…C-V synthesis→paradigm conditions, lifted from prose into a DECLARED, machine-checked methodology guidebook (the V-model-shaped ladder externalized as a decidable artifact, like Nidus's methodology-as-artifact). A target repo CONFORMS to this methodology iff every condition's discharging proofs are GREEN — and `npm run paradigm-verify` is the conformance RUNNER (it runs exactly these proofs). This makes 'atomic follows its own methodology' a checkable property, not a claim.",
+  "guidebookId": "atomic-paradigm-methodology-v1",
+  "conformanceRunner": "npm run paradigm-verify",
+  "conditions": [
+    {
+      "id": "C-I",
+      "title": "Completeness & closure of the invariant lattice",
+      "requires": ["P4"],
+      "dischargedBy": ["gates/closure-meta-gate.proof.mjs"],
+      "rationale": "the named taxonomy is CLOSED — every enforced dimension is named, and vice versa (a healthy tree is a closed theory, not an ad-hoc pile)."
+    },
+    {
+      "id": "C-II",
+      "title": "Soundness AND completeness of enforcement",
+      "requires": ["P2", "P3"],
+      "dischargedBy": ["gates/byte-floor-language-soundness.proof.mjs", "gates/resource-lifetime.proof.mjs", "gates/per-gate-soundness-completeness.proof.mjs"],
+      "rationale": "no false positive (never refuse a valid edit) AND no false negative (no real violation slips through)."
+    },
+    {
+      "id": "C-III",
+      "title": "Formal statement + external reproducible validation",
+      "requires": ["P7", "P8"],
+      "dischargedBy": ["gates/algebra.proof.mjs", "gates/algebra-refinement.proof.mjs", "gates/negative-proof-teeth.proof.mjs"],
+      "rationale": "the (a)+(e) core stated formally (P7 obligation-preserving confluence, P8 recomputable disproof) and externally validated (Z3+Lean+169k pairs)."
+    },
+    {
+      "id": "C-IV",
+      "title": "Generality / substrate-independence (a LAW, not a TS implementation)",
+      "requires": ["P2"],
+      "dischargedBy": ["gates/byte-floor-language-soundness.proof.mjs", "gates/agent-independence.proof.mjs"],
+      "rationale": "each invariant holds language-independently and every agent obeys the same floor — the floor is a law, not an implementation detail."
+    },
+    {
+      "id": "C-V",
+      "title": "Provably monotonic self-improvement (the paradigm seed)",
+      "requires": ["P5", "P6"],
+      "dischargedBy": ["gates/coverage-ratchet.proof.mjs"],
+      "rationale": "the invariant set that defines 'broken' grows by proof, monotonically, never regressing (the unpublished core)."
+    }
+  ]
+}

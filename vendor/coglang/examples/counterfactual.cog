@@ -1,0 +1,10 @@
+# CogLang — the `counterfactual` primitive: "what if X were Y?" evaluated in a sandbox,
+# WITHOUT mutating the real program state. Genuine hypothetical reasoning as a language feature.
+let a = 0.9 ~ 0.9
+let plan = a * 0.8 ~ 1
+print plan
+# hypothesis: what if sensor a were only 50% confident? Re-derive the plan under that world.
+let cf = counterfactual a = 0.9 ~ 0.5 in a * 0.8 ~ 1
+print cf
+# the REAL a is untouched by the counterfactual:
+print a

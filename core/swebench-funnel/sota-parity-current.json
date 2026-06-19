@@ -1,0 +1,83 @@
+{
+  "ok": true,
+  "harnessId": "atomic-sota-parity-harness-v1",
+  "reportSha256": "a23362374ffe13adc552fc907d9422a4cad90b96cff3e56a9d7cd9679bd1603a",
+  "now": "2026-06-16T20:00:00.000Z",
+  "freshnessDays": 45,
+  "publicBenchmarks": [],
+  "sotaBaselines": [],
+  "claims": {
+    "fixedModelLift": {
+      "allowed": true,
+      "verdict": "established",
+      "sameFixedModel": true,
+      "feedbackDerived": true,
+      "baselinePassed": 140,
+      "proofPassed": 154,
+      "total": 164,
+      "liftCount": 14,
+      "liftPct": 8.537,
+      "blockers": []
+    },
+    "interfaceLift": {
+      "allowed": true,
+      "verdict": "established",
+      "blockers": []
+    },
+    "absolutePublicSota": {
+      "allowed": false,
+      "verdict": "not-established",
+      "blockers": [
+        "missing public benchmark result: swe-bench-verified",
+        "missing public benchmark result: aider-polyglot"
+      ],
+      "requiredBenchmarks": [
+        "swe-bench-verified",
+        "aider-polyglot"
+      ]
+    },
+    "rawLeaderboardClaim": {
+      "allowed": false,
+      "verdict": "not-established",
+      "blockers": [
+        "Atomic local lift is tool-augmented evidence; raw leaderboard claims require official public benchmark submission artifacts."
+      ]
+    }
+  },
+  "benchmarkRegistry": [
+    {
+      "benchmarkId": "swe-bench-verified",
+      "name": "SWE-bench Verified",
+      "publicUrl": "https://www.swebench.com/",
+      "metric": "resolved_pct",
+      "higherIsBetter": true,
+      "requiredForAbsolutePublicSota": true
+    },
+    {
+      "benchmarkId": "aider-polyglot",
+      "name": "Aider Polyglot",
+      "publicUrl": "https://aider.chat/docs/leaderboards/",
+      "metric": "pass_pct",
+      "higherIsBetter": true,
+      "requiredForAbsolutePublicSota": true
+    },
+    {
+      "benchmarkId": "codestruct-style-fixed-model-delta",
+      "name": "CodeStruct-style fixed-model interface delta",
+      "publicUrl": "https://arxiv.org/abs/2604.05407",
+      "metric": "fixed_model_lift_pp",
+      "higherIsBetter": true,
+      "requiredForAbsolutePublicSota": false
+    }
+  ],
+  "nextRuns": [
+    {
+      "benchmarkId": "swe-bench-verified",
+      "reason": "missing public result"
+    },
+    {
+      "benchmarkId": "aider-polyglot",
+      "reason": "missing public result"
+    }
+  ]
+}

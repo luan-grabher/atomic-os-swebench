@@ -1,0 +1,2 @@
+{"at":"2026-06-19T18:30:06.064Z","tool":"swarm_task_create","id":1,"subject":"real task"}
+{"at":"2026-06-19T18:30:06.066Z","tool":"swarm_lock_acquire","frontId":"abc","owner":"x"}
