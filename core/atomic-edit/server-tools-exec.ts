@@ -323,13 +323,20 @@ export function devValidationRunner(cmd: string): boolean {
 const DEV_VALIDATION_READONLY_SIGNAL =
   /(?:^|\s)(?:--no-?emit|--check|--dry-run|--list-different|--lint)(?:\s|=|$)/i;
 const DEV_VALIDATION_PURE_RUNNER =
-  /\b(?:vitest\s+run|jest|mocha|ava|playwright\s+test|tsc\s+--noEmit)\b/;
+  /\b(?:vitest\s+run|jest|mocha|ava|playwright\s+test|tsc\s+--noEmit|go\s+test|cargo\s+test|pytest|python\s+-m\s+pytest|python\s+-m\s+unittest|ruby\s+-Itest|bundle\s+exec\s+rake\s+test|bundle\s+exec\s+rspec|dotnet\s+test|mix\s+test|dart\s+test|elixir\s+-e\s+.*ExUnit|rake\s+test)\b/;
 const DEV_VALIDATION_MUTATING =
   /(?:^|\s)(?:--fix|--write|--build|--emit|--update(?:Snapshot)?|-u)(?:\s|=|$)/;
 export function devValidationIsReadOnly(cmd: string): boolean {
-  if (!devValidationRunner(cmd)) return false;
+  // Native pure test runners (go test, cargo test, pytest, etc.) are read-only
+  // on source: they compile to a temp/cache dir, run the binary, and do not
+  // modify source files. They go straight to the DEV_VALIDATION_PURE_RUNNER
+  // check WITHOUT requiring the npx/bunx-style devValidationRunner gate,
+  // which is JS-only. Generalist fix for cross-language benchmark/CI.
   if (DEV_VALIDATION_MUTATING.test(cmd)) return false;
-  return DEV_VALIDATION_READONLY_SIGNAL.test(cmd) || DEV_VALIDATION_PURE_RUNNER.test(cmd);
+  if (DEV_VALIDATION_PURE_RUNNER.test(cmd)) return true;
+  // JS-only package-runner path (preserves existing semantics for npx tsc etc.)
+  if (!devValidationRunner(cmd)) return false;
+  return DEV_VALIDATION_READONLY_SIGNAL.test(cmd);
 }
 
 export function externalEffectReason(cmd: string): string | null {
@@ -443,7 +450,23 @@ function sandboxWriteRules(...roots: Array<string | null>): string[] {
 function createSandboxTempRoot(): string {
   const base = path.join(fs.realpathSync(os.tmpdir()), 'atomic-exec');
   fs.mkdirSync(base, { recursive: true, mode: 0o700 });
-  return fs.mkdtempSync(path.join(base, 'run-'));
+  const root = fs.mkdtempSync(path.join(base, 'run-'));
+  // Pre-create language cache subdirectories so toolchains (go, cargo, etc.)
+  // can mkdir inside them without sandbox profile issues. Each is mode 0o700
+  // to keep them private to this run. Generalist fix for the cross-language
+  // sandbox case.
+  const cacheSubdirs = [
+    'go-build', 'gopath',
+    'cargo', 'rustup',
+    'gradle',
+    'gem', 'bundle',
+    'node-compile-cache', 'xdg-cache', 'npm-cache', 'yarn-cache', 'pnpm-home',
+    'pip-cache',
+  ];
+  for (const sub of cacheSubdirs) {
+    try { fs.mkdirSync(path.join(root, sub), { recursive: true, mode: 0o700 }); } catch { /* best effort */ }
+  }
+  return root;
 }
 
 function removeSandboxTempRoot(tempRoot: string | null): void {
@@ -1221,7 +1244,13 @@ export function registerToolsExec(server: McpServer): void {
           return fail(`atomic_exec refused (sandbox unavailable): ${reason}`);
         }
         const sandboxWriteRoot = effectRoot;
-        const sandboxTempRoot = sandboxWriteRoot ? createSandboxTempRoot() : null;
+        // Always create a sandbox temp root when the sandbox is active, even
+        // for read-only commands (no effectRoot). Language toolchains (go,
+        // cargo, npm, etc.) need writable cache/work dirs regardless of
+        // whether the command writes product bytes — without a redirected
+        // TMPDIR/GOCACHE/etc., they fall back to user-global paths that the
+        // sandbox denies. Generalist fix for the cross-language sandbox case.
+        const sandboxTempRoot = createSandboxTempRoot();
         const sandbox = useBroker
           ? brokerSandboxReceipt(sandboxWriteRoot, sandboxTempRoot)
           : sandboxReceipt(true, sandboxWriteRoot, sandboxTempRoot);

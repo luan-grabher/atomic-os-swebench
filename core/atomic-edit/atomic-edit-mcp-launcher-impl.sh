@@ -21,10 +21,21 @@ set -euo pipefail
 CALLER_WORKSPACE_ROOT="$(pwd -P)"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # flattened package dir
 SRC_DIR="${SCRIPT_DIR}"                                       # dist/node_modules/build are siblings here
-# Self-contained package: the package dir IS the repo root. Honor an explicit
-# ATOMIC_EDIT_REPO_ROOT override (matches launcher-supervisor.mjs), else default
-# to the flattened package dir itself.
-REPO_ROOT="$(cd "${ATOMIC_EDIT_REPO_ROOT:-${SCRIPT_DIR}}" && pwd)"
+find_repo_root() {
+  local dir="$1"
+  while [[ "${dir}" != "/" ]]; do
+    if [[ -e "${dir}/.git" ]]; then
+      printf '%s\n' "${dir}"
+      return 0
+    fi
+    dir="$(dirname "${dir}")"
+  done
+  printf '%s\n' "$1"
+}
+
+# Honor an explicit ATOMIC_EDIT_REPO_ROOT override. Otherwise use the enclosing
+# git repo when present, with a self-contained package-dir fallback.
+REPO_ROOT="$(cd "${ATOMIC_EDIT_REPO_ROOT:-$(find_repo_root "${SCRIPT_DIR}")}" && pwd)"
 DIST="${SRC_DIR}/dist/server.js"
 
 cd "${REPO_ROOT}"

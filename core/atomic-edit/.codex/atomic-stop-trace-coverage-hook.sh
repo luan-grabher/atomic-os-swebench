@@ -1,0 +1,1 @@
+/Users/danielpenin/atomic-os-swebench/.codex/atomic-stop-trace-coverage-hook.sh

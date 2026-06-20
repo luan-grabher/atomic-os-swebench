@@ -49,6 +49,20 @@ function tableBody(toml, tableName) {
   return next < 0 ? rest : rest.slice(0, next);
 }
 
+function launcherEquivalent(value, launcherReal) {
+  const configuredReal = realpathIfPresent(value);
+  if (configuredReal === launcherReal) return { ok: true, mode: 'realpath' };
+  const source = readText(value);
+  if (
+    source.startsWith('#!') &&
+    /\bexec\b/.test(source) &&
+    source.includes(launcherReal)
+  ) {
+    return { ok: true, mode: 'delegating-wrapper' };
+  }
+  return { ok: false, mode: 'mismatch', configuredReal };
+}
+
 function codexConfigContract() {
   const text = readText(codexConfigPath);
   const body = tableBody(text, 'mcp_servers.atomic-edit');
@@ -56,7 +70,8 @@ function codexConfigContract() {
   const startupTimeout = timeoutMatch ? Number(timeoutMatch[1]) : null;
   const launcherReal = realpathIfPresent(mcpLauncher);
   const configuredLaunchers = [...(body ?? '').matchAll(/"([^"]*atomic-edit-mcp-launcher\.sh)"/g)].map((match) => match[1]);
-  const argsUseRepoLauncher = configuredLaunchers.some((value) => realpathIfPresent(value) === launcherReal);
+  const launcherMatches = configuredLaunchers.map((value) => ({ value, ...launcherEquivalent(value, launcherReal) }));
+  const argsUseRepoLauncher = launcherMatches.some((entry) => entry.ok);
   return {
     codexConfigPath,
     hooksEnabled: /^hooks\s*=\s*true\b/m.test(text),
@@ -64,6 +79,7 @@ function codexConfigContract() {
     commandIsBash: /command\s*=\s*"(?:[^"]*\/)?bash"/.test(body ?? ''),
     argsUseRepoLauncher,
     configuredLaunchers,
+    launcherMatches,
     startupTimeout,
     startupTimeoutEnough: typeof startupTimeout === 'number' && startupTimeout >= 30,
     expectedLauncher: mcpLauncher,

@@ -27,7 +27,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const REAL_CODEX = '/opt/homebrew/bin/codex';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || here;
+
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
+const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || findRepoRoot(here);
 const BROKER = path.join(here, 'atomic-exec-broker.mjs');
 const BROKER_STATE = path.join(repoRoot, ".atomic", "codex-broker-current.json");
 
