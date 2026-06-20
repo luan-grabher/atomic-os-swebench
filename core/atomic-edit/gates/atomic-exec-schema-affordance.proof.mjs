@@ -24,7 +24,7 @@ function read(rel) {
 }
 
 function sourceAssertions() {
-  const source = read('scripts/mcp/atomic-edit/server-tools-exec.ts');
+  const source = read('core/atomic-edit/server-tools-exec.ts');
   return {
     schemaTellsModelsToOmitProveEffectForValidation:
       source.includes('MODEL USAGE: omit this field for normal npm test/typecheck/build') &&

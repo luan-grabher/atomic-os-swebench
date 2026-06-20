@@ -34,8 +34,8 @@ function parseToolResult(result) {
 }
 
 function sourceAssertions() {
-  const nativeBridge = read('scripts/mcp/atomic-edit/native-bridge.ts');
-  const nativeIo = read('scripts/mcp/atomic-edit/server-tools-native-io.ts');
+  const nativeBridge = read('core/atomic-edit/native-bridge.ts');
+  const nativeIo = read('core/atomic-edit/server-tools-native-io.ts');
   return {
     nativeBridgeMatchesRelativePathAndBasename:
       nativeBridge.includes('function globMatches(re: RegExp | null, relPath: string): boolean') &&

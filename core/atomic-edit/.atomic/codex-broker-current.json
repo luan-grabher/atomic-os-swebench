@@ -1,8 +1,0 @@
-{
-  "agent": "codex",
-  "repoRoot": "/Users/danielpenin/atomic-os-swebench/core/atomic-edit",
-  "socket": "file:///Users/danielpenin/atomic-os-swebench/core/atomic-edit/.atomic/codex-broker-22202",
-  "codexHome": "/Users/danielpenin/.codex",
-  "pid": 22202,
-  "createdAt": "2026-06-20T14:13:27.639Z"
-}

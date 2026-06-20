@@ -58,9 +58,9 @@ async function main() {
     },
   });
   const client = new Client({ name: 'atomic-scan-bytes-proof', version: '1.0.0' });
-  const baseRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-atomic-scan-proof-${process.pid}`);
+  const baseRel = path.join('core', 'atomic-edit', `.smoke-atomic-scan-proof-${process.pid}`);
   const baseAbs = path.join(repoRoot, baseRel);
-  const positiveRel = path.join('scripts', 'mcp', 'atomic-edit', 'server.ts');
+  const positiveRel = path.join('core', 'atomic-edit', 'server.ts');
   const badRel = path.join(baseRel, 'scan-bad.ts');
   const mdRel = path.join(baseRel, 'scan-notes.opaque');
   const directMdRel = path.join(baseRel, 'scan-notes.md');

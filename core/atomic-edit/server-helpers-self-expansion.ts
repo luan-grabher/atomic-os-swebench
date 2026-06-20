@@ -56,7 +56,16 @@ function atomicEditSourceRoot(): string | null {
     try {
       if (fs.existsSync(pj)) {
         const j = JSON.parse(fs.readFileSync(pj, 'utf8'));
-        if (j && j.name === 'atomic-edit-mcp') {
+        // Identity-by-marker, NOT by a drifting package name. The published
+        // binary name `atomic-edit-mcp` (the `bin` key) is the stable identity
+        // of the atomic-edit source package and survives package renames (the
+        // repo-unification renamed `name` to "atomic-os", which silently broke
+        // the old name-only check and disabled self-expansion entirely). We
+        // still accept the historical/explicit names as a belt-and-suspenders.
+        const isAtomicEditPackage =
+          (j && (j.name === 'atomic-edit-mcp' || j.name === 'atomic-os')) ||
+          (j && j.bin && typeof j.bin === 'object' && Boolean(j.bin['atomic-edit-mcp']));
+        if (isAtomicEditPackage) {
           cachedSelfSourceRoot = dir;
           return dir;
         }

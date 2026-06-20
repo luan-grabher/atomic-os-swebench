@@ -24,7 +24,7 @@ function read(rel) {
 
 function main() {
   const results = [];
-  const readcode = read('scripts/mcp/atomic-edit/server-tools-readcode.ts');
+  const readcode = read('core/atomic-edit/server-tools-readcode.ts');
   record(results, 'missing-path recovery has an explicit filesystem-error predicate',
     readcode.includes('function isReadcodeMissingPathError(error: unknown): boolean') &&
     readcode.includes('ENOENT') &&

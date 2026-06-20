@@ -17,11 +17,11 @@ function read(rel) {
 }
 
 function sourceAssertions() {
-  const guard = read('scripts/mcp/atomic-edit/guard.ts');
-  const session = read('scripts/mcp/atomic-edit/server-tools-session.ts');
-  const exec = read('scripts/mcp/atomic-edit/server-tools-exec.ts');
-  const io = read('scripts/mcp/atomic-edit/server-helpers-io.ts');
-  const launcher = read('scripts/mcp/atomic-edit-mcp-launcher-impl.sh');
+  const guard = read('core/atomic-edit/guard.ts');
+  const session = read('core/atomic-edit/server-tools-session.ts');
+  const exec = read('core/atomic-edit/server-tools-exec.ts');
+  const io = read('core/atomic-edit/server-helpers-io.ts');
+  const launcher = read('core/atomic-edit-mcp-launcher-impl.sh');
   return {
     guardHasWorkspaceEnv:
       guard.includes('ATOMIC_WORKSPACE_ROOT') &&

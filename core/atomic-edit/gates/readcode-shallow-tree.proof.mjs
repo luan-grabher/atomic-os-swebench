@@ -37,7 +37,7 @@ function parseToolResult(result) {
 }
 
 function sourceAssertions() {
-  const readcode = read('scripts/mcp/atomic-edit/server-tools-readcode.ts');
+  const readcode = read('core/atomic-edit/server-tools-readcode.ts');
   return {
     hasBoundedTreeConstants:
       readcode.includes('const SHALLOW_TREE_DEPTH = 3') &&

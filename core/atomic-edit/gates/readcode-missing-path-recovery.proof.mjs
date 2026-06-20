@@ -26,7 +26,7 @@ function read(rel) {
 
 function main() {
   const results = [];
-  const readcode = read('scripts/mcp/atomic-edit/server-tools-readcode.ts');
+  const readcode = read('core/atomic-edit/server-tools-readcode.ts');
   record(results, 'recovery budgets are bounded and explicit',
     readcode.includes('MISSING_PATH_SCAN_LIMIT = 500') &&
     readcode.includes('MISSING_PATH_SUGGESTION_LIMIT = 6') &&

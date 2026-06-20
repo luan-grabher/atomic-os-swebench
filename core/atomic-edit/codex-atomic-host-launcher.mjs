@@ -27,7 +27,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const REAL_CODEX = '/opt/homebrew/bin/codex';
 const here = path.dirname(fileURLToPath(import.meta.url));
-const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(here, '..', '..', '..');
+const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT || here;
 const BROKER = path.join(here, 'atomic-exec-broker.mjs');
 const BROKER_STATE = path.join(repoRoot, ".atomic", "codex-broker-current.json");
 

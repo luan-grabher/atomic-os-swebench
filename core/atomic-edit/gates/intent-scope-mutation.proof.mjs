@@ -22,8 +22,8 @@ function read(rel) {
 }
 
 function sourceAssertions() {
-  const guard = read('scripts/mcp/atomic-edit/guard.ts');
-  const io = read('scripts/mcp/atomic-edit/server-helpers-io.ts');
+  const guard = read('core/atomic-edit/guard.ts');
+  const io = read('core/atomic-edit/server-helpers-io.ts');
   return {
     guardLoadsWorkspaceIntentScope:
       guard.includes('intent-scope.json') &&

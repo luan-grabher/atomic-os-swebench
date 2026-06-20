@@ -38,7 +38,7 @@ function humanSummary(result, body) {
 }
 
 function sourceAssertions() {
-  const readcode = read('scripts/mcp/atomic-edit/server-tools-readcode.ts');
+  const readcode = read('core/atomic-edit/server-tools-readcode.ts');
   return {
     symbolSummaryDoesNotInlineCode:
       readcode.includes('Code is in the structured JSON payload.') &&

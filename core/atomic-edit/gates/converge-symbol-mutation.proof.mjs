@@ -46,7 +46,7 @@ function parseToolResult(result) {
 }
 
 function sourceAssertions() {
-  const converge = read('scripts/mcp/atomic-edit/server-tools-converge.ts');
+  const converge = read('core/atomic-edit/server-tools-converge.ts');
   return {
     convergeImportsCompactMutationEngines:
       converge.includes(importLine('{ replaceText }', 'engine.js')) &&

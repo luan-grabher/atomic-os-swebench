@@ -7,12 +7,12 @@ const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(sourceDir, '..', '..');
 const read = (rel) => fs.readFileSync(path.join(repoRoot, rel), 'utf8');
-const broker = read('scripts/mcp/atomic-edit/atomic-exec-broker.mjs');
-const execTools = read('scripts/mcp/atomic-edit/server-tools-exec.ts');
-const selfTools = read('scripts/mcp/atomic-edit/server-tools-self.ts');
-const proofEnv = read('scripts/mcp/atomic-edit/gates/proof-host-env.mjs');
-const launcherImpl = read('scripts/mcp/atomic-edit-mcp-launcher-impl.sh');
-const supervisor = read('scripts/mcp/atomic-edit/launcher-supervisor.mjs');
+const broker = read('core/atomic-edit/atomic-exec-broker.mjs');
+const execTools = read('core/atomic-edit/server-tools-exec.ts');
+const selfTools = read('core/atomic-edit/server-tools-self.ts');
+const proofEnv = read('core/atomic-edit/gates/proof-host-env.mjs');
+const launcherImpl = read('core/atomic-edit-mcp-launcher-impl.sh');
+const supervisor = read('core/atomic-edit/launcher-supervisor.mjs');
 const results = [];
 function record(name, ok, detail = {}) { results.push({ name, ok: Boolean(ok), detail }); }
 

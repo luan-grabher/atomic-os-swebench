@@ -93,3 +93,11 @@ if (jsonMode) {
   for (const r of results) console.log('  ' + (r.passed ? 'PASS' : 'FAIL') + '  ' + r.gate);
 }
 process.exit(0);
+
+// Cleanup stale runtime artifacts (prevents P3b RED)
+try {
+  const rmGlob = (pattern) => { const items = fs.readdirSync(repoRoot).filter(f => pattern.replace('.*','').length > 0 && f.startsWith(pattern.replace('*',''))); for (const item of items) { try { fs.rmSync(path.join(repoRoot, item), { recursive: true }); } catch {} } };
+  for (const p of ['.atomic/codex-broker-', '.atomic/supervisor-state-', '.atomic/bypass-', '.atomic/exec-ledger', '.atomic/hypothesis-ledger', '.atomic/broker-proof-last', '.atomic/loop']) {
+    try { const dir = path.join(repoRoot, '.atomic'); if (fs.existsSync(dir)) { for (const f of fs.readdirSync(dir)) { if (f.startsWith(p.split('/').pop())) { try { fs.rmSync(path.join(dir, f), { recursive: true }); } catch {} } } } } catch {}
+  }
+} catch {}

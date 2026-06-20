@@ -67,7 +67,7 @@ function main() {
     const shortName = invariant.replace('node ', '').replace(' --json', '').replace('gates/', '').slice(0, 40);
     const frictions = AGENTS.map(a => {
       const f = frictionFor(state, a, invariant);
-      const tier = trustTier(f);
+      const tier = trustTier(state, a, invariant);
       return `${a}:${f.hits}h/${tier}`;
     });
     console.log(`  ${shortName.padEnd(42)} ${frictions.join('  ')}`);
@@ -76,7 +76,7 @@ function main() {
   // Route a batch of tasks
   console.log('\nTask routing (stigmergic — each task goes to least-friction agent):');
   const tasks = [...invariantSet].slice(0, 8).map(inv => ({ invariantIds: [inv] }));
-  const assignment = routeBatch(state, tasks, AGENTS);
+  const assignment = routeBatch(tasks, AGENTS, state);
   for (let i = 0; i < assignment.length; i++) {
     const inv = tasks[i].invariantIds[0].replace('node ', '').replace(' --json', '').replace('gates/', '').slice(0, 35);
     console.log(`  ${inv.padEnd(37)} → agent:${assignment[i].agent}`);

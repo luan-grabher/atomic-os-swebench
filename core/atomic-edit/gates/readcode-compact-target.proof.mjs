@@ -35,8 +35,8 @@ function parseToolResult(result) {
 }
 
 function sourceAssertions() {
-  const readcode = read('scripts/mcp/atomic-edit/server-tools-readcode.ts');
-  const browseTools = read('scripts/mcp/atomic-edit/server-tools-b.ts');
+  const readcode = read('core/atomic-edit/server-tools-readcode.ts');
+  const browseTools = read('core/atomic-edit/server-tools-b.ts');
   return {
     readcodeUsesCompactLocalTarget:
       readcode.includes('function readcodeTargetDetails(displayPath: string): Record<string, unknown>') &&

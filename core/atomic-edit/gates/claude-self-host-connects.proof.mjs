@@ -21,10 +21,10 @@ import { fileURLToPath } from 'node:url';
 
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));
-const root = path.resolve(dir, '..'); // scripts/mcp/atomic-edit
-const repoRoot = path.resolve(root, '../../..');
+const root = path.resolve(dir, '..'); // core/atomic-edit (the package dir)
+const repoRoot = path.resolve(root, '../..'); // atomic-os-swebench (2 up, not 3 — post-unification depth)
 const brokerPath = path.join(root, 'atomic-exec-broker.mjs');
-const launcher = path.join(repoRoot, 'scripts/mcp/atomic-edit-mcp-launcher.sh');
+const launcher = path.join(root, 'atomic-edit-mcp-launcher.sh');
 const atomicDir = path.join(repoRoot, '.atomic');
 const socket = path.join(atomicDir, `selfhost-proof-${process.pid}.sock`);
 
