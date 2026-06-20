@@ -46,11 +46,16 @@ origin/master = the one canonical atomic
 
 The single-source loop is mechanized, not a discipline:
 
-- **Inbound (everyone receives every change):** the canonical launcher's impl
-  (`atomic-edit-mcp-launcher-impl.sh`) — the single chokepoint EVERY CLI agent now launches through —
-  runs `core/atomic-edit/atomic-sync.sh` on each MCP start: pull `origin/master` (clean-master-only,
-  ff-only, ~10s budget, rate-limited 5 min, all errors swallowed) then the existing dist self-rebuild
-  compiles it. `run-ab.sh` runs the same sync first, so the benchmark also gets every cross-machine change.
+- **Inbound — within a machine (LIVE):** every CLI agent launches the SAME canonical
+  `core/atomic-edit` (all host configs point here) and the launcher self-rebuilds `dist` from source on
+  launch + hot-reloads on edits. So an edit by ANY local agent is seen by ALL local agents on their next
+  tool call — live, no copy. (We deliberately do NOT inject into the launcher itself: it has a blessed/
+  manifest immune system that self-heals edits, so injecting there is fought off. Shared-source + the
+  existing self-rebuild already gives single-machine live propagation without touching that immune system.)
+- **Inbound — across machines:** a launchd agent (macOS) / cron (linux) — `install-unify-sync.sh` —
+  runs `atomic-sync.sh` every 120s: pull `origin/master` (clean-master-only, ff-only, ~10s budget,
+  rate-limited 90s, all errors swallowed) + dist rebuild. Tool-agnostic: every agent on the machine
+  benefits via the shared source. `run-ab.sh` runs the same sync first, so the benchmark gets every change too.
 - **Outbound (every change reaches master):** `.githooks/post-commit` auto-publishes any commit on
   `master` to `origin/master` (backgrounded, best-effort). `atomic-sync.sh` self-installs
   `core.hooksPath=.githooks` so the hook is active everywhere after the first sync.

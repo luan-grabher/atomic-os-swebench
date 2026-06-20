@@ -40,14 +40,6 @@ DIST="${SRC_DIR}/dist/server.js"
 
 cd "${REPO_ROOT}"
 
-# ── ABSOLUTE-UNIFICATION inbound sync (best-effort, never blocks) ──
-# This launcher is the single chokepoint EVERY CLI agent (Claude/Codex/Antigravity/Oh-my-pi/Vibe)
-# now goes through. Pull the canonical atomic from origin/master so each launch runs the latest
-# committed atomic; the dist self-rebuild below compiles any pulled change. atomic-sync.sh is fully
-# defensive (clean-master-only, ff-only, ~10s budget, rate-limited 5min, all errors swallowed,
-# opt-out ATOMIC_NO_SELFSYNC=1) so it can never hang or corrupt a launch. stdout stays clean.
-[ -f "${SRC_DIR}/atomic-sync.sh" ] && bash "${SRC_DIR}/atomic-sync.sh" 1>&2 || true
-
 # Pin runtime temp/output roots before any Node helper runs. Build, broker, and
 # dist-freshness probes must never fall back to /tmp under the host sandbox.
 # ATOMIC_WORKSPACE_ROOT preserves the caller cwd as the default action root so
