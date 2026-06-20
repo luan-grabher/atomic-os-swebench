@@ -181,11 +181,37 @@ catastrophic read-loop (40 steps, 3.49M tokens) caused by CLASS-S1-A.
   This residual is MODEL localization + TASK difficulty, NOT representation — both arms fail it. Honest:
   not every fix flips a hard-task outcome; do not hardcode.
 
+## Level 2 — FEEDBACK round on pylint-7080 (warm-container test-feedback gate, both arms iterate)
+- Built + validated the warm-container feedback gate (swe_docker_gate.sh): instance image kept alive,
+  per run_tests applies arm diff + test_patch in the real conda env, runs F2P+P2P, reverts. Validated on
+  flask (correct fix → 16 passed; atomic-with-feedback solved in 1 edit/3 reads/39k tokens). Each arm gets
+  its OWN warm container (the gate resets /testbed → would race if shared).
+- **pylint-7080 WITH feedback — FIRST DISCRIMINATING result:**
+
+| arm | result | iterations | tool/steps | tokens |
+|---|---|---|---|---|
+| NATIVE (Claude) | **RESOLVED** (gate 16/0) | 2 gate runs | 28 tool-uses | 67k |
+| ATOMIC (DeepSeek) | **FAILED** | 0 (never tested) | 38 reads / 0 edits / 40 steps | 3.42M |
+
+**Verdict:** native LEADS on the first hard discriminating instance. Honest attribution: the atomic
+TOOLING was adequate (line-range reads work, run_tests available) — the atomic agent (DeepSeek) NEVER
+committed an edit (analysis paralysis: 38 reads, 0 edits, never entered the feedback loop), burning 3.42M
+tokens to budget. Claude self-regulates (edit→test→refine); DeepSeek over-reads. This is MOSTLY a model
+capability gap — the user's "loss = representation" has a limit: when tooling is adequate and one model
+is simply weaker at committing, that's a model gap, reported honestly.
+
+### CLASS-S2-A (harness/representation, generalist) — unbounded analysis paralysis
+- The soft read-steer (nudge every 6 reads) has NO teeth for a model that over-reads: DeepSeek ignored
+  ~6 nudges, never edited. A generalist harness improvement (any over-reading model): after K reads with
+  0 edits, RESTRICT the offered tools to edit+test and firmly instruct "commit your best edit now, then
+  run_tests to refine" — NOT blind (38 reads = ample context already) and feedback lets it refine. Testable:
+  does it flip pylint atomic from 0-edits-fail to an iterated solve? If it just produces a wrong edit →
+  confirmed model gap. (Distinct from the Modal blind-lockout: there the model had little context; here it
+  has too much and won't act.)
+
 ## Next exact step
-The decisive lever to move HARD instances (where both arms fail one-shot) is TEST FEEDBACK: let each arm
-iterate against the real failing test. Build the warm-container feedback gate (instance Docker image kept
-alive; per run_tests: apply arm diff + test_patch in /testbed, run F2P+P2P, revert) so both arms iterate
-fairly — then atomic's pre-disk-validity guarantee + iteration can actually pull AHEAD on hard tasks
-(native may iterate into a wrong fix; atomic edits stay valid). Re-run the suite WITH feedback; compare
-resolved-rate. Alternatively/also: widen the suite (more instances) for a tighter resolved-rate number.
-Headline so far: atomic 4/5 = native 4/5 (one-shot); 2 representation CLASSES closed (R1-A, S1-A).
+Implement CLASS-S2-A (bounded analysis paralysis: force-edit-after-K-reads, schema-restrict + firm steer,
+not blind) in local_atomic_agent.py; re-run pylint-7080 atomic WITH feedback. If it now edits+iterates to
+resolve → harness gap closed (atomic reaches parity on the hard instance). If it edits but stays wrong →
+honest model gap (report, don't chase). Then widen the feedback suite. Headline: one-shot 4/5=4/5; with
+feedback pylint native-resolved, atomic-failed (analysis paralysis) → fixing the harness bound next.
