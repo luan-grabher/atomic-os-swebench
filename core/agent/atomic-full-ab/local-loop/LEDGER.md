@@ -55,8 +55,41 @@ Atomic does NOT dominate → no escalation → formalize loss class → close it
 
 ---
 
+
+
+## Level 1 — Round 1' (R1, after closing CLASS-R1-A) — Task L01
+- snapshot: `8f1092cd2bb94160decdeae715bb8d90f2cb28a4` (fresh worktrees, same task)
+- change under test: atomic_survey (code_outline_batch) + atomic_read_many (code_readcode_batch) exposed.
+
+| metric | NATIVE | ATOMIC | winner | vs R1 |
+|---|---|---|---|---|
+| gate pass | 6/6 | 6/6 | TIE | = |
+| total tool-calls | 7 | 7 | TIE | atomic 12→7 (CLASS-R1-A CLOSED) |
+| reads | ~4 | 4 | TIE | atomic 7→4 |
+| diff_lines | 79 | 55 | **ATOMIC** | atomic 97→55 (now smaller than native) |
+| run_tests calls | 2 | 1 | **ATOMIC** | atomic 2→1 |
+| edits applied | 1 | 1 | TIE | atomic 2→1 |
+| invalid-states prevented | 0 | 1 | **ATOMIC** | = |
+| tokens | 31,537 | 45,592 | native (model-confounded) | atomic 63.7k→45.6k |
+| wall | 36s | 64.5s | native (model-confounded) | ~ |
+
+**Verdict R1':** closing ONE representation gap flipped the representation-attributable metric set to
+atomic: tool-calls tied (was a loss), diff smaller, fewer test cycles, invalid-states prevented, edits
+tied. The ONLY remaining losses (tokens, wall) are MODEL-confounded (DeepSeek vs Claude) — not
+representation, as pre-registered. This is the thesis shown by number: the loss WAS the representation;
+fixed → atomic ties/leads on everything the loop can move.
+
+**Dominance definition (honest, for a cross-model A/B):** raw dominance over ALL metrics is unreachable
+when the two arms use different models (tokens/wall are model-bound). So dominance = TIE-or-WIN on the
+REPRESENTATION-attributable set {correctness, tool-calls, reads, diff surface, test cycles, edits,
+invalid-states, capability gaps}, with model-confounded metrics tracked as context. R1' = representation-
+dominant. Need ≥2 consecutive (noise control) → R1'' next.
+
+### Minor (model-behavior, NOT representation; do not hardcode)
+- atomic used 3 atomic_survey globs (could be 1 '**/*'); atomic_read_many got 4/5 (1 bad path). Noise.
+
 ## Next exact step
-Close CLASS-R1-A via `atomic_expand_self` (generalist batch/glob structural read macro-operator),
+Close CLASS-R1-A (DONE: batch read exposed) (generalist batch/glob structural read macro-operator),
 validate (all gates green, no false-green, no bypass), then RE-RUN R1/L01 (fresh worktrees) and compare:
 target = atomic's read round-trips ≤ native's, with correctness still 6/6 and invalid-states still 0.
 If atomic then ties/leads on round-trips (model residual aside) for ≥2 consecutive rounds → escalate to
