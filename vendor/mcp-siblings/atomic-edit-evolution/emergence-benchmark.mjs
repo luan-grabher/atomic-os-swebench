@@ -47,6 +47,32 @@ const TASK_FAMILIES = {
       return Number(val) === t.answer;
     },
   },
+  programming: {
+    name: 'JS function synthesis with edge cases',
+    units: [
+      { id: 'p1', prompt: 'Write JS function isBalanced(s): true if (),[],{} brackets are properly matched AND nested. Crossing like ([)] is INVALID.', tests: [['()',true],['[]{}',true],['([)]',false],['{[()]}',true],['(((',false],['',true]] },
+      { id: 'p2', prompt: 'Write JS function rle(s): run-length encode. aaabbb->a3b3. Single chars get count 1. Always return encoded string.', tests: [['aaa','a3'],['aaabbb','a3b3'],['abc','a1b1c1'],['',''],['aaaa','a4']] },
+      { id: 'p3', prompt: 'Write JS function atoi(s): string to int. Strip whitespace, handle +/-, clamp to [-2147483648,2147483647], stop at non-digit.', tests: [['42',42],['   -42',-42],['4193 words',4193],['+5',5]] },
+      { id: 'p4', prompt: 'Write JS function isPalindrome(s): true if s is palindrome considering ONLY alphanumeric, ignoring case and non-alphanumeric.', tests: [['A man a plan a canal Panama',true],['race a car',false],[' ',true],['0P',false]] },
+      { id: 'p5', prompt: 'Write JS function deepFlatten(arr): flatten nested arrays of any depth into a flat array.', tests: [[[1,[2,[3]]],[1,2,3]],[[1,2,[3,4]],[1,2,3,4]],[[[1]],[1]],[[],[]]] },
+      { id: 'p6', prompt: 'Write JS function groupAnagrams(strs): group strings that are anagrams. Return array of groups (arrays).', tests: [[['eat','tea','tan','ate','nat','bat'],[['eat','tea','ate'],['tan','nat'],['bat']]]] },
+      { id: 'p7', prompt: 'Write JS function validIP(s): true if valid IPv4 (4 octets 0-255, no leading zeros except 0 itself).', tests: [['192.168.1.1',true],['255.255.255.255',true],['256.1.1.1',false],['01.1.1.1',false],['0.0.0.0',true]] },
+      { id: 'p8', prompt: 'Write JS function climbStairs(n): distinct ways to climb n stairs taking 1 or 2 steps. climbStairs(1)=1, climbStairs(2)=2.', tests: [[1,1],[2,2],[3,3],[5,8],[10,89]] },
+    ],
+    verify: (id, code) => {
+      try {
+        const fn = new Function(code + '; return ' + id + ';')();
+        const t = TASK_FAMILIES.programming.units.find(u => u.id === id);
+        for (const [input, expected] of t.tests) {
+          let result;
+          try { result = fn(input); } catch { return false; }
+          if (JSON.stringify(result) !== JSON.stringify(expected)) return false;
+        }
+        return true;
+      } catch { return false; }
+    },
+    isCode: true,
+  },
   synthetic: {
     name: 'Synthetic P=0.4 (mechanism proof)',
     makeTask: (seed = 'bench') => {
