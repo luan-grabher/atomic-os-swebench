@@ -50,7 +50,9 @@ ATOMIC_MODE = os.environ.get("ATOMIC_MODE", "").strip().lower()
 if not ATOMIC_MODE:
     ATOMIC_MODE = "governed" if os.environ.get("ATOMIC", "off").strip().lower() == "on" else "off"
 ATOMIC = ATOMIC_MODE == "governed"          # legacy flag: the governed (single-tool) arm
-ATOMIC_FULL = ATOMIC_MODE == "full"         # the COMPLETE-toolbox arm
+ATOMIC_FULL = ATOMIC_MODE == "full"         # the COMPLETE-toolbox arm (115 tools)
+ATOMIC_INTENT = ATOMIC_MODE == "intent"     # the FAITHFUL intention arm (declare intent; byte stays the floor)
+ATOMIC_MCP_ARM = ATOMIC_FULL or ATOMIC_INTENT  # both run the atomic MCP bundle + atomic-call dispatch
 # The slim bundle (built by core/agent/atomic-bundle.sh): dist closure + minimal typescript +
 # headless-edit.mjs. ~1.6M tgz / ~8.8M unpacked (vs 490M full node_modules).
 ATOMIC_BUNDLE = os.environ.get("ATOMIC_BUNDLE", str(Path(__file__).resolve().parent / "atomic-edit-bundle.tgz"))
@@ -61,7 +63,7 @@ ATOMIC_FULL_BUNDLE = os.environ.get("ATOMIC_FULL_BUNDLE", str(Path(__file__).res
 ATOMIC_SANDBOX_DIR = "/root/atomic-edit"
 # Full-arm catalog + dispatch helpers (import-only; built once below when ATOMIC_FULL).
 FULL_ATOMIC_NAMES = set()
-if ATOMIC_FULL:
+if ATOMIC_MCP_ARM:
     import atomic_full_arm as _afa
 
 
@@ -138,9 +140,10 @@ if ATOMIC:
 # ATOMIC_MODE=full: REPLACE the hand-rolled toolbox with the COMPLETE atomic MCP catalog (read/analyze/
 # structural-edit/transaction/converge/prove), pulled live from the real engine so it stays in sync.
 # run_tests is re-appended by the catalog builder and stays the byte-identical verifier across arms.
-if ATOMIC_FULL:
+if ATOMIC_MCP_ARM:
     _atomic_src = os.environ.get("ATOMIC_EDIT_SRC", str(Path(__file__).resolve().parent.parent / "atomic-edit"))
-    TOOLS, FULL_ATOMIC_NAMES = _afa.build_full_tool_catalog(_atomic_src)
+    _only = _afa.INTENT_TOOLS if ATOMIC_INTENT else None
+    TOOLS, FULL_ATOMIC_NAMES = _afa.build_full_tool_catalog(_atomic_src, only=_only)
     FULL_ATOMIC_NAMES = {n for n in FULL_ATOMIC_NAMES if n != "run_tests"}
 
 # Read-vs-edit tool classification, unified across arms so the anti-stuck read-lockout fires
@@ -149,9 +152,9 @@ _OFF_READS = {"grep", "read_file", "outline", "read_symbol", "glob"}
 _ATOMIC_READS = {"code_readcode", "code_outline", "code_read_symbol", "atomic_read_file",
                  "atomic_grep", "atomic_glob", "atomic_locate", "atomic_outline",
                  "atomic_ast_search", "atomic_grep_calls", "atomic_affected_tests"}
-READ_TOOL_NAMES = _OFF_READS | ((_ATOMIC_READS & FULL_ATOMIC_NAMES) if ATOMIC_FULL else set())
+READ_TOOL_NAMES = _OFF_READS | ((_ATOMIC_READS & FULL_ATOMIC_NAMES) if ATOMIC_MCP_ARM else set())
 # When the read-lockout engages it strips reads, leaving only edit + run_tests so the model MUST edit.
-EDIT_KEEP_NAMES = ((FULL_ATOMIC_NAMES - _ATOMIC_READS) | {"run_tests"}) if ATOMIC_FULL else {"str_replace", "run_tests"}
+EDIT_KEEP_NAMES = ((FULL_ATOMIC_NAMES - _ATOMIC_READS) | {"run_tests"}) if ATOMIC_MCP_ARM else {"str_replace", "run_tests"}
 
 SYS = ("You are an expert engineer fixing a real bug in a Python repo, graded by a hidden test suite. "
        "Work in the project SOURCE ONLY (never read tests or site-packages). Strategy: (1) locate the exact "
@@ -361,7 +364,7 @@ def solve(inst, f2p, p2p, test_cmd, block_files, max_steps=80):
         atomic_node = None
         if ATOMIC:
             atomic_node = _atomic_provision(sb, iid)
-        elif ATOMIC_FULL:
+        elif ATOMIC_MCP_ARM:
             atomic_node = _afa.atomic_full_provision(sb, iid, sbexec, log, ATOMIC_FULL_BUNDLE, CONDA, ATOMIC_SANDBOX_DIR)
         messages = [{"role": "system", "content": SYS},
                     {"role": "user", "content": f"Bug/issue:\n\n{inst['problem_statement'][:6000]}\n\n"
@@ -425,7 +428,7 @@ def solve(inst, f2p, p2p, test_cmd, block_files, max_steps=80):
                     log(iid, f"s{step} {fn}(...) -> REFUSED [read-lockout active; only str_replace/run_tests]")
                     messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                     continue
-                if ATOMIC_FULL and fn in FULL_ATOMIC_NAMES:
+                if ATOMIC_MCP_ARM and fn in FULL_ATOMIC_NAMES:
                     # FULL arm: dispatch ANY atomic tool one-shot through the COMPLETE MCP in-sandbox
                     # against /testbed. run_tests is NOT in FULL_ATOMIC_NAMES, so it stays the native
                     # byte-identical verifier below. Result flows into the common log+append tail.

@@ -49,6 +49,18 @@ DENY_TOOLS = {
     "atomic_positive_bytes_abort",
 }
 
+# INTENT arm — the FAITHFUL representation of the atomic principle ("declare intention at the highest
+# faithful level; the byte is the floor, NEVER the agent's steering wheel"). The model edits by stating
+# WHAT the code should be via the single unified intention operator atomic_converge (which compiles the
+# intent to the minimal validated byte mutation, preserves the rest, proves the delta). It does NOT hand
+# the model 115 byte-level mutation tools as the wheel (that was the infidelity that made the FULL arm
+# lose). A tight, high-altitude surface: one intention-editor + read/locate + run_tests.
+INTENT_TOOLS = [
+    "atomic_converge",                                              # the intention->minimal-mutation envelope
+    "code_readcode", "code_outline", "code_read_symbol",            # read/understand
+    "atomic_grep", "atomic_locate", "atomic_outline",              # find
+]
+
 EXCLUDED_RATIONALE = (
     "Excluded from the agent surface (still PRESENT in the package, just not offered as tools): "
     "chrome_devtools_* (browser), codex_config_* (host config), positive_bytes_* (byte ledger), "
@@ -57,7 +69,7 @@ EXCLUDED_RATIONALE = (
 )
 
 
-def build_full_tool_catalog(atomic_dir, include_run_tests=True, timeout=25):
+def build_full_tool_catalog(atomic_dir, include_run_tests=True, timeout=25, only=None):
     """Start the COMPLETE local MCP (dist/server.js), read its real tools/list, and convert the
     allowlisted tools into DeepSeek function schemas (MCP inputSchema IS json-schema => passthrough).
     Returns (tools_list, tool_name_set). Falls back to a minimal hardcoded set if the probe fails."""
@@ -100,10 +112,13 @@ def build_full_tool_catalog(atomic_dir, include_run_tests=True, timeout=25):
     # engine are auto-included — the agent's surface tracks the canonical atomic, no manual allowlist.
     out = []
     chosen = []
+    onlySet = set(only) if only else None
     for t in tools_raw:
         name = t.get("name")
         if not name or name in DENY_TOOLS:
             continue
+        if onlySet is not None and name not in onlySet:
+            continue  # INTENT arm: expose only the high-altitude intention surface
         params = t.get("inputSchema") or {"type": "object", "properties": {}}
         out.append({"type": "function", "function": {
             "name": name,
