@@ -668,7 +668,7 @@ def _atomic_provision(sb, iid):
         "open('/tmp/_at.py','w').write('def f(x):\\n    return x + 1\\n')\n"
         "open('/tmp/_o','w').write('return x + 1')\n"
         "open('/tmp/_n','w').write('return x + 1  # atomic selftest')\n"
-        f"r=subprocess.run([{json.dumps(nb)},'{ATOMIC_SANDBOX_DIR}/headless-edit.mjs','/tmp/_at.py','/tmp/_o','/tmp/_n'],capture_output=True,text=True)\n"
+        f"r=subprocess.run([{json.dumps(nb)},'{ATOMIC_SANDBOX_DIR}/headless-edit.mjs','/tmp/_at.py','/tmp/_o','/tmp/_n'],stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)\n"
         "print(r.stdout.strip() or r.stderr.strip())\n"
     )
     b64 = base64.b64encode(st.encode()).decode()
@@ -702,7 +702,7 @@ def sb_atomic_str_replace(sb, node_bin, path, old, new, proof, block_files):
         "open('/tmp/_old','w').write(d['old']); open('/tmp/_new','w').write(d['new'])\n"
         "argv=[d['node'], d['cli'], p, '/tmp/_old', '/tmp/_new']\n"
         "if d.get('proof'):\n  open('/tmp/_proof','w').write(d['proof']); argv.append('/tmp/_proof')\n"
-        "r=subprocess.run(argv,capture_output=True,text=True)\n"
+        "r=subprocess.run(argv,stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True)\n"
         "out=(r.stdout or '').strip() or (r.stderr or '').strip()\n"
         "try: v=json.loads(out.splitlines()[-1])\n"
         "except Exception: print('REFUSED (atomic headless, unparsed): '+out[:600]); sys.exit()\n"
