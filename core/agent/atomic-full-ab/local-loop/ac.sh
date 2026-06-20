@@ -7,7 +7,7 @@
 #        atomic_replace_text (file,oldText,newText[,proofOfIncorrectness]), atomic_create_file (file,content).
 set -uo pipefail
 WD="$(cd "$1" && pwd)"; TOOL="$2"; ARGS="${3:-{}}"
-AC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../atomic-edit" && pwd)/atomic-call.mjs"
+AC="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../atomic-edit" && pwd)/atomic-call.mjs"
 # absolutize file/path/cwd args against the workdir (atomic-call blanks the workspace root)
 ARGS="$(WD="$WD" python3 - "$ARGS" <<'PY'
 import json,os,sys
