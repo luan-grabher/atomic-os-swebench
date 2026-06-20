@@ -1,0 +1,37 @@
+[
+  {
+    "id": "psf__requests-1921",
+    "repo": "psf/requests",
+    "base": "3c88e520da24ae6f736929a750876e7654accc3d",
+    "pristine": "/tmp/swe/suite/psf__requests-1921/pristine",
+    "taskdir": "/Users/danielpenin/atomic-os-swebench/core/agent/atomic-full-ab/local-loop/tasks/SWE-psf__requests-1921"
+  },
+  {
+    "id": "pytest-dev__pytest-7982",
+    "repo": "pytest-dev/pytest",
+    "base": "a7e38c5c61928033a2dc1915cbee8caa8544a4d0",
+    "pristine": "/tmp/swe/suite/pytest-dev__pytest-7982/pristine",
+    "taskdir": "/Users/danielpenin/atomic-os-swebench/core/agent/atomic-full-ab/local-loop/tasks/SWE-pytest-dev__pytest-7982"
+  },
+  {
+    "id": "pytest-dev__pytest-5262",
+    "repo": "pytest-dev/pytest",
+    "base": "58e6a09db49f34886ff13f3b7520dd0bcd7063cd",
+    "pristine": "/tmp/swe/suite/pytest-dev__pytest-5262/pristine",
+    "taskdir": "/Users/danielpenin/atomic-os-swebench/core/agent/atomic-full-ab/local-loop/tasks/SWE-pytest-dev__pytest-5262"
+  },
+  {
+    "id": "pylint-dev__pylint-7080",
+    "repo": "pylint-dev/pylint",
+    "base": "3c5eca2ded3dd2b59ebaf23eb289453b5d2930f0",
+    "pristine": "/tmp/swe/suite/pylint-dev__pylint-7080/pristine",
+    "taskdir": "/Users/danielpenin/atomic-os-swebench/core/agent/atomic-full-ab/local-loop/tasks/SWE-pylint-dev__pylint-7080"
+  },
+  {
+    "id": "pallets__flask-5014",
+    "repo": "pallets/flask",
+    "base": "7ee9ceb71e868944a46e1ff00b506772a53a4f1d",
+    "pristine": "/tmp/swe/suite/pallets__flask-5014/pristine",
+    "taskdir": "/Users/danielpenin/atomic-os-swebench/core/agent/atomic-full-ab/local-loop/tasks/SWE-pallets__flask-5014"
+  }
+]

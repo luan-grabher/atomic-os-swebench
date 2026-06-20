@@ -1,0 +1,36 @@
+{
+    "total_instances": 5,
+    "submitted_instances": 5,
+    "completed_instances": 5,
+    "resolved_instances": 4,
+    "unresolved_instances": 1,
+    "empty_patch_instances": 0,
+    "error_instances": 0,
+    "completed_ids": [
+        "pallets__flask-5014",
+        "psf__requests-1921",
+        "pylint-dev__pylint-7080",
+        "pytest-dev__pytest-5262",
+        "pytest-dev__pytest-7982"
+    ],
+    "incomplete_ids": [],
+    "empty_patch_ids": [],
+    "submitted_ids": [
+        "pallets__flask-5014",
+        "psf__requests-1921",
+        "pylint-dev__pylint-7080",
+        "pytest-dev__pytest-5262",
+        "pytest-dev__pytest-7982"
+    ],
+    "resolved_ids": [
+        "pallets__flask-5014",
+        "psf__requests-1921",
+        "pytest-dev__pytest-5262",
+        "pytest-dev__pytest-7982"
+    ],
+    "unresolved_ids": [
+        "pylint-dev__pylint-7080"
+    ],
+    "error_ids": [],
+    "schema_version": 2
+}

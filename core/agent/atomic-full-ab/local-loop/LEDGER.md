@@ -143,9 +143,31 @@ metric tied; only tokens (model) higher for atomic. The principle floor (atomic 
 demonstrated by number on a real SWE-bench task. BUT flask-5014 is too easy (both resolve) → does not
 discriminate. Need a SUITE of varied/harder instances to get a resolved-rate signal.
 
-## Next exact step
-Run a SUITE of N SWE-bench-Verified instances (varied repos/difficulty), both arms (atomic-first then
-native subagent, identical PROBLEM.md per instance, one-shot), score ALL via the official harness, and
-compare resolved-rate atomic vs native + aggregate representation metrics. Discriminating instances
-(where one arm resolves and the other doesn't) reveal the real representation gaps/advantages → formalize
-CLASSES → generalist atomic improvements → re-run. Headline target: atomic resolved-rate >= native, by number.
+## Level 2 — SUITE S1 (5 REAL SWE-bench-Verified instances, one-shot, official harness)
+- instances: psf__requests-1921, pytest-dev__pytest-7982, pytest-dev__pytest-5262, pylint-dev__pylint-7080,
+  pallets__flask-5014. Both arms one-shot (no test feedback), identical PROBLEM.md, official Docker gate.
+
+| arm | RESOLVED | failed | tokens (sum) |
+|---|---|---|---|
+| NATIVE (Claude) | **4/5** | pylint-7080 | ~170k |
+| ATOMIC (DeepSeek) | **4/5** | pylint-7080 | ~4.15M (84% = the pylint loop) |
+
+**Verdict S1:** resolved-rate PARITY (4/5 = 4/5) on real, externally-validated tasks. Both solve the same
+4; both fail the same hard one (pylint-7080, subtle ignore-paths-for-files, hard one-shot without feedback).
+Failure NATURE differed: native produced a plausible-but-wrong fix; atomic produced ZERO edits — a
+catastrophic read-loop (40 steps, 3.49M tokens) caused by CLASS-S1-A.
+
+### Loss CLASS found + closed this round (the loop's core win)
+- **CLASS-S1-A — no line-range read (representation, generalist, HIGH impact).** atomic_read (code_readcode)
+  reads only by symbol or whole-file; the model's natural startLine/endLine reads silently returned the
+  SIGNATURE OUTLINE, so it never saw the lines it needed → pylint read-loop to budget, 0 edits, 3.49M
+  tokens. The native Read tool has offset/limit line ranges natively. The engine ALREADY ships
+  atomic_read_file (true line-range reader + byte classification); CLOSED by routing atomic_read's
+  startLine/endLine to it + advertising the mode. Verified real (returns actual source lines). Re-running
+  pylint atomic to confirm the catastrophic loop is gone.
+- Pattern across R1-A and S1-A: the atomic ENGINE has the capability; the losses were gaps in my AGENT's
+  tool-EXPOSURE layer (the operational representation). Exactly "the loss is your representation" — measured.
+
+### Model-confounded / variance (recorded, not representation)
+- atomic token use is high + high-variance (flask same task: 72k in R2' vs 240k here) = DeepSeek vs Claude.
+  Tracked as context; the loop only closes representation gaps.
