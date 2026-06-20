@@ -22,7 +22,7 @@ if ! python3 -c "import swebench" >/dev/null 2>&1; then
 fi
 
 # the harness writes <model_name_or_path>.<run_id>.json in CWD; derive + announce it
-MODEL=$(python - "$PREDS" <<'PY'
+MODEL=$(python3 - "$PREDS" <<'PY'
 import json,sys
 with open(sys.argv[1]) as f:
     for line in f:
