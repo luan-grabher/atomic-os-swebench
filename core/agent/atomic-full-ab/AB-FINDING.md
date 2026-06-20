@@ -34,3 +34,15 @@ SWE-bench measures task RESOLUTION (Pass@1), where atomic shows no edge. atomic'
 edge is EDIT QUALITY/SAFETY — fewer syntactic/semantic regressions, smaller diffs, ZERO invalid
 states written — vs textual patching. That is the N4/N5 edit-quality benchmark, still to run. Only
 that number could support a specific, honest "atomic is superior at X" claim.
+
+## N4 edit-quality A/B — both models, honest NULL
+| model | atomic applied/valid/invalid | raw applied/valid/invalid |
+|---|---|---|
+| deepseek-v4-pro  (n=18) | 14 / 14 / **0** | 14 / 14 / **0** |
+| deepseek-v4-flash (n=18) | 12 / 12 / **0** | 12 / 12 / **0** |
+
+atomic's pre-disk validity guarantee held (0 invalid) — but RAW also wrote 0 invalid, because neither
+model proposed a broken small-substring edit. So the guarantee did not BIND → no measurable edge.
+Conclusion (measured, both dimensions): atomic = a correctness GUARANTEE (insurance), not a measurable
+performance/quality win at current model strength on normal edits. It would bind only on error-prone
+edits (large multi-line / multi-file rewrites) — the regime still to test for a specific honest claim.
