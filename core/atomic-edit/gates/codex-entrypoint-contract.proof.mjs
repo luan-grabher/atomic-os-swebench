@@ -200,7 +200,7 @@ function runProofDirect(name, timeout, env) {
 
 function runProofViaBroker(name, timeout, env) {
   const socket = liveBrokerSocket(env.ATOMIC_EXEC_BROKER_SOCKET);
-  const client = path.join(env.ATOMIC_HOST_WRITE_ROOT ?? repoRoot, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  const client = path.join(sourceDir, 'atomic-exec-broker-client.mjs');
   const directEnv = socket ? env : { ...env, ATOMIC_EXEC_BROKER_SOCKET: '' };
   if (!socket || !fs.existsSync(client)) {
     return runProofDirect(name, timeout, directEnv);

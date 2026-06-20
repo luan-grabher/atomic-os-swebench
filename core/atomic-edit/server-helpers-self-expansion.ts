@@ -110,8 +110,8 @@ export function isAtomicSelfExpansionPath(repoRoot: string, absPath: string): bo
   return admitsUnderLegacyScriptsPath(repoRoot, absPath) || admitsUnderSelfSourceRoot(absPath);
 }
 
-export function atomicSelfSourceRoot(): string | null {
-  return atomicEditSourceRoot();
+export function atomicSelfSourceRoot(): string {
+  return atomicEditSourceRoot() ?? '.';
 }
 
 export function assertSelfExpansionAdmission(repoRoot: string, absPath: string, nextContent: string): void {

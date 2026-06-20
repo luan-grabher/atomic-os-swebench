@@ -219,15 +219,26 @@ const INVARIANTS = [
   },
 ];
 
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
 const here = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(here, '..', '..', '..');
+const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || findRepoRoot(here);
 const ATOMIC_DIR = path.join(REPO_ROOT, '.atomic');
 export const BASELINE_FILE = path.join(ATOMIC_DIR, 'security-baseline.json');
 const LEGACY_BASELINE = path.join(here, '.security-baseline.json');
 const IS_PRODUCTION_SOURCE =
   path.basename(here) === 'atomic-edit' &&
-  path.basename(path.dirname(here)) === 'mcp' &&
-  path.basename(path.dirname(path.dirname(here))) === 'scripts';
+  (fs.existsSync(path.join(here, 'package.json')) ||
+    (path.basename(path.dirname(here)) === 'mcp' &&
+      path.basename(path.dirname(path.dirname(here))) === 'scripts'));
 
 function baselineFileFor(rootDir) {
   const resolved = path.resolve(rootDir);

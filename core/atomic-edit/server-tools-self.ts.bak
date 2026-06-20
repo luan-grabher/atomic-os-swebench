@@ -645,7 +645,7 @@ function selfExpansionHostProofEnv(socket: string, cwd: string, command: string)
 }
 
 function selfExpansionProofCwd(): string {
-  return atomicSelfSourceRoot();
+  return path.join(selfExpansionProofRoot(), 'scripts/mcp/atomic-edit');
 }
 
 function selfExpansionProofMustRunHostDirect(command: string): boolean {
@@ -1281,7 +1281,7 @@ function enforceSecurityMonotonicity(options: { ratchet?: boolean } = {}): void 
   const args = options.ratchet ? ['security-invariants.mjs', '--enforce', '--ratchet'] : ['security-invariants.mjs', '--enforce'];
   const candidates = [
     path.join(REPO_ROOT, 'scripts/mcp/atomic-edit'),
-    atomicSelfSourceRoot(),
+    path.dirname(fileURLToPath(import.meta.url)),
   ];
   const cwd = candidates.find((candidate) => fs.existsSync(path.join(candidate, 'security-invariants.mjs')));
   if (!cwd) {
@@ -1326,11 +1326,8 @@ function isEphemeralSelfExpansionEffect(file: string): boolean {
 
 function selfRootRelativeEffectPath(file: string): string {
   const rel = file.replaceAll('\\', '/');
-  const legacyPrefix = 'scripts/mcp/atomic-edit/';
-  if (rel.startsWith(legacyPrefix)) return rel.slice(legacyPrefix.length);
-  const selfRootRel = path.relative(REPO_ROOT, atomicSelfSourceRoot()).split(path.sep).join('/');
-  const selfPrefix = selfRootRel ? `${selfRootRel}/` : '';
-  return selfPrefix && rel.startsWith(selfPrefix) ? rel.slice(selfPrefix.length) : rel;
+  const prefix = 'scripts/mcp/atomic-edit/';
+  return rel.startsWith(prefix) ? rel.slice(prefix.length) : rel;
 }
 
 function isSelfEvolutionArchiveEffect(file: string): boolean {
@@ -1535,7 +1532,7 @@ export function registerToolsSelf(server: McpServer): void {
             );
           }
         }
-        const selfRoot = atomicSelfSourceRoot();
+        const selfRoot = REPO_ROOT;
         const preflightDisproofBriefing = buildSelfEvolutionNextDisproofBriefing(
           Array.from(new Set(ops.map((op) => op.file))).sort().join('|') || 'core/atomic-edit',
           'preflight-proposal-briefing',
@@ -1671,7 +1668,7 @@ export function registerToolsSelf(server: McpServer): void {
               archive: selfEvolutionArchive,
             },
             preflightDisproofBriefing: admittedPreflightDisproofBriefing,
-            target: targetDetails(atomicSelfSourceRoot() ?? REPO_ROOT, path.relative(REPO_ROOT, atomicSelfSourceRoot() ?? REPO_ROOT).split(path.sep).join('/')),
+            target: targetDetails(atomicSelfSourceRoot(), path.relative(REPO_ROOT, atomicSelfSourceRoot()).split(path.sep).join('/')),
             admission: 'self-expansion-validator-lattice-green-and-darwin-godel-promoted',
           });
         } catch (e) {

@@ -322,7 +322,7 @@ function runJsonScriptViaBroker(
 ): { ok: true; value: Record<string, unknown> } | { ok: false; error: string } | null {
   const socket = process.env.ATOMIC_EXEC_BROKER_SOCKET ?? '';
   const root = jsonScriptHostRoot();
-  const client = path.join(root, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  const client = path.join(atomicRootFromModule(import.meta.url), 'atomic-exec-broker-client.mjs');
   if (!socket || process.env.ATOMIC_EXEC_BROKER_ROOT || !fs.existsSync(client)) return null;
 
   const command = [process.execPath, scriptPath(name), ...args].map(shellPath).join(' ');

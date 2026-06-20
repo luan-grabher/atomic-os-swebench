@@ -113,7 +113,7 @@ async function main() {
 
     const protectedWrite = await callAtomicExec(
       client,
-      "sed -i '' -e 's/__atomic_never__/__atomic_never__/g' package.json",
+      "sed -i '' -e 's/__atomic_never__/__atomic_never__/g' core/atomic-edit/package.json",
       { cwd: readOnlyCwd, intent: 'proof protected governance sed write remains refused' },
     );
     record(

@@ -694,7 +694,7 @@ function runViaBroker(
       stderr: '',
     };
   }
-  const clientPath = hostVisibleBrokerPath(path.join(atomicSelfSourceRoot() ?? REPO_ROOT, 'atomic-exec-broker-client.mjs'));
+  const clientPath = hostVisibleBrokerPath(path.join(atomicSelfSourceRoot(), 'atomic-exec-broker-client.mjs'));
   const brokerCwd = hostVisibleBrokerPath(cwd);
   const brokerEffectRoot = effectRoot ? hostVisibleBrokerPath(effectRoot) : null;
   const brokerTempRoot = tempRoot ? hostVisibleBrokerPath(tempRoot) : null;
