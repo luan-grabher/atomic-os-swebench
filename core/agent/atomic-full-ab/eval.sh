@@ -13,7 +13,7 @@ MAX_WORKERS="${MAX_WORKERS:-4}"
 
 if [ ! -f "$PREDS" ]; then echo "eval.sh: predictions file not found: $PREDS" >&2; exit 2; fi
 
-if ! python -c "import swebench" >/dev/null 2>&1; then
+if ! python3 -c "import swebench" >/dev/null 2>&1; then
   echo "eval.sh: the official SWE-bench harness is not importable." >&2
   echo "  Install it:  pip install swebench" >&2
   echo "  or from source:  pip install -e /path/to/SWE-bench" >&2
@@ -34,7 +34,7 @@ PY
 echo "eval.sh: running official harness | dataset=$DATASET split=$SPLIT workers=$MAX_WORKERS run_id=$RUN_ID"
 echo "eval.sh: summary will be written to: ${MODEL}.${RUN_ID}.json"
 
-python -m swebench.harness.run_evaluation \
+python3 -m swebench.harness.run_evaluation \
   --dataset_name "$DATASET" --split "$SPLIT" \
   --predictions_path "$PREDS" --max_workers "$MAX_WORKERS" \
   --run_id "$RUN_ID"
