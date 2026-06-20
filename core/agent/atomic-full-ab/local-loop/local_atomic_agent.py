@@ -284,7 +284,7 @@ def main():
     metrics["diff_lines"] = diff_lines(d)
     metrics["wall_s"] = round(time.time() - t0, 1)
     Path(args.out).write_text(json.dumps(metrics, indent=2))
-    print(f"ATOMIC DONE gate_pass={final_pass} steps={metrics['steps']} edits={metrics['edits_applied']} "
+    print(f"ATOMIC DONE gate_pass={metrics['gate_pass']} steps={metrics['steps']} edits={metrics['edits_applied']} "
           f"reads={metrics['reads']} invalid_prevented={metrics['invalid_states_prevented']} "
           f"diff_lines={metrics['diff_lines']} tokens={metrics['tokens']} wall={metrics['wall_s']}s")
 
