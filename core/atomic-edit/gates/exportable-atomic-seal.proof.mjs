@@ -7,7 +7,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const compiledServer = path.join(sourceDir, 'dist', 'server.js');
 const exportRel = '.atomic/seals/exportable-atomic-seal-proof-' + process.pid + '.json';
 const exportAbs = path.join(repoRoot, exportRel);

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const codexHome = path.join(os.homedir(), '.codex');
 const launcher = path.join(sourceDir, 'codex-atomic-host-launcher.mjs');
 const allowed = path.join(sourceDir, '.whole-host-launcher-allowed-' + process.pid + '-' + Date.now() + '.tmp');

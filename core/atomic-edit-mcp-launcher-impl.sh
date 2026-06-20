@@ -1,0 +1,1 @@
+atomic-edit/atomic-edit-mcp-launcher-impl.sh

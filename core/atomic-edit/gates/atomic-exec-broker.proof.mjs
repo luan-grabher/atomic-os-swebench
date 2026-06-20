@@ -24,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const sourceDir = path.resolve(dir, '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const broker = path.join(sourceDir, 'atomic-exec-broker.mjs');
 const client = path.join(sourceDir, 'atomic-exec-broker-client.mjs');
 const atomicDir = path.join(repoRoot, '.atomic');

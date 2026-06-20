@@ -10,7 +10,7 @@ import { inheritedBrokerSocketFromState } from './proof-host-env.mjs';
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const launcher = path.resolve(sourceDir, '..', 'atomic-edit-mcp-launcher.sh')
 
 const launcherImpl = path.resolve(sourceDir, '..', 'atomic-edit-mcp-launcher-impl.sh');

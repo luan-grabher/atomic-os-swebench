@@ -73,7 +73,7 @@ research identifies as defective.
 
 ```sh
 node scripts/mcp/atomic-edit/smoke.mjs
-# current local evidence (2026-06-18): 47 passed, 0 failed
+# current local evidence (2026-06-20): 47 passed, 0 failed
 # engine + live MCP stdio round-trip + preview dry-run
 #   + cross-file rename via real tsconfig + sha256 concurrency guard
 #   + import/property ops + governance-guard refusal
@@ -82,7 +82,7 @@ node scripts/mcp/atomic-edit/audit-atomicity.mjs --json
 # pass=true, atomic_edit_ratio=1, fallback_rate=0, coarse_unjustified=0
 
 node scripts/mcp/atomic-edit/gates/mcp-tool-list-compact.proof.mjs --json
-# live list_tools evidence: 116 tools, compact schemas, no nested schema descriptions
+# live list_tools evidence: 123 tools, compact schemas, no nested schema descriptions
 
 node scripts/mcp/atomic-edit/gates/lattice-completeness.proof.ts --json
 # machine-readable coverage of 10 failure dimensions plus non-empty proof inventory
@@ -132,10 +132,10 @@ Operating guidance: `docs/ai/ATOMIC_EDIT_OPERATING_GUIDE.md`.
 
 ## Honest scope
 
-- **Multi-language validation:** 13 languages via tree-sitter WASM (Python, JS, TS, TSX, Go, Ruby, Rust, Java, C, C++, Bash, CSS, HTML) plus native tool validators (python3, go vet, rustc, ruby -c, shellcheck) and SQL via pg-query-emscripten. Validation falls back through three tiers: native tool → WASM tree-sitter → structural balance.
+- **Multi-language validation:** 29 languages via tree-sitter WASM (Python, JavaScript, TypeScript, TSX, Go, Ruby, Rust, Java, C, C++, Bash, JSON, HTML, CSS, PHP, Kotlin, Swift, C#, Scala, Lua, Dart, Elixir, Haskell, GraphQL, Proto, Zig, Toml, SQL, YAML) plus native tool validators (python3, go vet, rustc, ruby -c, shellcheck) and SQL via pg-query-emscripten. Validation falls back through three tiers: native tool → WASM tree-sitter → structural balance. Confirm live with `atomic_native_status`.
 - **Sub-expression selectors:** `code_read_symbol` now resolves `"Container.expr"` syntax (e.g. `"login.user"` → the `user` parameter inside `login`). Works for TS/JS via ts-morph AST traversal; non-TS files use tree-sitter.
 - **Named declarations:** selector-based AST replacement covers named declarations (function/class/method/interface/type/var) in all grammar-backed languages.
 - Cross-file rename requires a reachable `tsconfig.json`; falls back to a directory-scoped project if none is found.
-- **Z3 formal verification:** the edit algebra's confluence theorem is machine-checked by Z3 (`.z3-scratch/confluence.py`). Refinement proof cross-checks runtime against the model.
-- **190 proof entrypoints** and **246 total gate files** under `gates/` covering exec sandbox, atomic writes, bypass honesty, connection byte-floor, snapshot ceilings, formal model lifts, public package tests, multi-language supply-chain resolution, doc honesty, and more.
+- **Z3 formal verification:** the edit algebra's confluence theorem is machine-checked by Z3 (`formal/atomic-algebra/confluence_z3.py` + `nway_induction_z3.py`) and Lean 4 (`formal/atomic-algebra/NwayConfluence.lean`). Refinement proof cross-checks runtime against the model.
+- **251 proof entrypoints** and **316 total gate files** under `gates/` covering exec sandbox, atomic writes, bypass honesty, connection byte-floor, snapshot ceilings, formal model lifts, public package tests, multi-language supply-chain resolution, doc honesty, multi-install drift, source-tree hygiene, and more.
 - Product-layer tools do not magically finish integrations. They force every CLI using this MCP to name the product behavior, reject facade/stub claims, demand runtime/API/DB/browser evidence, emit a no-code receipt, and resume from repository state.

@@ -17,7 +17,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const source = fs.readFileSync(path.join(sourceDir, 'server-tools-readcode.ts'), 'utf8');
 const compiledServer = path.join(sourceDir, 'dist', 'server.js');
 

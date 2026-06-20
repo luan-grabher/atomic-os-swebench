@@ -8,7 +8,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const launcher = path.resolve(sourceDir, '..', 'atomic-edit-mcp-launcher.sh');
 const brokerScript = path.join(sourceDir, 'atomic-exec-broker.mjs');
 

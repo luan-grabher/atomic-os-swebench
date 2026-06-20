@@ -16,7 +16,7 @@ import { installInheritedAtomicHostEnv } from './proof-host-env.mjs';
  */
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const fixture = path.join(sourceDir, '.atomic-exec-prove-effect-required-' + process.pid + '-' + Date.now());
 
 function parseToolResponse(response) {

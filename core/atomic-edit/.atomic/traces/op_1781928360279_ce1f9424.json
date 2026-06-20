@@ -1,0 +1,105 @@
+{
+  "traceVersion": "1.0",
+  "operationId": "op_1781928360279_ce1f9424",
+  "ts": "2026-06-20T04:06:00.279Z",
+  "file": "README.md",
+  "repoRoot": "/Users/danielpenin/atomic-os-swebench/core/atomic-edit",
+  "operation": "atomic_edit:replace_text",
+  "operator": "atomic_edit:replace_text",
+  "targetUnit": "text_span",
+  "intention": "atomic_edit:replace_text",
+  "fallback": false,
+  "metrics": {
+    "changedChars": 245,
+    "lineRewriteSurfaceChars": 180,
+    "expansionFactorAvoided": 0.73,
+    "bytesNet": 95,
+    "lineRewriteAvoided": false
+  },
+  "byteEffect": {
+    "beforeBytes": 9351,
+    "proposedBytes": 9446,
+    "currentAfterBytes": 9446,
+    "removedBytes": 2,
+    "addedBytes": 97,
+    "netBytes": 95
+  },
+  "validation": {
+    "language": "generic",
+    "syntaxErrorsBefore": 0,
+    "syntaxErrorsAfter": 0
+  },
+  "preview": false,
+  "changed": true,
+  "afterSha256": "86331bf8857670112dacb95bd2f1d8531bb36f557ee38f20fcab1e6d81e91430",
+  "proposedSha256": "86331bf8857670112dacb95bd2f1d8531bb36f557ee38f20fcab1e6d81e91430",
+  "rollback": {
+    "available": true,
+    "strategy": "explicit pre-edit snapshot (before-text retained by caller)"
+  },
+  "inlinePreview": "\u001b[2m--- README.md (atomic char-level)\u001b[0m\n  - **Named declarations:** selector-based AST replacement covers named declarations (function/class/method/interface/type/var) in all grammar-backed languages.\n  - Cross-file rename requires a reachable `tsconfig.json`; falls back to a directory-scoped project if none is found.\n  - **Z3 formal verification:** the edit algebra's confluence theorem is machine-checked by Z3 (`\u001b[31m[-.z3-sc-]\u001b[0m\u001b[32m{+fo+}\u001b[0mr\u001b[32m{+m+}\u001b[0ma\u001b[32m{+l/a+}\u001b[0mt\u001b[32m{+omi+}\u001b[0mc\u001b[31m[-h-]\u001b[0m\u001b[32m{+-algebra+}\u001b[0m/confluence\u001b[32m{+_z3+}\u001b[0m.py`\u001b[32m{+ + `nway_induction_z3.py`+}\u001b[0m)\u001b[32m{+ and Lean 4 (`formal/atomic-algebra/NwayConfluence+}\u001b[0m.\u001b[32m{+lean`).+}\u001b[0m Refinement proof cross-checks runtime against the model.\n  - **249 proof entrypoints** and **314 total gate files** under `gates/` covering exec sandbox, atomic writes, bypass honesty, connection byte-floor, snapshot ceilings, formal model lifts, public package tests, multi-language supply-chain resolution, doc honesty, and more.\n  - Product-layer tools do not magically finish integrations. They force every CLI using this MCP to name the product behavior, reject facade/stub claims, demand runtime/API/DB/browser evidence, emit a no-code receipt, and resume from repository state.",
+  "preservedZones": [
+    {
+      "kind": "prefix_preserved",
+      "description": "Bytes 0–8740 — prefix preserved unchanged",
+      "byteStart": 0,
+      "byteEnd": 8741,
+      "byteLength": 8741,
+      "beforeHash": "515bc96620e80925fa98f4a432b59d304e87b876ac2e73c8b34d3773e0397a0b",
+      "afterHash": "515bc96620e80925fa98f4a432b59d304e87b876ac2e73c8b34d3773e0397a0b",
+      "sample": "erification:** the edit algebra's confluence theorem is machine-checked by Z3 (`"
+    },
+    {
+      "kind": "suffix_preserved",
+      "description": "Bytes 8766–9350 — suffix preserved unchanged",
+      "byteStart": 8766,
+      "byteEnd": 9351,
+      "byteLength": 585,
+      "beforeHash": "9c43d0094dc378206627c1a3016a386fe8be4fa60ca3cc473c6624ebc91c6da8",
+      "afterHash": "9c43d0094dc378206627c1a3016a386fe8be4fa60ca3cc473c6624ebc91c6da8",
+      "sample": "`). Refinement proof cross-checks runtime against the model.\n- **249 proof entry"
+    }
+  ],
+  "modifiedZones": [
+    {
+      "kind": "changed_span",
+      "byteStart": 8741,
+      "byteEnd": 8766,
+      "newByteLength": 120,
+      "oldTextHash": "5a5479aac41e07f9386238a029a55d7db17626fce9c632e9ab911b55ccb37149",
+      "newTextHash": "92ca0541e50637d297b1a054a2eaecd10fb9454cfb3fff0b819af7bdfd5174d0",
+      "oldSample": ".z3-scratch/confluence.py",
+      "newSample": "formal/atomic-algebra/confluence_z3.py` + `nway_induction_z3.py`) and Lean 4 (`formal/atomic-algebra/NwayConfluence.lean",
+      "description": "Replace 25 bytes at offset 8741 with 120 bytes"
+    }
+  ],
+  "movementZones": [],
+  "semanticImpact": "unclassified_code_edit",
+  "negativeActionProof": {
+    "verdict": "NEGATIVE_BYTES_ADMITTED",
+    "action": "atomic_edit:replace_text",
+    "target": "README.md",
+    "targetUnit": "file",
+    "removedByteCount": 2,
+    "proofLength": 301,
+    "proofSha256": "f14c1209348cc736de10f8831ceca273ebfc4456862d2f7c6dc483aba35e98e6",
+    "proof": "Path .z3-scratch/confluence.py does not exist in the repo; the actual committed Z3 proofs live at formal/atomic-algebra/confluence_z3.py and nway_induction_z3.py with companion NwayConfluence.lean — README cites a stale non-existent path, paradigm-verify P7-z3 now resolves via formal/atomic-algebra/.",
+    "witnessKind": "asserted",
+    "recomputed": false
+  },
+  "audit": {
+    "whatChanged": "Operation `atomic_edit:replace_text` changed ~245 character(s) in `README.md` (sub-line atomic edit, expansion 0.73× — it did not rewrite surrounding code).",
+    "whatPreserved": "Everything outside the highlighted [-removed-]{+added+} span in that one file is byte-identical. No other file was touched by this operation.",
+    "howToValidate": "Read the atomicDiff above — it shows EXACTLY the changed characters, nothing else. Then exercise the affected behavior in the running product to confirm intent.",
+    "notProven": "Runtime/product behavior is NOT proven by this tool. Structural validity ≠ correct behavior. Prove behavior by running the flow in the app.",
+    "nonTouched": "Single-file, single-span: every file other than `README.md` is provably untouched by this operation. Policy/protected-file status requires the governance gate.",
+    "promiseClass": "unvalidated-text",
+    "zeroCodeTrust": 30,
+    "trustCeilingReason": "ceiling < 75: an edit tool proves structure + exact scope, not product behavior. Reaching 75 (validate by explanation) or 100 (validate by the product) requires running the changed flow — do that in the app, not here."
+  },
+  "parentSha256": "ae395c3bcfb13961bf42bbc2681aea370466cad0ba9bd9f2862d26d16c105c27",
+  "chainHash": "5893da47dea011f3828f334a87ac4f9a03e0cf96016d6061cce8de0708612cca",
+  "decisionTree": [],
+  "gateRunId": "grun_9185d158d0e174547d04d8542b1dc7713de3b47fa147f0535389c5bf8bcbf208",
+  "sessionId": "sess_1781928360188_83d9e497913c"
+}

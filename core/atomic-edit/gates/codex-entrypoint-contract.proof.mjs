@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const mcpLauncher = path.resolve(sourceDir, '..', 'atomic-edit-mcp-launcher.sh');
 const hostLauncher = path.join(sourceDir, 'codex-atomic-host-launcher.mjs');
 const mcpLauncherSourcePath = path.resolve(sourceDir, '..', 'atomic-edit-mcp-launcher.sh');

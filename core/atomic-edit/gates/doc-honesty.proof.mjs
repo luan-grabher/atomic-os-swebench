@@ -10,7 +10,7 @@ import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const readmePath = path.join(sourceDir, 'README.md');
 const compiledServer = path.join(sourceDir, 'dist', 'server.js');
 const expectedSmokeEvidence = '47 passed, 0 failed';
@@ -27,7 +27,7 @@ function gateInventory() {
 }
 
 async function readToolCount() {
-  if (!fs.existsSync(compiledServer)) return { ok: false, toolCount: 0, reason: 'compiled server missing', compiledServer };
+  if (!fs.existsSync(compiledServer)) return { ok: false, toolCount: 0, languageCount: 0, reason: 'compiled server missing', compiledServer };
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [compiledServer],
@@ -46,7 +46,14 @@ async function readToolCount() {
   try {
     await client.connect(transport);
     const tools = (await client.listTools()).tools;
-    return { ok: true, toolCount: tools.length };
+    let languageCount = 0;
+    try {
+      const ns = await client.callTool({ name: 'atomic_native_status', arguments: {} });
+      const txt = Array.isArray(ns?.content) ? ns.content.map((c) => c?.text ?? '').join('\n') : '';
+      const m = txt.match(/"languageCount"\s*:\s*(\d+)/);
+      if (m) languageCount = Number(m[1]);
+    } catch { /* native status optional in this proof */ }
+    return { ok: true, toolCount: tools.length, languageCount };
   } catch (error) {
     return { ok: false, toolCount: 0, reason: error instanceof Error ? error.message : String(error) };
   } finally {
@@ -66,6 +73,36 @@ async function main() {
     'README tool count matches live MCP list_tools count',
     toolEvidence.ok && heading && Number(heading[1]) === toolEvidence.toolCount,
     { headingToolCount: heading ? Number(heading[1]) : null, ...toolEvidence },
+  );
+
+  // NEW: every "N tools" claim inside the README verify block must equal the live count too.
+  const inlineToolClaims = [
+    ...readme.matchAll(/live list_tools evidence:\s*(\d+)\s+tools/g),
+  ].map((m) => Number(m[1]));
+  record(
+    results,
+    'README inline "live list_tools evidence: N tools" comments agree with live MCP count',
+    toolEvidence.ok &&
+      inlineToolClaims.length > 0 &&
+      inlineToolClaims.every((n) => n === toolEvidence.toolCount),
+    {
+      inlineToolClaims,
+      liveToolCount: toolEvidence.toolCount,
+    },
+  );
+
+  // NEW: language count claim must match the live atomic_native_status languageCount.
+  const langClaim = readme.match(/\*\*Multi-language validation:\*\*\s*(\d+)\s+languages/i);
+  record(
+    results,
+    'README language count matches live atomic_native_status languageCount',
+    toolEvidence.ok &&
+      langClaim &&
+      Number(langClaim[1]) === toolEvidence.languageCount,
+    {
+      claimedLanguages: langClaim ? Number(langClaim[1]) : null,
+      liveLanguageCount: toolEvidence.languageCount,
+    },
   );
 
   const staleNeedles = [

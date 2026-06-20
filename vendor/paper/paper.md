@@ -4,7 +4,7 @@
 
 We present Atomic OS, a verified code mutation substrate that inverts the proof burden for code edits. Unlike every existing version control or collaborative editing system, Atomic OS treats existing bytes as correct-by-construction and requires machine-recomputable proof of incorrectness before any byte can be removed. The system combines five formally-verified pillars: (1) a byte-positivity law enforced by a cryptographic mutation firewall, (2) a commute-modulo-invariant algebra proven correct by Z3 and Lean 4, (3) a dual formal verification stack, (4) a Darwin-Gödel self-evolution loop that accumulates disproof witnesses and converges toward correctness, and (5) an emergence observatory that detects novelty, agent niches, unnamed failure dimensions, and predictive meta-laws.
 
-We demonstrate: 23/23 paradigm-verify gates green across P1–P10 and E1–E4 emergent fusions; 119 MCP tools providing universal AST mutation across 11 languages; a self-host deployment governing 53,722 LOC with zero broken states; multi-agent confluence at 92% across 300 concurrent edits; and a 10,063-record disproof corpus with validated hash chain. The system autonomously formulates causal hypotheses, tests them against held-out data, refutes its own wrong predictions, and generates non-template creative hypotheses through combinatorial knowledge recombination.
+We demonstrate: 17/17 paradigm-verify checks green across P1–P10 and E1–E4 emergent fusions; 123 MCP tools providing universal AST mutation across 11 languages; a self-host deployment governing 64,242 LOC across 496 files with zero broken states; multi-agent confluence at 92% across 300 concurrent edits; and a 10,063-record disproof corpus with validated hash chain. The system autonomously formulates causal hypotheses, tests them against held-out data, refutes its own wrong predictions, and generates non-template creative hypotheses through combinatorial knowledge recombination.
 
 ## 1. Introduction
 
@@ -36,10 +36,10 @@ The system formulates causal hypotheses from observed patterns, designs interven
 
 | Metric | Value |
 |--------|-------|
-| Paradigm gates | 23/23 green |
-| MCP tools | 119 |
+| Paradigm gates | 17/17 green |
+| MCP tools | 123 |
 | Languages | 11 (WASM tree-sitter) |
-| Self-host LOC | 53,722 (200 files) |
+| Self-host LOC | 64,242 (496 files) |
 | Multi-agent confluence | 92% (300 edits) |
 | Corpus records | 10,063 |
 | Hash chain | Valid |
@@ -62,6 +62,6 @@ verified code mutation, byte-positivity, multi-agent confluence, formal methods,
 
 ## Artifact Evaluation
 
-All 23 paradigm-verify gates are reproducible: `node src/paradigm-verify.mjs`
+All 17 paradigm-verify checks are reproducible: `node paradigm-verify.mjs`
 All proofs are hash-chained and verifiable: `node src/smoke.mjs`
 Formal proofs: `formal/atomic-algebra/confluence_z3.py`, `formal/atomic-algebra/NwayConfluence.lean`

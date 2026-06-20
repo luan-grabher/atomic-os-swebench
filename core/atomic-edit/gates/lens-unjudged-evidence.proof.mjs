@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const lensModule = await import(path.join(sourceDir, 'dist', 'gates', 'lens.js'));
 const report = await lensModule.runLens(repoRoot, 'scripts/mcp/atomic-edit');
 const results = [];

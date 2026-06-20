@@ -5,9 +5,19 @@
 // order-independent by construction (asserted: the files genuinely differ).
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const REPOS = process.argv.slice(2);
-const A = await import(path.resolve('scripts/mcp/atomic-edit/dist/gates/algebra.js'));
+const __scriptDir = path.dirname(fileURLToPath(import.meta.url));
+// Layout-agnostic: try atomic-os-swebench (core/atomic-edit) then kloel (scripts/mcp/atomic-edit)
+const _algebraCandidates = [
+  path.resolve(__scriptDir, '..', '..', '..', 'core', 'atomic-edit', 'dist', 'gates', 'algebra.js'),
+  path.resolve(process.cwd(), 'dist', 'gates', 'algebra.js'),
+  path.resolve('scripts/mcp/atomic-edit/dist/gates/algebra.js'),
+];
+const _algebraPath = _algebraCandidates.find((p) => fs.existsSync(p));
+if (!_algebraPath) throw new Error('algebra.js not found in any known layout; build the atomic-edit dist first');
+const A = await import(_algebraPath);
 const { commute, buildEditFact, closureOf } = A;
 
 // Independent oracle: a from-scratch transitive import-reachability over the repo (NOT reusing

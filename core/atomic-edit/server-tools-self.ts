@@ -1360,7 +1360,8 @@ function assertNoUnexpectedSelfExpansionEffects(effects: FileEffect[], applied: 
 function ensureSelfTarget(absPath: string, relPath: string): void {
   if (!isAtomicSelfExpansionPath(REPO_ROOT, absPath)) {
     throw new Error(
-      `atomic_expand_self only admits files inside scripts/mcp/atomic-edit/**; got ${relPath}. ` +
+      `atomic_expand_self only admits files inside scripts/mcp/atomic-edit/** (under repo root) ` +
+        `OR inside the atomic-edit source tree itself (the running server's package root); got ${relPath}. ` +
         `Use product-level atomic tools for product code, not self-expansion.`,
     );
   }

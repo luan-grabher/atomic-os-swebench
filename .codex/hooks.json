@@ -1,0 +1,53 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/danielpenin/atomic-os-swebench/core/atomic-edit/bypass-observer-hook.mjs",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "node /Users/danielpenin/atomic-os-swebench/core/atomic-edit/codex-atomic-only-hook.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/danielpenin/atomic-os-swebench/core/atomic-edit/atomic-only-hook.mjs",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "^apply_patch$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node /Users/danielpenin/atomic-os-swebench/core/atomic-edit/atomic-only-hook.mjs",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh /Users/danielpenin/atomic-os-swebench/.codex/atomic-stop-trace-coverage-hook.sh /Users/danielpenin/atomic-os-swebench/core/atomic-edit/trace-coverage-audit.mjs",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const fixtureRoot = path.join(
   sourceDir,
   `.proof-no-bypass-static-policy-${process.pid}-${process.hrtime.bigint().toString(36)}`,

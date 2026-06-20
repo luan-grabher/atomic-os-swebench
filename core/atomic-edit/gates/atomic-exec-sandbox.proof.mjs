@@ -23,7 +23,7 @@ import { installInheritedAtomicHostEnv } from './proof-host-env.mjs';
  */
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+const repoRoot = path.resolve(sourceDir, '..', '..');
 const fixture = path.join(sourceDir, '.atomic-exec-sandbox-' + process.pid + '-' + Date.now());
 const forbidden = path.join(repoRoot, '.atomic-exec-sandbox-forbidden-' + process.pid + '-' + Date.now() + '.tmp');
 const tmpForbidden = path.join('/tmp', '.atomic-exec-sandbox-forbidden-' + process.pid + '-' + Date.now() + '.tmp');
