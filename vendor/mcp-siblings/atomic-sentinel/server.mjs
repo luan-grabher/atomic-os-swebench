@@ -170,11 +170,7 @@ const server = new McpServer({
 
 server.registerTool("sentinel_status", {
     description: "Get the current status of the atomic sentinel and recent events.",
-    inputSchema: {
-        type: "object",
-        properties: {},
-        required: []
-    }
+    inputSchema: {}
 }, async () => {
     let events = [];
     try {

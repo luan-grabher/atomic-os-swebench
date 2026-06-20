@@ -232,7 +232,7 @@ function proveMinimalCoverage(gates: Gate[]): { pass: boolean; details: string[]
 // ═══════════════════════════════════════════════════════════════════════════
 
 function readGateInventory(repoRoot: string): { gatesDir: string; proofFiles: string[]; proofFileCount: number; totalGateFileCount: number } {
-  const gatesDir = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', 'gates');
+  const gatesDir = path.join(repoRoot, 'gates');
   if (!fs.existsSync(gatesDir)) return { gatesDir, proofFiles: [], proofFileCount: 0, totalGateFileCount: 0 };
 
   const entries = fs.readdirSync(gatesDir).filter((entry) => fs.statSync(path.join(gatesDir, entry)).isFile());
@@ -249,7 +249,7 @@ function readGateInventory(repoRoot: string): { gatesDir: string; proofFiles: st
 function main(): void {
   const gates = defineGates();
   const here = path.dirname(fileURLToPath(import.meta.url));
-  const repoRoot = path.resolve(here, '..', '..', '..', '..');
+  const repoRoot = path.resolve(here, '..');
   const jsonMode = process.argv.includes('--json');
 
   const completeness = proveLatticeCompleteness(gates);

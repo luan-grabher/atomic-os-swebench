@@ -1,0 +1,191 @@
+#!/usr/bin/env node
+/**
+ * friction-router.mjs — PARADIGM PART D A-G1 / N3: STIGMERGIC, friction-routed multi-agent coordination.
+ *
+ * This closes atomic's ONE clear gap vs Nidus (the SOTA): Nidus has a friction ledger (pheromone) keyed
+ * by (agent, obligation-kind), trust tiers from rolling failure counts, and agents that self-route by tier
+ * with no central orchestrator. atomic had locks + a machine-wide census but NO friction-based emergent
+ * routing. This module builds it on atomic's OWN substrate — the hash-chained disproof corpus — so the
+ * pheromone is a RECOMPUTABLE DISPROOF WITNESS, not a bare failure counter (the differentiator: a friction
+ * signal here is digest-bound and forgery-refused; Nidus's counter cannot be re-derived from a counterexample).
+ *
+ * Concepts:
+ *   - Pheromone   : a (agent, invariantId) wall event carrying the recomputable counterexample
+ *                   (failedProofFacts sha256 tuples). Its strength = rolling hit count; its TRUST = a
+ *                   recomputed digest over the facts (verifyPheromone refuses a forged one).
+ *   - FrictionLedger : folds the event stream into per-(agent, invariantId) {hits, recentHits, witnesses}.
+ *   - TrustTier   : monotone in friction — fewer recent hits on an invariant ⇒ higher trust on it.
+ *   - Router      : self-routing — a task touching a set of invariants goes to the agent with the LEAST
+ *                   friction (highest trust) on those invariants. No central orchestrator decides; the
+ *                   pheromone field does. routeBatch adds COLLISION AVOIDANCE — concurrent tasks hitting the
+ *                   same wall are spread across agents so they don't pile onto one wall (the stigmergic move).
+ *
+ * Fusion seam (E1, PART D.3): collision-free routing produces edits on DISJOINT walls, which the (e) algebra
+ * (commute-modulo-invariant) can then prove confluent — friction routing + obligation-preserving confluence
+ * is the never-before-done capability c⋆. This module supplies the routing half; gates/algebra.ts the merge half.
+ *
+ * Pure: in-memory; the only I/O is reading a corpus string a caller hands in. No spawn, no Date.now/random.
+ */
+import { createHash } from 'node:crypto';
+import { parseCorpusJsonl, foldWalls } from './disproof-corpus-harness.mjs';
+
+const SEP = '';
+const keyOf = (agent, invariantId) => `${agent}${SEP}${invariantId}`;
+
+/**
+ * The recomputable pheromone digest — a canonical sha256 over the counterexample's failedProofFacts
+ * (command + stdout/stderr digests). This is what makes the friction signal VERIFIABLE: a forged
+ * pheromone whose facts were tampered no longer matches its stored digest. (Nidus's bare counter has
+ * no such re-derivation.)
+ */
+export function pheromoneDigest(witness) {
+  const facts = (witness?.counterexample?.failedProofFacts ?? [])
+    .map((f) => [String(f.command ?? ''), String(f.stdoutSha256 ?? ''), String(f.stderrSha256 ?? '')].join('|'))
+    .sort();
+  return createHash('sha256').update(JSON.stringify({ invariantId: witness?.invariantId ?? null, facts })).digest('hex');
+}
+
+/** A pheromone is trusted iff its stored digest equals the recomputed digest over its facts. */
+export function verifyPheromone(pheromone) {
+  return Boolean(pheromone) && typeof pheromone.digest === 'string' && pheromone.digest === pheromoneDigest(pheromone.witness);
+}
+
+/**
+ * Build the friction ledger from a wall-event stream.
+ * @param {Array<{agent:string, invariantId:string, witness?:object, seq?:number}>} events
+ * @param {{window?:number}} opts  window = how many most-recent global events count as "recent" (rolling).
+ */
+export function buildFrictionLedger(events, opts = {}) {
+  const window = Number.isFinite(opts.window) ? opts.window : 10;
+  const ledger = new Map();
+  let seq = 0;
+  let maxSeq = 0;
+  for (const ev of events) {
+    seq += 1;
+    if (!ev || !ev.agent || !ev.invariantId) continue;
+    const s = Number.isFinite(ev.seq) ? ev.seq : seq;
+    maxSeq = Math.max(maxSeq, s);
+    const k = keyOf(ev.agent, ev.invariantId);
+    let e = ledger.get(k);
+    if (!e) { e = { agent: ev.agent, invariantId: ev.invariantId, hits: 0, seqs: [], pheromones: [] }; ledger.set(k, e); }
+    e.hits += 1;
+    e.seqs.push(s);
+    if (ev.witness) e.pheromones.push({ witness: ev.witness, digest: pheromoneDigest(ev.witness) });
+  }
+  return { ledger, window, maxSeq, totalEvents: seq };
+}
+
+/** Friction = {hits, recent} for one (agent, invariantId); recent = hits within the rolling window. */
+export function frictionFor(state, agent, invariantId) {
+  const e = state.ledger.get(keyOf(agent, invariantId));
+  if (!e) return { hits: 0, recent: 0 };
+  const floor = state.maxSeq - state.window;
+  return { hits: e.hits, recent: e.seqs.filter((s) => s > floor).length };
+}
+
+/** Monotone trust tier from recent friction. Higher = more trusted (lower recent friction). */
+export const TIER = { UNTRUSTED: 0, PROBATION: 1, TRUSTED: 2 };
+export function trustTier(state, agent, invariantId, thresholds = {}) {
+  const probation = Number.isFinite(thresholds.probation) ? thresholds.probation : 1;
+  const untrusted = Number.isFinite(thresholds.untrusted) ? thresholds.untrusted : 3;
+  const { recent } = frictionFor(state, agent, invariantId);
+  if (recent >= untrusted) return TIER.UNTRUSTED;
+  if (recent >= probation) return TIER.PROBATION;
+  return TIER.TRUSTED;
+}
+
+/**
+ * Self-route ONE task to the least-friction agent. No orchestrator: the pheromone field decides.
+ * @param {{invariants:string[], id?:string}} task
+ * @param {string[]} agents
+ * @returns {{agent:string, score:number, perAgent:Array, reason:string}}
+ */
+export function routeTask(task, agents, state, opts = {}) {
+  const inv = task.invariants ?? [];
+  const avoid = opts.avoid ?? new Map(); // agent -> penalty (collision avoidance)
+  const perAgent = agents.map((agent) => {
+    let recent = 0, hits = 0;
+    for (const id of inv) { const f = frictionFor(state, agent, id); recent += f.recent; hits += f.hits; }
+    const penalty = avoid.get(agent) ?? 0;
+    return { agent, recent, hits, penalty, score: recent + penalty };
+  });
+  // pick lowest score; deterministic tie-break: fewer total hits, then agent name.
+  perAgent.sort((a, b) => a.score - b.score || a.hits - b.hits || (a.agent < b.agent ? -1 : 1));
+  const win = perAgent[0];
+  return {
+    agent: win.agent,
+    score: win.score,
+    perAgent,
+    reason: `least friction on [${inv.join(', ')}]: recent=${win.recent}${win.penalty ? ` +collision-penalty ${win.penalty}` : ''}`,
+  };
+}
+
+/**
+ * COLLISION-AVOIDING batch routing — the stigmergic move. Assign each task to an agent minimizing friction,
+ * BUT once an agent is assigned a task touching an invariant, further tasks touching that SAME invariant
+ * incur a rising penalty for reusing that agent — so concurrent work SPREADS across agents instead of
+ * piling onto one wall. Produces an assignment whose tasks tend to touch disjoint agents per invariant,
+ * the precondition the (e) algebra needs to prove the merges confluent (E1).
+ * @returns {Array<{taskId, agent, reason}>}
+ */
+export function routeBatch(tasks, agents, state, opts = {}) {
+  const penaltyStep = Number.isFinite(opts.penaltyStep) ? opts.penaltyStep : 100;
+  const invAgentLoad = new Map(); // `${invariantId}${SEP}${agent}` -> count already assigned
+  const out = [];
+  for (const task of tasks) {
+    const inv = task.invariants ?? [];
+    const avoid = new Map();
+    for (const agent of agents) {
+      let p = 0;
+      for (const id of inv) p += (invAgentLoad.get(`${id}${SEP}${agent}`) ?? 0) * penaltyStep;
+      if (p > 0) avoid.set(agent, p);
+    }
+    const r = routeTask(task, agents, state, { avoid });
+    for (const id of inv) {
+      const k = `${id}${SEP}${r.agent}`;
+      invAgentLoad.set(k, (invAgentLoad.get(k) ?? 0) + 1);
+    }
+    out.push({ taskId: task.id ?? null, agent: r.agent, reason: r.reason });
+  }
+  return out;
+}
+
+/**
+ * Ingest atomic's REAL hash-chained disproof corpus into a friction event stream. The corpus is per-wall
+ * (no agent column), so an attributor maps each wall record to the agent that hit it. Default attributor
+ * derives a stable agent label from the record's proposalDigest (so the same proposer maps consistently) —
+ * a deterministic stand-in until the corpus carries an explicit agent column. Each event carries the
+ * recomputable witness, so the resulting pheromones are verifiable.
+ * @param {string} corpusText  JSONL of the disproof corpus
+ * @param {(record:object)=>string} [attributor]
+ */
+export function ingestCorpus(corpusText, attributor) {
+  const parsed = parseCorpusJsonl(corpusText);
+  if (parsed.ok !== true) return { ok: false, error: parsed.error, events: [] };
+  const folded = foldWalls(parsed.records);
+  if (folded.ok !== true) return { ok: false, error: folded.error, events: [] };
+  const attribute = attributor ?? defaultAttributor;
+  const events = [];
+  let seq = 0;
+  for (const rec of parsed.records) {
+    if (rec.kind !== 'atomic-disproof-witness-record') continue; // fold hits into their witness below
+    seq += 1;
+    events.push({
+      agent: attribute(rec),
+      invariantId: rec.invariantId,
+      witness: { invariantId: rec.invariantId, counterexample: rec.counterexample },
+      seq,
+    });
+  }
+  return { ok: true, events, wallCount: folded.walls.size, recordCount: parsed.records.length };
+}
+
+/** Deterministic agent label from a proposalDigest (stable stand-in for an explicit agent column). */
+export function defaultAttributor(record) {
+  const d = String(record?.proposalDigest ?? record?.recordSha256 ?? '');
+  if (!d) return 'agent:unknown';
+  // map the digest's first hex nibble into a small stable agent pool (deterministic, no randomness).
+  const pool = ['claude', 'codex', 'opencode'];
+  const idx = parseInt(d.slice(0, 1) || '0', 16) % pool.length;
+  return `agent:${pool[idx]}`;
+}

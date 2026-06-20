@@ -25,8 +25,8 @@ const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
 const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT ?? path.resolve(root, '..', '..', '..');
-const O = await import(path.join(root, '..', 'atomic-edit-evolution', 'emergence-observatory.mjs'));
-const FR = await import(path.join(root, '..', 'atomic-edit-evolution', 'friction-router.mjs'));
+const O = await import(path.join(root, 'emergence-observatory.mjs'));
+const FR = await import(path.join(root, 'friction-router.mjs'));
 const { noveltyIndex, agentNiches, wallTopologyClusters, metaLaws, anomalyResidual, verifyResidualChain } = O;
 const { buildFrictionLedger } = FR;
 

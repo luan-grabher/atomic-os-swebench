@@ -50,9 +50,9 @@ const tests = [
     expected: true,
   },
   {
-    name: 'Broker respects ATOMIC_EDIT_REPO_ROOT',
+    name: 'Broker respects ATOMIC_EXEC_BROKER_ROOT',
     file: 'atomic-exec-broker.mjs',
-    pattern: /ATOMIC_EDIT_REPO_ROOT/,
+    pattern: /ATOMIC_EXEC_BROKER_ROOT/,
     expected: true,
   },
   {
