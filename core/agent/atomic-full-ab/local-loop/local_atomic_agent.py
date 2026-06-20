@@ -136,7 +136,7 @@ TOOLS = [
         "description": "Search the repo for a regex. Scope with `path` (file or dir) and `glob`. Returns file:line matches.",
         "parameters": {"type": "object", "properties": {"pattern": {"type": "string"}, "path": {"type": "string"}, "glob": {"type": "string"}, "contextAfter": {"type": "integer"}}, "required": ["pattern"]}}},
     {"type": "function", "function": {"name": "atomic_replace",
-        "description": "Atomic GOVERNED edit: in `file`, replace the EXACT unique text `oldText` with `newText`. Pre-disk validated (invalid states are never written). If your edit REMOVES or shortens code you MUST pass `proofOfIncorrectness` (>=20 chars: why the removed bytes are wrong/dead). Make minimal, faithful edits.",
+        "description": "Atomic GOVERNED edit: in `file`, replace the EXACT unique text `oldText` with `newText`. Pre-disk validated (invalid states are never written). ALWAYS include `proofOfIncorrectness` (>=20 chars) ON THE FIRST CALL whenever `newText` is shorter than `oldText` OR replaces existing logic — otherwise the edit is refused and you waste a round-trip. Example: replacing a function body → proofOfIncorrectness='replacing the naive impl with a correct RFC-4180 state machine'. Make minimal, faithful edits.",
         "parameters": {"type": "object", "properties": {"file": {"type": "string"}, "oldText": {"type": "string"}, "newText": {"type": "string"}, "proofOfIncorrectness": {"type": "string"}}, "required": ["file", "oldText", "newText"]}}},
     {"type": "function", "function": {"name": "atomic_create",
         "description": "Create a file with `content`. Pass overwrite:true to replace an existing file wholesale.",

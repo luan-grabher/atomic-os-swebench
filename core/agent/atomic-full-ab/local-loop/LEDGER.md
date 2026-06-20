@@ -88,9 +88,42 @@ dominant. Need ≥2 consecutive (noise control) → R1'' next.
 ### Minor (model-behavior, NOT representation; do not hardcode)
 - atomic used 3 atomic_survey globs (could be 1 '**/*'); atomic_read_many got 4/5 (1 bad path). Noise.
 
+## Level 1 — Round 1'' (R1'', confirmation) — Task L01
+- snapshot: fresh worktrees, same task. atomic: steps 8, tool_calls {survey 2, read_many 1, replace 3, run_tests 2}.
+
+| metric | NATIVE | ATOMIC | winner |
+|---|---|---|---|
+| gate pass | 6/6 | 6/6 | TIE |
+| reads | ~4 | 3 | TIE/atomic (batch stable: 7→4→3) |
+| diff_lines | 81 | 94 | native (atomic VARIANCE: rewrote dead tokenize.mjs too) |
+| edits applied | 1 | 2 | native (model choice) |
+| invalid-states prevented | 0 | 1 | ATOMIC |
+| tokens | 31,439 | 72,192 | native (model) |
+
+**R1'' note:** atomic did NOT repeat the R1' diff win — DeepSeek chose to also rewrite the dead
+tokenize.mjs (native correctly left it). That is MODEL solution-variance, not a representation gap.
+
+## 3-round L01 SYNTHESIS (honest)
+- **Representation gaps that existed are CLOSED & STABLE:** blind-to-code (fixed earlier) and single-
+  target reads (CLASS-R1-A) → read round-trips atomic 7→4→3, consistently ≤ native. Correctness PARITY
+  every round (6/6). Atomic's unique guarantee (invalid-states-prevented = 1 vs 0) holds every round.
+- **Residual atomic losses are NOT closeable representation gaps at L01:** diff_lines (97/55/94) and
+  edits (2/1/2) are DeepSeek solution-VARIANCE (native is steady ~78/1); tokens/wall are model-confounded.
+  L01 is too small for atomic's structural advantages (transaction, rename_symbol, change_signature,
+  multi-file preservation) to produce signal above model noise.
+- **CLASS-R1-C (new, representation, watch at L02):** deletion-proof refuse-retry tax — a byte-removing
+  edit without proofOfIncorrectness is refused, costing 1 round-trip the native arm never pays. It BUYS
+  the guarantee (don't weaken it). Polished the tool description to elicit proof on the FIRST call
+  (no engine change, no weakening). Re-measure the tax at L02 where multi-edit makes it matter.
+- **Decision:** L01 representation gaps are closed; the level is now NOISE-BOUND (model variance >
+  representation signal). NOT claiming L01 raw 2-consecutive dominance (unreachable cross-model + noise).
+  Escalate to L02 — a multi-file STRUCTURAL task where atomic's structural operators should yield a
+  CONSISTENT signal that dominates model noise. This is the scientifically honest move, documented as such.
+
 ## Next exact step
-Close CLASS-R1-A (DONE: batch read exposed) (generalist batch/glob structural read macro-operator),
-validate (all gates green, no false-green, no bypass), then RE-RUN R1/L01 (fresh worktrees) and compare:
-target = atomic's read round-trips ≤ native's, with correctness still 6/6 and invalid-states still 0.
-If atomic then ties/leads on round-trips (model residual aside) for ≥2 consecutive rounds → escalate to
-L02 (bigger multi-file). If not → next class. Write real state here each session.
+Author L02: a real multi-file task that rewards STRUCTURAL editing — e.g. rename a symbol used across
+several files + change its signature + update all call sites (so native must do many text edits while
+atomic can use rename_symbol / change_signature / atomic_transaction / batch_replace). Binary gate
+(tests). Then run R2 (atomic first, then native subagent, same task), compare, and specifically test
+whether atomic's structural ops give a CONSISTENT (low-variance) edit-count / diff-surface / invalid-state
+advantage that is NOT model-confounded. Keep writing real state here.
