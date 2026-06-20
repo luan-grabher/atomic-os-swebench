@@ -130,8 +130,8 @@ TOOLS = [
         "description": "Structural map of a SINGLE source file. Prefer atomic_survey for multiple files. `file` = path relative to the repo root.",
         "parameters": {"type": "object", "properties": {"file": {"type": "string"}}, "required": ["file"]}}},
     {"type": "function", "function": {"name": "atomic_read",
-        "description": "Read code from a SINGLE file. Prefer atomic_read_many for several. `path` = file. Optionally `selector` (a symbol) or `maxFullChars` (whole file). Returns the code body.",
-        "parameters": {"type": "object", "properties": {"path": {"type": "string"}, "selector": {"type": "string"}, "maxFullChars": {"type": "integer"}}, "required": ["path"]}}},
+        "description": "Read code from a SINGLE file. `path` = file. Three modes: (a) `selector`=a symbol name to read that function/class; (b) `startLine`+`endLine` to read an exact LINE RANGE (1-indexed, inclusive); (c) `maxFullChars` to read the whole file. Returns the actual code body. Use a line range when the code you need is not a whole symbol.",
+        "parameters": {"type": "object", "properties": {"path": {"type": "string"}, "selector": {"type": "string"}, "startLine": {"type": "integer"}, "endLine": {"type": "integer"}, "maxFullChars": {"type": "integer"}}, "required": ["path"]}}},
     {"type": "function", "function": {"name": "atomic_grep",
         "description": "Search the repo for a regex. Scope with `path` (file or dir) and `glob`. Returns file:line matches.",
         "parameters": {"type": "object", "properties": {"pattern": {"type": "string"}, "path": {"type": "string"}, "glob": {"type": "string"}, "contextAfter": {"type": "integer"}}, "required": ["pattern"]}}},
@@ -253,11 +253,21 @@ def main():
                 metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
             elif fn in DISPATCH:
                 tool, mapper = DISPATCH[fn]
+                call_args = mapper(a)
+                # CLASS-S1-A fix: route atomic_read with a line range to atomic_read_file (the engine's
+                # line-range reader). code_readcode only does symbol/whole-file; without this the model's
+                # natural startLine/endLine reads silently returned the signature outline → catastrophic
+                # read-loops (pylint-7080: 40 steps, 0 edits, 3.5M tokens). Generalist: any file/lang.
+                if fn == "atomic_read" and (a.get("startLine") or a.get("endLine")):
+                    tool = "atomic_read_file"
+                    call_args = {"file": a.get("path", ""), "includeContent": True}
+                    if a.get("startLine"): call_args["startLine"] = a["startLine"]
+                    if a.get("endLine"): call_args["endLine"] = a["endLine"]
                 if fn in ("atomic_read", "atomic_outline", "atomic_grep", "atomic_survey", "atomic_read_many"):
                     metrics["reads"] += 1
                     reads_since_edit += 1
                 before = git_diff(workdir)
-                res, ok = atomic_call(workdir, tool, mapper(a))
+                res, ok = atomic_call(workdir, tool, call_args)
                 after = git_diff(workdir)
                 if fn in ("atomic_replace", "atomic_create"):
                     if after != before:
