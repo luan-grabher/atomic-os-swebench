@@ -60,11 +60,22 @@ def _absolutize(workdir, args):
         v = out.get(k)
         if isinstance(v, str) and v and not os.path.isabs(v):
             out[k] = str(Path(workdir) / v)
+    if isinstance(out.get("cwd"), str) and out["cwd"] and not os.path.isabs(out["cwd"]):
+        out["cwd"] = str(Path(workdir) / out["cwd"])
+    if isinstance(out.get("items"), list):  # batch read: absolutize each item's path
+        out["items"] = [
+            ({**it, "path": str(Path(workdir) / it["path"])}
+             if isinstance(it, dict) and isinstance(it.get("path"), str) and not os.path.isabs(it["path"])
+             else it)
+            for it in out["items"]
+        ]
     return out
 
 
 def atomic_call(workdir, tool, args):
     args = _absolutize(workdir, args)
+    if tool == "code_outline_batch" and not args.get("cwd"):  # glob is workdir-relative
+        args["cwd"] = workdir
     env = {**os.environ, "ATOMIC_DISABLE_HOT_RELOAD": "1",
            "ATOMIC_WORKSPACE_ROOT": workdir, "ATOMIC_DECLARED_WORKSPACE_ROOT": workdir,
            "ATOMIC_EDIT_ALLOWED_ROOTS": workdir}
@@ -109,11 +120,17 @@ def run_gate(workdir, gate):
 
 
 TOOLS = [
+    {"type": "function", "function": {"name": "atomic_survey",
+        "description": "Outline EVERY file matching a glob in ONE call (signature map, no bodies). Use this FIRST to map a codebase region — do NOT outline files one at a time. e.g. glob 'src/*.mjs' or 'src/**/*.py'.",
+        "parameters": {"type": "object", "properties": {"glob": {"type": "string"}}, "required": ["glob"]}}},
+    {"type": "function", "function": {"name": "atomic_read_many",
+        "description": "Read SEVERAL files (or symbols) in ONE call. `items` is a list of {path, selector?} — selector optional, to read just one symbol. PREFER this over reading files one by one.",
+        "parameters": {"type": "object", "properties": {"items": {"type": "array", "items": {"type": "object", "properties": {"path": {"type": "string"}, "selector": {"type": "string"}}, "required": ["path"]}}}, "required": ["items"]}}},
     {"type": "function", "function": {"name": "atomic_outline",
-        "description": "Structural map of a source file: every symbol (class/function) with its line range. Call FIRST to see structure. `file` = path relative to the repo root.",
+        "description": "Structural map of a SINGLE source file. Prefer atomic_survey for multiple files. `file` = path relative to the repo root.",
         "parameters": {"type": "object", "properties": {"file": {"type": "string"}}, "required": ["file"]}}},
     {"type": "function", "function": {"name": "atomic_read",
-        "description": "Read code. `path` = file. Optionally `selector` (a symbol name) to read just that function/class, or `maxFullChars` to read the whole file. Returns the actual code body.",
+        "description": "Read code from a SINGLE file. Prefer atomic_read_many for several. `path` = file. Optionally `selector` (a symbol) or `maxFullChars` (whole file). Returns the code body.",
         "parameters": {"type": "object", "properties": {"path": {"type": "string"}, "selector": {"type": "string"}, "maxFullChars": {"type": "integer"}}, "required": ["path"]}}},
     {"type": "function", "function": {"name": "atomic_grep",
         "description": "Search the repo for a regex. Scope with `path` (file or dir) and `glob`. Returns file:line matches.",
@@ -130,6 +147,8 @@ TOOLS = [
 ]
 
 DISPATCH = {
+    "atomic_survey": ("code_outline_batch", lambda a: {"glob": a.get("glob", "")}),
+    "atomic_read_many": ("code_readcode_batch", lambda a: {k: v for k, v in {"items": a.get("items", []), "maxFullCharsPerFile": a.get("maxFullCharsPerFile")}.items() if v not in (None,)}),
     "atomic_outline": ("code_outline", lambda a: {"file": a.get("file", "")}),
     "atomic_read": ("code_readcode", lambda a: {k: v for k, v in {"path": a.get("path", ""), "selector": a.get("selector"), "maxFullChars": a.get("maxFullChars")}.items() if v not in (None, "")}),
     "atomic_grep": ("atomic_grep", lambda a: {k: v for k, v in {"pattern": a.get("pattern", ""), "path": a.get("path"), "glob": a.get("glob"), "contextAfter": a.get("contextAfter")}.items() if v not in (None, "")}),
@@ -161,11 +180,13 @@ def main():
 
     system = (
         "You are the Atomic-CLI coding agent. You solve a software task by editing a real repository, "
-        "using ONLY atomic tools for every read, search, and edit (atomic_outline, atomic_read, "
-        "atomic_grep, atomic_replace, atomic_create) plus run_tests to verify. You have no other tools. "
-        "Workflow: outline/read to understand, make minimal faithful edits with atomic_replace/atomic_create "
-        "(supply proofOfIncorrectness when you remove code), then run_tests. Iterate until run_tests is fully "
-        "green, then STOP by replying with a short summary and NO tool call. Paths are relative to the repo root."
+        "using ONLY atomic tools for every read, search, and edit, plus run_tests to verify. You have no "
+        "other tools. Be efficient with calls: to understand the code, FIRST call atomic_survey(glob) once "
+        "to outline the whole region, then atomic_read_many(items) to read all the relevant files in ONE "
+        "call — do NOT read files one at a time. Then make minimal faithful edits with atomic_replace / "
+        "atomic_create (supply proofOfIncorrectness when you remove code), then run_tests. Iterate until "
+        "run_tests is fully green, then STOP by replying with a short summary and NO tool call. Paths are "
+        "relative to the repo root."
     )
     user = f"# Repository files\n{tree}\n\n# Your task\n{task}\n\nBegin. Use atomic tools only."
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
@@ -224,7 +245,7 @@ def main():
                 metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
             elif fn in DISPATCH:
                 tool, mapper = DISPATCH[fn]
-                if fn in ("atomic_read", "atomic_outline", "atomic_grep"):
+                if fn in ("atomic_read", "atomic_outline", "atomic_grep", "atomic_survey", "atomic_read_many"):
                     metrics["reads"] += 1
                     reads_since_edit += 1
                 before = git_diff(workdir)
