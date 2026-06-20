@@ -55,7 +55,7 @@ export function synthesizeCouplingGate(report) {
     "function check(n, cond) { const ok = !!cond; if (!ok) failures += 1; if (!json) console.log('  ' + (ok ? 'PASS' : 'FAIL') + '  ' + n); }",
     'const A = ' + a + ';',
     'const B = ' + c + ';',
-    "const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..', '..');",
+    "let repoRoot = path.dirname(fileURLToPath(import.meta.url)); for (let i = 0; i < 8; i++) { if (fs.existsSync(path.join(repoRoot, '.atomic', 'disproof-corpus.jsonl'))) break; repoRoot = path.dirname(repoRoot); }",
     "const file = path.join(repoRoot, '.atomic', 'disproof-corpus.jsonl');",
     "const recs = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim().split(String.fromCharCode(10)).filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean) : [];",
     'const gens = recs.map((r) => new Set(Array.isArray(r.verdictCodes) && r.verdictCodes.length ? r.verdictCodes : (r.invariantId ? [r.invariantId] : [])));',
