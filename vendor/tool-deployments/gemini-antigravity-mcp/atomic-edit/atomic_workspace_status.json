@@ -1,0 +1,1 @@
+{"name":"atomic_workspace_status","description":"Read-only preflight: shows the repo root and active workspace root used for relative paths.","parameters":{"properties":{},"type":"object"}}

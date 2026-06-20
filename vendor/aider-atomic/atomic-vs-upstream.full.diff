@@ -1,0 +1,1778 @@
+diff --git a/.dockerignore b/.dockerignore
+index 830cf8498..8fd002c09 100644
+--- a/.dockerignore
++++ b/.dockerignore
+@@ -5,6 +5,9 @@ OLD*
+ *.pyc
+ .DS_Store
+ .env
+-.venv
++.venv*
++.pytest_cache
++__pycache__/
++*.egg-info
+ .aider.*
+ build
+diff --git a/.gitignore b/.gitignore
+index fd1fa9a4d..a7ff3fc81 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -16,4 +16,6 @@ aider/_version.py
+ .#*
+ .gitattributes
+ tmp.benchmarks/
++tmp.modal-*/
++.modal-*
+ .docker_bash_history
+\ No newline at end of file
+diff --git a/aider/coders/__init__.py b/aider/coders/__init__.py
+index 88bcddfaa..0f774f980 100644
+--- a/aider/coders/__init__.py
++++ b/aider/coders/__init__.py
+@@ -1,4 +1,5 @@
+ from .architect_coder import ArchitectCoder
++from .atomic_coder import AtomicWholeFileCoder
+ from .ask_coder import AskCoder
+ from .base_coder import Coder
+ from .context_coder import ContextCoder
+@@ -27,6 +28,7 @@ __all__ = [
+     UnifiedDiffSimpleCoder,
+     #    SingleWholeFileFunctionCoder,
+     ArchitectCoder,
++    AtomicWholeFileCoder,
+     EditorEditBlockCoder,
+     EditorWholeFileCoder,
+     EditorDiffFencedCoder,
+diff --git a/aider/coders/atomic_coder.py b/aider/coders/atomic_coder.py
+new file mode 100644
+index 000000000..477117a3a
+--- /dev/null
++++ b/aider/coders/atomic_coder.py
+@@ -0,0 +1,276 @@
++import os
++import shutil
++import subprocess
++import sys
++import tempfile
++from dataclasses import dataclass
++from pathlib import Path
++
++from .wholefile_coder import WholeFileCoder
++from .wholefile_prompts import WholeFilePrompts
++
++
++@dataclass
++class AtomicValidationResult:
++    ok: bool
++    kind: str
++    command: list[str] | None = None
++    status: int | None = None
++    stdout: str = ""
++    stderr: str = ""
++    skipped: bool = False
++
++
++def _tail(text, limit=4000):
++    text = str(text or "")
++    return text if len(text) <= limit else text[-limit:]
++
++
++def _run_validation(command, cwd=None):
++    try:
++        result = subprocess.run(
++            command,
++            cwd=cwd,
++            text=True,
++            capture_output=True,
++            timeout=180,
++            check=False,
++        )
++    except FileNotFoundError:
++        return AtomicValidationResult(
++            ok=True,
++            kind=f"{command[0]}-missing-skip",
++            command=command,
++            skipped=True,
++        )
++    except subprocess.TimeoutExpired as err:
++        return AtomicValidationResult(
++            ok=False,
++            kind="validation-timeout",
++            command=command,
++            stdout=_tail(err.stdout),
++            stderr=_tail(err.stderr),
++        )
++
++    return AtomicValidationResult(
++        ok=result.returncode == 0,
++        kind=command[0],
++        command=command,
++        status=result.returncode,
++        stdout=_tail(result.stdout),
++        stderr=_tail(result.stderr),
++    )
++
++
++def _find_ancestor_containing(start_file, marker):
++    directory = Path(start_file).resolve().parent
++    while True:
++        if (directory / marker).exists():
++            return directory
++        parent = directory.parent
++        if parent == directory:
++            return None
++        directory = parent
++
++
++def _validate_temp_file(full_path, new_text, command_builder):
++    with tempfile.TemporaryDirectory(prefix="aider-atomic-validate-") as tempdir:
++        temp_path = Path(tempdir) / Path(full_path).name
++        temp_path.write_text(new_text, encoding="utf-8")
++        return _run_validation(command_builder(temp_path, Path(tempdir)))
++
++
++def _validate_rust(full_path, new_text):
++    cargo_root = _find_ancestor_containing(full_path, "Cargo.toml")
++    if not cargo_root:
++        return _validate_temp_file(
++            full_path,
++            new_text,
++            lambda temp_path, tempdir: [
++                "rustc",
++                "--crate-type",
++                "lib",
++                "--emit",
++                "metadata",
++                str(temp_path),
++                "-o",
++                str(tempdir / "candidate.rmeta"),
++            ],
++        )
++
++    with tempfile.TemporaryDirectory(prefix="aider-atomic-cargo-") as tempdir:
++        temp_root = Path(tempdir) / cargo_root.name
++
++        def ignore(_directory, names):
++            return {name for name in names if name in {"target", ".git"}}
++
++        shutil.copytree(cargo_root, temp_root, ignore=ignore)
++        relative_file = Path(full_path).resolve().relative_to(cargo_root)
++        target = temp_root / relative_file
++        target.write_text(new_text, encoding="utf-8")
++        return _run_validation(["cargo", "check", "--quiet"], cwd=temp_root)
++
++
++def validate_atomic_candidate(full_path, new_text):
++    suffix = Path(full_path).suffix.lower()
++    if suffix == ".py":
++        return _validate_temp_file(
++            full_path,
++            new_text,
++            lambda temp_path, _tempdir: [sys.executable, "-m", "py_compile", str(temp_path)],
++        )
++    if suffix in {".js", ".mjs", ".cjs"}:
++        return _validate_temp_file(
++            full_path,
++            new_text,
++            lambda temp_path, _tempdir: ["node", "--check", str(temp_path)],
++        )
++    if suffix == ".go":
++        return _validate_temp_file(
++            full_path,
++            new_text,
++            lambda temp_path, _tempdir: ["gofmt", str(temp_path)],
++        )
++    if suffix == ".rs":
++        return _validate_rust(full_path, new_text)
++    return AtomicValidationResult(ok=True, kind="syntax-validation-not-required")
++
++
++def format_validation_error(path, validation):
++    lines = [
++        f"AtomicValidationFailed: candidate for {path} failed syntax validation.",
++        f"kind: {validation.kind}",
++    ]
++    if validation.command:
++        lines.append("command: " + " ".join(validation.command))
++    if validation.status is not None:
++        lines.append(f"status: {validation.status}")
++    if validation.stdout:
++        lines.extend(["stdout:", validation.stdout])
++    if validation.stderr:
++        lines.extend(["stderr:", validation.stderr])
++    lines.append("Return the complete corrected file content again.")
++    return "\n".join(lines)
++
++
++def atomic_write_text(full_path, text):
++    target = Path(full_path)
++    target.parent.mkdir(parents=True, exist_ok=True)
++    fd, temp_name = tempfile.mkstemp(
++        prefix=f".{target.name}.atomic-",
++        suffix=".tmp",
++        dir=str(target.parent),
++        text=True,
++    )
++    try:
++        with os.fdopen(fd, "w", encoding="utf-8") as handle:
++            handle.write(text)
++        os.replace(temp_name, target)
++    except Exception:
++        try:
++            os.unlink(temp_name)
++        except OSError:
++            pass
++        raise
++
++
++class AtomicWholeFilePrompts(WholeFilePrompts):
++    main_system = """Act as an expert software developer.
++Take requests for changes to the supplied code.
++If the request is ambiguous, ask questions before editing.
++{final_reminders}
++Once you understand the request:
++1. Determine silently whether code changes are needed.
++2. If no file changes are needed, say exactly: No changes are needed.
++3. If changes are needed, Return only file listings.
++Do not explain changes before or after file listings.
++Do not output markdown, analysis, plans, bullets, diffs, or commentary outside
++file listings.
++Atomic validation checks replacement file content before writing. If validation
++fails, return corrected complete file listings only.
++"""
++
++    example_messages = [
++        dict(role="user", content="Change the greeting to be more casual"),
++        dict(
++            role="assistant",
++            content="""sample.py
++{fence[0]}
++import sys
++
++def greeting(name):
++    print(f"Hey {{name}}")
++
++if __name__ == "__main__":
++    greeting(sys.argv[1])
++{fence[1]}
++""",
++        ),
++    ]
++
++    system_reminder = """Return only file listings.
++
++A file listing has exactly this shape:
++
++path/to/filename.ext
++{fence[0]}
++<complete updated file content>
++{fence[1]}
++
++Rules:
++- The line immediately before the opening fence is the filename.
++- Include complete file content, not patches, diffs, snippets, summaries, or
++  elisions.
++- Do not write analysis, explanations, bullets, or commentary before, between,
++  or after file listings.
++- If no file changes are needed, say exactly: No changes are needed.
++- Atomic validation rejects syntax-invalid Python, JavaScript, Go, and Rust
++  before writing.
++- If validation fails, return corrected complete file listings only.
++
++{final_reminders}
++"""
++
++
++class AtomicWholeFileCoder(WholeFileCoder):
++    """Whole-file coder with pre-write syntax validation and atomic replacement."""
++
++    edit_format = "atomic"
++    gpt_prompts = AtomicWholeFilePrompts()
++
++    def get_edits(self, mode="update"):
++        edits = super().get_edits(mode=mode)
++        if mode == "diff":
++            return edits
++
++        chat_files = set(self.get_inchat_relative_files())
++        if not chat_files:
++            return edits
++
++        filtered_edits = []
++        ignored_paths = []
++        for path, fname_source, new_lines in edits:
++            if path in chat_files:
++                filtered_edits.append((path, fname_source, new_lines))
++            else:
++                ignored_paths.append(path)
++
++        if filtered_edits:
++            return filtered_edits
++        if ignored_paths:
++            allowed = ", ".join(sorted(chat_files))
++            ignored = ", ".join(sorted(ignored_paths))
++            raise ValueError(
++                "AtomicIgnoredFileListings: ignored file listings for files not in chat: "
++                f"{ignored}. Return complete listings only for: {allowed}."
++            )
++        return filtered_edits
++
++    def apply_edits(self, edits):
++        for path, _fname_source, new_lines in edits:
++            full_path = self.abs_root_path(path)
++            new_text = "".join(new_lines)
++            validation = validate_atomic_candidate(full_path, new_text)
++            if not validation.ok:
++                raise ValueError(format_validation_error(path, validation))
++            atomic_write_text(full_path, new_text)
+diff --git a/aider/coders/wholefile_coder.py b/aider/coders/wholefile_coder.py
+index ad93aff69..1ba5100cc 100644
+--- a/aider/coders/wholefile_coder.py
++++ b/aider/coders/wholefile_coder.py
+@@ -7,6 +7,49 @@ from .base_coder import Coder
+ from .wholefile_prompts import WholeFilePrompts
+ 
+ 
++def _normalize_filename_from_chat_files(fname, chat_files):
++    if not fname:
++        return ""
++
++    fname = str(fname)
++    chat_files = [str(chat_file) for chat_file in chat_files]
++    if fname in chat_files:
++        return fname
++
++    path_name = Path(fname).name
++    if path_name in chat_files:
++        return path_name
++
++    matches = []
++    for chat_file in chat_files:
++        candidates = [chat_file]
++        basename = Path(chat_file).name
++        if basename != chat_file:
++            candidates.append(basename)
++
++        for candidate in candidates:
++            if not candidate or not fname.endswith(candidate):
++                continue
++            prefix = fname[: -len(candidate)]
++            if prefix and prefix[-1].isalnum():
++                continue
++            matches.append(chat_file)
++            break
++
++    matches = sorted(set(matches))
++    if len(matches) == 1:
++        return matches[0]
++    return ""
++
++
++def _filename_line_before_fence(lines, fence_index):
++    for previous_line in reversed(lines[:fence_index]):
++        candidate = previous_line.strip()
++        if candidate:
++            return candidate
++    return ""
++
++
+ class WholeFileCoder(Coder):
+     """A coder that operates on entire files for code modifications."""
+ 
+@@ -33,8 +76,16 @@ class WholeFileCoder(Coder):
+         fname = None
+         fname_source = None
+         new_lines = []
++        ignored_unlabeled_fence = False
++        ignoring_unlabeled_fence = False
+         for i, line in enumerate(lines):
+             if line.startswith(self.fence[0]) or line.startswith(self.fence[1]):
++                if ignoring_unlabeled_fence:
++                    ignoring_unlabeled_fence = False
++                    if mode == "diff":
++                        output.append(line)
++                    continue
++
+                 if fname is not None:
+                     # ending an existing block
+                     saw_fname = None
+@@ -54,7 +105,7 @@ class WholeFileCoder(Coder):
+                 # fname==None ... starting a new block
+                 if i > 0:
+                     fname_source = "block"
+-                    fname = lines[i - 1].strip()
++                    fname = _filename_line_before_fence(lines, i)
+                     fname = fname.strip("*")  # handle **filename.py**
+                     fname = fname.rstrip(":")
+                     fname = fname.strip("`")
+@@ -65,11 +116,14 @@ class WholeFileCoder(Coder):
+                     if len(fname) > 250:
+                         fname = ""
+ 
+-                    # Did gpt prepend a bogus dir? It especially likes to
+-                    # include the path/to prefix from the one-shot example in
+-                    # the prompt.
+-                    if fname and fname not in chat_files and Path(fname).name in chat_files:
+-                        fname = Path(fname).name
++                    if chat_files:
++                        # Accept filename lines with harmless prose/punctuation around
++                        # the actual in-chat path, eg "Now produce final answer.foo.py".
++                        # Treat those as lower-confidence than exact filename lines.
++                        normalized_fname = _normalize_filename_from_chat_files(fname, chat_files)
++                        if normalized_fname and normalized_fname != fname:
++                            fname_source = "saw"
++                        fname = normalized_fname
+                 if not fname:  # blank line? or ``` was on first line i==0
+                     if saw_fname:
+                         fname = saw_fname
+@@ -78,11 +132,20 @@ class WholeFileCoder(Coder):
+                         fname = chat_files[0]
+                         fname_source = "chat"
+                     else:
+-                        # TODO: sense which file it is by diff size
+-                        raise ValueError(
+-                            f"No filename provided before {self.fence[0]} in file listing"
+-                        )
+-
++                        # Multi-file responses often include explanatory code snippets before
++                        # the final file listings. Skip those blocks and keep scanning.
++                        ignored_unlabeled_fence = True
++                        ignoring_unlabeled_fence = True
++                        fname = None
++                        fname_source = None
++                        new_lines = []
++                        if mode == "diff":
++                            output.append(line)
++                        continue
++
++            elif ignoring_unlabeled_fence:
++                if mode == "diff":
++                    output.append(line)
+             elif fname is not None:
+                 new_lines.append(line)
+             else:
+@@ -105,6 +168,9 @@ class WholeFileCoder(Coder):
+         if fname:
+             edits.append((fname, fname_source, new_lines))
+ 
++        if not edits and ignored_unlabeled_fence and len(chat_files) > 1:
++            raise ValueError(f"No filename provided before {self.fence[0]} in file listing")
++
+         seen = set()
+         refined_edits = []
+         # process from most reliable filename, to least reliable
+diff --git a/aider/linter.py b/aider/linter.py
+index d386696e5..f61b128f4 100644
+--- a/aider/linter.py
++++ b/aider/linter.py
+@@ -198,6 +198,23 @@ def lint_python_compile(fname, code):
+     return LintResult(text=res, lines=line_numbers)
+ 
+ 
++def looks_like_cpp_header(fname, code):
++    if Path(fname).suffix.lower() not in {".h", ".hh", ".hpp", ".hxx"}:
++        return False
++
++    cpp_markers = (
++        "namespace ",
++        "std::",
++        "template<",
++        "template <",
++        "class ",
++        "public:",
++        "private:",
++        "protected:",
++    )
++    return any(marker in code for marker in cpp_markers)
++
++
+ def basic_lint(fname, code):
+     """
+     Use tree-sitter to look for syntax errors, display them with tree context.
+@@ -206,6 +223,8 @@ def basic_lint(fname, code):
+     lang = filename_to_lang(fname)
+     if not lang:
+         return
++    if lang == "c" and looks_like_cpp_header(fname, code):
++        lang = "cpp"
+ 
+     # Tree-sitter linter is not capable of working with typescript #1132
+     if lang == "typescript":
+diff --git a/aider/website/_data/polyglot_leaderboard.yml b/aider/website/_data/polyglot_leaderboard.yml
+index 1ddb905c4..e4a783615 100644
+--- a/aider/website/_data/polyglot_leaderboard.yml
++++ b/aider/website/_data/polyglot_leaderboard.yml
+@@ -1854,3 +1854,31 @@
+   versions: 0.86.2.dev
+   seconds_per_case: 104.0
+   total_cost: 0.8756
++
++- dirname: 2026-06-18-22-03-54--atomic-deepseek-v4-pro-polyglot-context-c4d9f23-official-r11
++  test_cases: 225
++  model: DeepSeek V4 Pro
++  edit_format: atomic
++  commit_hash: c4d9f23
++  pass_rate_1: 36.4
++  pass_rate_2: 94.2
++  pass_num_1: 82
++  pass_num_2: 212
++  percent_cases_well_formed: 96.9
++  error_outputs: 7
++  num_malformed_responses: 7
++  num_with_malformed_responses: 7
++  user_asks: 0
++  lazy_comments: 0
++  syntax_errors: 0
++  indentation_errors: 0
++  exhausted_context_windows: 0
++  prompt_tokens: 1851707
++  completion_tokens: 2308601
++  test_timeouts: 3
++  total_tests: 225
++  command: aider --model deepseek/deepseek-v4-pro
++  date: 2026-06-18
++  versions: 0.86.3.dev
++  seconds_per_case: 115.2
++  total_cost: 0.0000
+diff --git a/benchmark/Dockerfile b/benchmark/Dockerfile
+index a5926dab7..466617174 100644
+--- a/benchmark/Dockerfile
++++ b/benchmark/Dockerfile
+@@ -1,24 +1,30 @@
+ FROM buildpack-deps:jammy
+ 
+-# Install Python 3.11
++ARG AIDER_MODAL_RUNTIME=0
++
++# Install language/runtime dependencies. Modal supplies Python via add_python.
+ RUN apt-get update && apt-get install -y \
+     software-properties-common \
+     cmake \
+     libboost-all-dev \
+-    && add-apt-repository ppa:deadsnakes/ppa \
+-    && apt-get update \
+-    && apt-get install -y \
+-    python3.11 \
+-    python3.11-venv \
+-    python3.11-dev \
+-    python3-pip \
+     ca-certificates-java \
+     openjdk-21-jdk \
+     libtbb-dev \
++    && if [ "$AIDER_MODAL_RUNTIME" != "1" ]; then \
++        add-apt-repository ppa:deadsnakes/ppa \
++        && apt-get update \
++        && apt-get install -y \
++            python3.11 \
++            python3.11-venv \
++            python3.11-dev \
++            python3-pip; \
++    fi \
+     && rm -rf /var/lib/apt/lists/*
+ 
+-# Make python3.11 the default python3
+-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
++# Make python3.11 the default python3 when Dockerfile owns Python.
++RUN if [ "$AIDER_MODAL_RUNTIME" != "1" ]; then \
++    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1; \
++    fi
+ 
+ # Install Go with architecture detection
+ RUN ARCH=$(uname -m) && \
+@@ -35,8 +41,11 @@ RUN ARCH=$(uname -m) && \
+ ENV PATH="/usr/local/go/bin:${PATH}"
+ 
+ # Install Rust
+-ADD https://sh.rustup.rs /tmp/rustup.sh
+-RUN chmod +x /tmp/rustup.sh && /tmp/rustup.sh -y && rm /tmp/rustup.sh
++ENV RUSTUP_MAX_RETRIES=10
++RUN curl -fsSL https://sh.rustup.rs -o /tmp/rustup.sh && \
++    chmod +x /tmp/rustup.sh && \
++    /tmp/rustup.sh -y --default-toolchain 1.96.0 && \
++    rm /tmp/rustup.sh
+ ENV PATH="/root/.cargo/bin:${PATH}"
+ 
+ # Install Node.js and dependencies
+@@ -47,7 +56,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+     cd /npm-install && \
+     npm init -y && \
+     npm install \
+-    jest \
++    jest@29.7.0 \
+     @babel/core@7.25.2 \
+     @exercism/babel-preset-javascript@0.2.1 \
+     @exercism/eslint-config-javascript@0.6.0 \
+@@ -58,7 +67,11 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+     eslint@8.49.0
+ 
+ COPY . /aider
+-RUN pip3 install --no-cache-dir --upgrade pip uv
+-RUN uv pip install --system --no-cache-dir -e /aider[dev]
++RUN if [ "$AIDER_MODAL_RUNTIME" != "1" ]; then \
++    pip3 install --no-cache-dir --upgrade pip uv; \
++    fi
++RUN if [ "$AIDER_MODAL_RUNTIME" != "1" ]; then \
++    uv pip install --system --no-cache-dir -e /aider[dev]; \
++    fi
+ RUN git config --global --add safe.directory /aider
+ WORKDIR /aider
+diff --git a/benchmark/benchmark.py b/benchmark/benchmark.py
+index cc694a9f7..9e621d86f 100755
+--- a/benchmark/benchmark.py
++++ b/benchmark/benchmark.py
+@@ -158,6 +158,34 @@ def resolve_dirname(dirname, use_single_prior, make_new):
+     return dirname
+ 
+ 
++def selected_language_dirs(base_dir, languages=None):
++    """Return language dirs filtered by the comma-separated --languages option."""
++    base_dir = Path(base_dir)
++    lang_dirs = [d for d in base_dir.iterdir() if d.is_dir()]
++
++    if not languages:
++        return lang_dirs
++
++    requested = set(lang.strip().lower() for lang in languages.split(",") if lang.strip())
++    if not requested:
++        return lang_dirs
++
++    return [d for d in lang_dirs if d.name.lower() in requested]
++
++
++def copy_selected_language_practice_dirs(original_dname, dirname, languages=None):
++    """Copy only selected language practice dirs into a benchmark result dir."""
++    os.makedirs(dirname, exist_ok=True)
++    for lang_dir in selected_language_dirs(original_dname, languages):
++        practice_dir = lang_dir / "exercises" / "practice"
++        if not practice_dir.exists():
++            continue
++
++        dest_lang_dir = Path(dirname) / lang_dir.name / "exercises" / "practice"
++        os.makedirs(dest_lang_dir.parent, exist_ok=True)
++        shutil.copytree(practice_dir, dest_lang_dir)
++
++
+ @app.command()
+ def main(
+     dirnames: Optional[List[str]] = typer.Argument(None, help="Directory names"),
+@@ -259,13 +287,9 @@ def main(
+         """Get all exercise directories for specified languages (or all if none specified)"""
+         base_dir = Path(base_dir)
+ 
+-        # Get available language dirs
+-        lang_dirs = [d for d in base_dir.iterdir() if d.is_dir()]
++        lang_dirs = selected_language_dirs(base_dir, languages)
+ 
+-        # Filter to requested languages if specified
+         if languages:
+-            requested = set(lang.strip().lower() for lang in languages.split(","))
+-            lang_dirs = [d for d in lang_dirs if d.name.lower() in requested]
+             dump(lang_dirs)
+             if not lang_dirs:
+                 print(f"No matching language directories found for: {languages}")
+@@ -307,15 +331,7 @@ def main(
+     if not dirname.exists():
+         print(f"Copying {original_dname} -> {dirname} ...")
+         # Only copy the practice subdirs with exercises
+-        os.makedirs(dirname, exist_ok=True)
+-        for lang_dir in original_dname.iterdir():
+-            if not lang_dir.is_dir():
+-                continue
+-            practice_dir = lang_dir / "exercises" / "practice"
+-            if practice_dir.exists():
+-                dest_lang_dir = dirname / lang_dir.name / "exercises" / "practice"
+-                os.makedirs(dest_lang_dir.parent, exist_ok=True)
+-                shutil.copytree(practice_dir, dest_lang_dir)
++        copy_selected_language_practice_dirs(original_dname, dirname, languages)
+         print("...done")
+ 
+     test_dnames = sorted(str(d.relative_to(original_dname)) for d in exercise_dirs)
+@@ -676,6 +692,57 @@ def run_test(original_dname, testdir, *args, **kwargs):
+         results_fname.write_text(json.dumps(dict(exception=traceback.format_exc())))
+ 
+ 
++def original_exercise_file(original_dname, testdir, file_path):
++    lang_part = str(testdir).split("/exercises/practice/")[0]
++    return (
++        original_dname
++        / Path(lang_part).name
++        / "exercises"
++        / "practice"
++        / testdir.name
++        / file_path
++    )
++
++
++def restore_original_exercise_file(original_dname, testdir, file_path):
++    dst = testdir / Path(file_path)
++    original_fname = original_exercise_file(original_dname, testdir, file_path)
++    if original_fname.exists():
++        os.makedirs(dst.parent, exist_ok=True)
++        shutil.copy(original_fname, dst)
++    return dst
++
++
++def collect_benchmark_chat_files(original_dname, testdir, config, ignore_files):
++    files_config = config.get("files", {})
++    solution_files = set(files_config.get("solution", []))
++    editor_files = set(files_config.get("editor", []))
++
++    solution_files.difference_update(ignore_files)
++    editor_files.difference_update(ignore_files)
++    editor_files.difference_update(solution_files)
++
++    fnames = []
++    for file_path in sorted(solution_files):
++        src = testdir / Path(file_path)
++        if src.exists():
++            fnames.append(
++                restore_original_exercise_file(original_dname, testdir, file_path)
++            )
++        else:
++            print(f"Warning: Solution file not found: {src}")
++
++    read_only_fnames = []
++    for file_path in sorted(editor_files):
++        src = testdir / Path(file_path)
++        if src.exists():
++            read_only_fnames.append(
++                restore_original_exercise_file(original_dname, testdir, file_path)
++            )
++
++    return fnames, read_only_fnames
++
++
+ def run_test_real(
+     original_dname,
+     testdir,
+@@ -715,7 +782,6 @@ def run_test_real(
+             print(f"{results_fname} failed to parse, redoing...")
+ 
+     # Read solution and test files from config
+-    fnames = []
+     config_file = testdir / ".meta/config.json"
+     if not config_file.exists():
+         raise ValueError(f"No config file found: {config_file}")
+@@ -726,7 +792,6 @@ def run_test_real(
+     # Get file sets from config
+     test_files = config.get("files", {}).get("test", [])
+     example_files = config.get("files", {}).get("example", [])
+-    solution_files = set(config.get("files", {}).get("solution", []))
+ 
+     # Forcibly ignore certain files not covered by test_files and example_files
+     ignore_files = set(
+@@ -744,30 +809,12 @@ def run_test_real(
+     ignore_files.update(test_files)
+     ignore_files.update(example_files)
+ 
+-    # Remove any ignore files from the solution set that LLM will edit
+-    solution_files.difference_update(ignore_files)
+-
+-    # Copy all solution files
+-    for file_path in solution_files:
+-        src = testdir / Path(file_path)
+-        if src.exists():
+-            fnames.append(src)
+-            # restore the original file, in case we interrupted a prev run
+-            # Find the original file in the language-specific practice dir
+-            lang_part = str(testdir).split("/exercises/practice/")[0]
+-            original_fname = (
+-                original_dname
+-                / Path(lang_part).name
+-                / "exercises"
+-                / "practice"
+-                / testdir.name
+-                / file_path
+-            )
+-            if original_fname.exists():
+-                os.makedirs(src.parent, exist_ok=True)
+-                shutil.copy(original_fname, src)
+-        else:
+-            print(f"Warning: Solution file not found: {src}")
++    fnames, read_only_fnames = collect_benchmark_chat_files(
++        original_dname,
++        testdir,
++        config,
++        ignore_files,
++    )
+ 
+     file_list = " ".join(fname.name for fname in fnames)
+ 
+@@ -817,13 +864,16 @@ def run_test_real(
+     dump(main_model)
+     dump(edit_format)
+     show_fnames = ",".join(map(str, fnames))
++    show_read_only_fnames = ",".join(map(str, read_only_fnames))
+     print("fnames:", show_fnames)
++    print("read_only_fnames:", show_read_only_fnames)
+ 
+     coder = Coder.create(
+         main_model,
+         edit_format,
+         io,
+         fnames=fnames,
++        read_only_fnames=read_only_fnames,
+         use_git=False,
+         stream=False,
+         verbose=verbose,
+@@ -902,8 +952,7 @@ def run_test_real(
+ 
+         print(errors[-1])
+         errors = "\n".join(errors)
+-        instructions = errors
+-        instructions += prompts.test_failures.format(file_list=file_list)
++        instructions = build_test_failure_instructions(errors, testdir, file_list)
+ 
+     # Clean up build directories after all attempts
+     # Rust target/debug
+@@ -978,6 +1027,11 @@ def run_test_real(
+     return results
+ 
+ 
++def build_test_failure_instructions(errors, testdir, file_list):
++    errors = str(errors or "")  # standard upstream harness: raw test output, no injection
++    return errors + prompts.test_failures.format(file_list=file_list)
++
++
+ def run_unit_tests(original_dname, testdir, history_fname, test_files):
+     timeout = 60 * 3
+ 
+@@ -1049,8 +1103,11 @@ def run_unit_tests(original_dname, testdir, history_fname, test_files):
+ 
+ 
+ def cleanup_test_output(output, testdir):
+-    # remove timing info, to avoid randomizing the response to GPT
+-    res = re.sub(r"\bin \d+\.\d+s\b", "", output)
++    # Remove timing info to avoid randomizing the response to GPT.
++    res = re.sub(r"Ran \d+ tests? in \d+\.\d+s", "", output)
++    res = re.sub(r"\bin \d+\.\d+s\b", "", res)
++    res = re.sub(r"^={5,}$", "====", res, flags=re.MULTILINE)
++    res = re.sub(r"^-{5,}$", "----", res, flags=re.MULTILINE)
+     res = res.replace(str(testdir), str(testdir.name))
+     return res
+ 
+diff --git a/benchmark/modal_runner.py b/benchmark/modal_runner.py
+new file mode 100644
+index 000000000..12e2b101d
+--- /dev/null
++++ b/benchmark/modal_runner.py
+@@ -0,0 +1,429 @@
++#!/usr/bin/env python
++from __future__ import annotations
++
++import json
++import os
++import shutil
++from dataclasses import asdict, dataclass
++from pathlib import Path
++import shlex
++import subprocess
++from typing import Iterable
++
++try:
++    import modal
++except ModuleNotFoundError:  # pragma: no cover - exercised in plain unit tests
++    modal = None
++
++
++APP_NAME = "aider-polyglot-atomic-benchmark"
++BENCHMARK_VOLUME_NAME = "aider-polyglot-benchmarks"
++DEEPSEEK_SECRET_NAME = os.environ.get("AIDER_MODAL_DEEPSEEK_SECRET", "atomic-deepseek")
++DEFAULT_POLYGLOT_REPO = "https://github.com/Aider-AI/polyglot-benchmark.git"
++DEFAULT_LANGUAGES = ("cpp", "go", "java", "javascript", "python", "rust")
++REMOTE_AIDER_DIR = Path("/aider")
++REMOTE_BENCHMARK_DIR = Path("/benchmarks")
++REMOTE_EXERCISES_DIR = "polyglot-benchmark"
++SECONDS_PER_DAY = 24 * 60 * 60
++OUTPUT_TAIL_CHARS = 8000
++MODAL_RESULT_SUMMARY_FILENAME = ".aider.modal-result.json"
++
++REPO_ROOT = Path(__file__).resolve().parents[1]
++DOCKERFILE = REPO_ROOT / "benchmark" / "Dockerfile"
++MODAL_DOCKERFILE_PYTHON_VERSION = "3.11"
++
++MODAL_CONTEXT_SYMLINK_PATHS = (
++    "aider/website/_posts/2023-05-25-ctags.md",
++    "aider/website/_posts/2023-07-02-benchmarks.md",
++    "aider/website/_posts/2023-11-06-benchmarks-1106.md",
++    "aider/website/_posts/2023-11-06-benchmarks-speed-1106.md",
++    "aider/website/_posts/2023-12-21-unified-diffs.md",
++    "aider/website/_posts/2024-01-25-benchmarks-0125.md",
++)
++
++
++def _git_assume_unchanged_command(paths: Iterable[str]) -> str:
++    quoted_paths = " ".join(shlex.quote(path) for path in paths)
++    return (
++        f"git -C {shlex.quote(str(REMOTE_AIDER_DIR))} "
++        f"update-index --assume-unchanged {quoted_paths}"
++    )
++
++
++def _build_modal_image(modal_module):
++    return modal_module.Image.from_dockerfile(
++        DOCKERFILE,
++        context_dir=REPO_ROOT,
++        add_python=MODAL_DOCKERFILE_PYTHON_VERSION,
++        build_args={"AIDER_MODAL_RUNTIME": "1"},
++    ).run_commands(
++        "python -m pip install --no-cache-dir --upgrade pip uv",
++        "uv pip install --system --no-cache-dir -e /aider[dev]",
++        "git config --global core.fileMode false",
++        "git config --global --add safe.directory /aider",
++        _git_assume_unchanged_command(MODAL_CONTEXT_SYMLINK_PATHS),
++    )
++
++
++@dataclass(frozen=True)
++class Shard:
++    language: str
++    run_name: str
++
++
++@dataclass(frozen=True)
++class BenchmarkRequest:
++    run_name: str
++    model: str
++    edit_format: str
++    language: str
++    threads: int
++    tries: int
++    exercises_dir: str
++    keywords: str | None = None
++    num_tests: int = -1
++    read_model_settings: str | None = None
++    reasoning_effort: str | None = None
++    thinking_tokens: int | None = None
++    no_aider: bool = False
++    no_unit_tests: bool = False
++    resume: bool = True
++    polyglot_repo: str = DEFAULT_POLYGLOT_REPO
++    polyglot_ref: str | None = None
++
++
++@dataclass(frozen=True)
++class BenchmarkResult:
++    language: str
++    run_name: str
++    returncode: int
++    result_dir: str | None
++    command: str
++    output_tail: str
++
++
++def write_modal_result_summary(result: BenchmarkResult) -> Path | None:
++    if result.result_dir is None:
++        return None
++
++    summary_path = Path(result.result_dir) / MODAL_RESULT_SUMMARY_FILENAME
++    summary_path.write_text(json.dumps(asdict(result), indent=2, sort_keys=True))
++    return summary_path
++
++
++def _language_result_dirs(shard_dir: Path) -> list[Path]:
++    language_dirs = []
++    for child in Path(shard_dir).iterdir():
++        practice_dir = child / "exercises" / "practice"
++        if not child.is_dir() or not practice_dir.is_dir():
++            continue
++        if any(practice_dir.glob("*/.aider.results.json")):
++            language_dirs.append(child)
++    return sorted(language_dirs)
++
++
++def aggregate_modal_shards(shard_dirs: Iterable[Path | str], output_dir: Path | str) -> Path:
++    output_path = Path(output_dir)
++    if output_path.exists():
++        raise FileExistsError(f"aggregate output already exists: {output_path}")
++
++    output_path.mkdir(parents=True)
++    copied_languages: list[str] = []
++    try:
++        for shard_dir in shard_dirs:
++            shard_path = Path(shard_dir)
++            if not shard_path.is_dir():
++                raise FileNotFoundError(f"modal shard result directory not found: {shard_path}")
++
++            for language_dir in _language_result_dirs(shard_path):
++                target = output_path / language_dir.name
++                if target.exists():
++                    raise FileExistsError(f"duplicate language result tree: {target}")
++                shutil.copytree(language_dir, target)
++                copied_languages.append(language_dir.name)
++
++        if not copied_languages:
++            raise ValueError("no language result trees found to aggregate")
++    except Exception:
++        shutil.rmtree(output_path, ignore_errors=True)
++        raise
++
++    return output_path
++
++
++def remote_exercises_dir_for_request(exercises_dir: str, language: str) -> str:
++    if exercises_dir != REMOTE_EXERCISES_DIR:
++        return exercises_dir
++    return f"{REMOTE_EXERCISES_DIR}-{language}"
++
++
++def parse_languages(languages: str | Iterable[str] | None) -> tuple[str, ...]:
++    if languages is None:
++        return DEFAULT_LANGUAGES
++    if isinstance(languages, str):
++        items = languages.split(",")
++    else:
++        items = languages
++    parsed = tuple(item.strip().lower() for item in items if item and item.strip())
++    return parsed or DEFAULT_LANGUAGES
++
++
++def build_shards(base_run_name: str, languages: str | Iterable[str] | None = None) -> list[Shard]:
++    return [
++        Shard(language=language, run_name=f"{base_run_name}-{language}")
++        for language in parse_languages(languages)
++    ]
++
++
++def build_benchmark_command(
++    *,
++    run_name: str,
++    model: str,
++    edit_format: str,
++    language: str,
++    threads: int,
++    tries: int,
++    exercises_dir: str,
++    keywords: str | None = None,
++    num_tests: int = -1,
++    read_model_settings: str | None = None,
++    reasoning_effort: str | None = None,
++    thinking_tokens: int | None = None,
++    no_aider: bool = False,
++    no_unit_tests: bool = False,
++    resume: bool = True,
++) -> list[str]:
++    cmd = [
++        "./benchmark/benchmark.py",
++        run_name,
++        "--model",
++        model,
++        "--edit-format",
++        edit_format,
++        "--languages",
++        language,
++        "--threads",
++        str(threads),
++        "--tries",
++        str(tries),
++        "--exercises-dir",
++        exercises_dir,
++    ]
++    cmd.append("--cont" if resume else "--new")
++
++    if no_aider:
++        cmd.append("--no-aider")
++    if no_unit_tests:
++        cmd.append("--no-unit-tests")
++    if keywords:
++        cmd.extend(["--keywords", keywords])
++    if num_tests and num_tests > 0:
++        cmd.extend(["--num-tests", str(num_tests)])
++    if read_model_settings:
++        cmd.extend(["--read-model-settings", read_model_settings])
++    if reasoning_effort:
++        cmd.extend(["--reasoning-effort", reasoning_effort])
++    if thinking_tokens:
++        cmd.extend(["--thinking-tokens", str(thinking_tokens)])
++
++    return cmd
++
++
++def shell_join(cmd: Iterable[str]) -> str:
++    return " ".join(shlex.quote(part) for part in cmd)
++
++
++def detect_local_polyglot_ref() -> str | None:
++    local_checkout = REPO_ROOT / "tmp.benchmarks" / "polyglot-benchmark"
++    if not local_checkout.exists():
++        return None
++    try:
++        completed = subprocess.run(
++            ["git", "-C", str(local_checkout), "rev-parse", "HEAD"],
++            check=True,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.DEVNULL,
++            text=True,
++        )
++    except subprocess.CalledProcessError:
++        return None
++    return completed.stdout.strip() or None
++
++
++def _checkout_matches_ref(target: Path, ref: str) -> bool:
++    try:
++        completed = subprocess.run(
++            ["git", "-C", str(target), "rev-parse", "HEAD"],
++            check=True,
++            stdout=subprocess.PIPE,
++            stderr=subprocess.DEVNULL,
++            text=True,
++        )
++    except subprocess.CalledProcessError:
++        return False
++    return completed.stdout.strip() == ref
++
++
++def _ensure_polyglot_checkout(repo: str, ref: str | None, exercises_dir: str) -> None:
++    target = REMOTE_BENCHMARK_DIR / exercises_dir
++    target.parent.mkdir(parents=True, exist_ok=True)
++
++    if not target.exists():
++        subprocess.run(["git", "clone", repo, str(target)], check=True)
++
++    if ref:
++        if _checkout_matches_ref(target, ref):
++            return
++        subprocess.run(["git", "-C", str(target), "fetch", "--all", "--tags"], check=True)
++        subprocess.run(["git", "-C", str(target), "checkout", ref], check=True)
++
++
++def _find_latest_result_dir(run_name: str) -> str | None:
++    matches = sorted(REMOTE_BENCHMARK_DIR.glob(f"*--{run_name}"))
++    if not matches:
++        return None
++    return str(matches[-1])
++
++
++def _run_benchmark_request(request: BenchmarkRequest) -> BenchmarkResult:
++    if not request.no_aider and not os.environ.get("DEEPSEEK_API_KEY"):
++        raise RuntimeError(
++            "Modal secret is missing DEEPSEEK_API_KEY. Create a Modal secret named "
++            f"{DEEPSEEK_SECRET_NAME!r} with that environment variable."
++        )
++
++    remote_exercises_dir = remote_exercises_dir_for_request(
++        request.exercises_dir,
++        request.language,
++    )
++    _ensure_polyglot_checkout(
++        request.polyglot_repo,
++        request.polyglot_ref,
++        remote_exercises_dir,
++    )
++
++    cmd = build_benchmark_command(
++        run_name=request.run_name,
++        model=request.model,
++        edit_format=request.edit_format,
++        language=request.language,
++        threads=request.threads,
++        tries=request.tries,
++        exercises_dir=remote_exercises_dir,
++        keywords=request.keywords,
++        num_tests=request.num_tests,
++        read_model_settings=request.read_model_settings,
++        reasoning_effort=request.reasoning_effort,
++        thinking_tokens=request.thinking_tokens,
++        no_aider=request.no_aider,
++        no_unit_tests=request.no_unit_tests,
++        resume=request.resume,
++    )
++
++    env = os.environ.copy()
++    env["AIDER_DOCKER"] = "1"
++    env["AIDER_BENCHMARK_DIR"] = str(REMOTE_BENCHMARK_DIR)
++
++    completed = subprocess.run(
++        cmd,
++        cwd=str(REMOTE_AIDER_DIR),
++        env=env,
++        stdout=subprocess.PIPE,
++        stderr=subprocess.STDOUT,
++        text=True,
++    )
++    output = completed.stdout[-OUTPUT_TAIL_CHARS:]
++    result = BenchmarkResult(
++        language=request.language,
++        run_name=request.run_name,
++        returncode=completed.returncode,
++        result_dir=_find_latest_result_dir(request.run_name),
++        command=shell_join(cmd),
++        output_tail=output,
++    )
++    write_modal_result_summary(result)
++    return result
++
++
++if modal is not None:
++    app = modal.App(APP_NAME)
++    benchmark_volume = modal.Volume.from_name(BENCHMARK_VOLUME_NAME, create_if_missing=True)
++    image = _build_modal_image(modal)
++
++    @app.function(
++        image=image,
++        volumes={str(REMOTE_BENCHMARK_DIR): benchmark_volume},
++        secrets=[modal.Secret.from_name(DEEPSEEK_SECRET_NAME)],
++        timeout=SECONDS_PER_DAY,
++        memory=12 * 1024,
++        max_containers=len(DEFAULT_LANGUAGES),
++    )
++    def run_shard(payload: dict) -> dict:
++        request = BenchmarkRequest(**payload)
++        result = _run_benchmark_request(request)
++        benchmark_volume.commit()
++        return asdict(result)
++
++    @app.local_entrypoint()
++    def main(
++        run_name: str = "atomic-deepseek-v4-pro-polyglot-atomic-modal",
++        model: str = "deepseek/deepseek-chat",
++        edit_format: str = "atomic",
++        languages: str = "",
++        threads: int = 2,
++        tries: int = 2,
++        exercises_dir: str = REMOTE_EXERCISES_DIR,
++        keywords: str = "",
++        num_tests: int = -1,
++        read_model_settings: str = "",
++        reasoning_effort: str = "",
++        thinking_tokens: int = 0,
++        no_aider: bool = False,
++        no_unit_tests: bool = False,
++        resume: bool = True,
++        polyglot_repo: str = DEFAULT_POLYGLOT_REPO,
++        polyglot_ref: str = "",
++    ) -> None:
++        selected_languages = parse_languages(languages or None)
++        pinned_ref = polyglot_ref or detect_local_polyglot_ref()
++        shards = build_shards(run_name, selected_languages)
++        requests = [
++            asdict(
++                BenchmarkRequest(
++                    run_name=shard.run_name,
++                    model=model,
++                    edit_format=edit_format,
++                    language=shard.language,
++                    threads=threads,
++                    tries=tries,
++                    exercises_dir=exercises_dir,
++                    keywords=keywords or None,
++                    num_tests=num_tests,
++                    read_model_settings=read_model_settings or None,
++                    reasoning_effort=reasoning_effort or None,
++                    thinking_tokens=thinking_tokens or None,
++                    no_aider=no_aider,
++                    no_unit_tests=no_unit_tests,
++                    resume=resume,
++                    polyglot_repo=polyglot_repo,
++                    polyglot_ref=pinned_ref,
++                )
++            )
++            for shard in shards
++        ]
++
++        print(f"Dispatching {len(requests)} Modal benchmark shard(s).")
++        if pinned_ref:
++            print(f"polyglot-benchmark ref: {pinned_ref}")
++
++        results = list(run_shard.map(requests))
++        print(json.dumps(results, indent=2, sort_keys=True))
++        print(
++            "Download results with: "
++            f"modal volume get {BENCHMARK_VOLUME_NAME} / ./tmp.modal-benchmarks"
++        )
++else:
++    app = None
++
++    def run_shard(payload: dict) -> dict:  # pragma: no cover
++        raise RuntimeError("The Modal Python package is required to run remote shards.")
+diff --git a/benchmark/test_modal_runner.py b/benchmark/test_modal_runner.py
+new file mode 100644
+index 000000000..8ed006780
+--- /dev/null
++++ b/benchmark/test_modal_runner.py
+@@ -0,0 +1,287 @@
++import json
++from pathlib import Path
++from types import SimpleNamespace
++import tempfile
++import unittest
++from unittest.mock import patch
++
++import benchmark.modal_runner as modal_runner
++
++from benchmark.modal_runner import (
++    DEFAULT_LANGUAGES,
++    MODAL_CONTEXT_SYMLINK_PATHS,
++    MODAL_DOCKERFILE_PYTHON_VERSION,
++    _build_modal_image,
++    _ensure_polyglot_checkout,
++    _git_assume_unchanged_command,
++    aggregate_modal_shards,
++    build_benchmark_command,
++    build_shards,
++    parse_languages,
++    BenchmarkResult,
++    remote_exercises_dir_for_request,
++    write_modal_result_summary,
++)
++
++
++class TestModalRunner(unittest.TestCase):
++    def test_modal_dockerfile_image_pins_python_for_modal_runtime(self):
++        class FakeBuiltImage:
++            commands = None
++
++            def run_commands(self, *commands):
++                self.commands = commands
++                return "image-with-runtime-deps"
++
++        class FakeImage:
++            calls = []
++
++            @classmethod
++            def from_dockerfile(cls, path, **kwargs):
++                built_image = FakeBuiltImage()
++                cls.calls.append((path, kwargs, built_image))
++                return built_image
++
++        class FakeModal:
++            Image = FakeImage
++
++        image = _build_modal_image(FakeModal)
++
++        self.assertEqual(image, "image-with-runtime-deps")
++        self.assertEqual(FakeImage.calls[0][1]["add_python"], MODAL_DOCKERFILE_PYTHON_VERSION)
++        self.assertEqual(FakeImage.calls[0][1]["build_args"], {"AIDER_MODAL_RUNTIME": "1"})
++        self.assertEqual(MODAL_DOCKERFILE_PYTHON_VERSION, "3.11")
++        runtime_commands = FakeImage.calls[0][2].commands
++        self.assertTrue(
++            any(
++                "uv pip install --system --no-cache-dir -e /aider[dev]" in command
++                for command in runtime_commands
++            )
++        )
++        self.assertIn("git config --global core.fileMode false", runtime_commands)
++        assume_unchanged_command = _git_assume_unchanged_command(
++            MODAL_CONTEXT_SYMLINK_PATHS
++        )
++        self.assertIn(assume_unchanged_command, runtime_commands)
++        self.assertEqual(len(MODAL_CONTEXT_SYMLINK_PATHS), 6)
++        for symlink_path in MODAL_CONTEXT_SYMLINK_PATHS:
++            self.assertIn(symlink_path, assume_unchanged_command)
++
++    def test_modal_dockerfile_pins_jest_29_for_exercism_throw_error_matcher(self):
++        dockerfile = (Path(__file__).parent / "Dockerfile").read_text()
++
++        self.assertIn("jest@29.7.0", dockerfile)
++
++    def test_modal_dockerfile_pins_rust_toolchain_and_retries_downloads(self):
++        dockerfile = (Path(__file__).parent / "Dockerfile").read_text()
++
++        self.assertIn("ENV RUSTUP_MAX_RETRIES=10", dockerfile)
++        self.assertIn("--default-toolchain 1.96.0", dockerfile)
++
++    def test_write_modal_result_summary_persists_shard_metadata(self):
++        with tempfile.TemporaryDirectory() as tmpdir:
++            result = BenchmarkResult(
++                language="python",
++                run_name="atomic-smoke-python",
++                returncode=1,
++                result_dir=tmpdir,
++                command="./benchmark/benchmark.py atomic-smoke-python",
++                output_tail="failed tests tail",
++            )
++
++            summary_path = write_modal_result_summary(result)
++
++            self.assertEqual(summary_path, Path(tmpdir) / ".aider.modal-result.json")
++            summary = json.loads(summary_path.read_text())
++            self.assertEqual(summary["language"], "python")
++            self.assertEqual(summary["run_name"], "atomic-smoke-python")
++            self.assertEqual(summary["returncode"], 1)
++            self.assertEqual(summary["output_tail"], "failed tests tail")
++
++    def test_aggregate_modal_shards_combines_language_trees(self):
++        with tempfile.TemporaryDirectory() as tmpdir:
++            root = Path(tmpdir)
++            python_result = root / "2026-06-18-00-00-00--run-python"
++            go_result = root / "2026-06-18-00-00-01--run-go"
++
++            python_case = python_result / "python" / "exercises" / "practice" / "grep"
++            go_case = go_result / "go" / "exercises" / "practice" / "markdown"
++            python_case.mkdir(parents=True)
++            go_case.mkdir(parents=True)
++            (python_case / ".aider.results.json").write_text("{}")
++            (go_case / ".aider.results.json").write_text("{}")
++            (python_result / ".aider.modal-result.json").write_text("{}")
++
++            output_dir = root / "combined"
++            aggregate_modal_shards([python_result, go_result], output_dir)
++
++            python_results = output_dir / "python" / "exercises" / "practice" / "grep"
++            go_results = output_dir / "go" / "exercises" / "practice" / "markdown"
++
++            self.assertTrue((python_results / ".aider.results.json").exists())
++            self.assertTrue((go_results / ".aider.results.json").exists())
++            self.assertFalse((output_dir / ".aider.modal-result.json").exists())
++
++    def test_aggregate_modal_shards_ignores_unscored_language_trees(self):
++        with tempfile.TemporaryDirectory() as tmpdir:
++            root = Path(tmpdir)
++            shard = root / "2026-06-18-00-00-00--run-python"
++            scored_case = shard / "python" / "exercises" / "practice" / "grep"
++            unscored_case = shard / "go" / "exercises" / "practice" / "markdown"
++            scored_case.mkdir(parents=True)
++            unscored_case.mkdir(parents=True)
++            (scored_case / ".aider.results.json").write_text("{}")
++
++            output_dir = root / "combined"
++            aggregate_modal_shards([shard], output_dir)
++
++            self.assertTrue((output_dir / "python").exists())
++            self.assertFalse((output_dir / "go").exists())
++
++    def test_aggregate_modal_shards_refuses_existing_output_dir(self):
++        with tempfile.TemporaryDirectory() as tmpdir:
++            root = Path(tmpdir)
++            shard = root / "2026-06-18-00-00-00--run-python"
++            case_dir = shard / "python" / "exercises" / "practice" / "grep"
++            case_dir.mkdir(parents=True)
++            output_dir = root / "combined"
++            output_dir.mkdir()
++
++            with self.assertRaises(FileExistsError):
++                aggregate_modal_shards([shard], output_dir)
++
++    def test_existing_polyglot_checkout_at_ref_skips_fetch(self):
++        with tempfile.TemporaryDirectory() as tmpdir:
++            target = Path(tmpdir) / "polyglot-benchmark-go"
++            target.mkdir(parents=True)
++            calls = []
++
++            def fake_run(cmd, **kwargs):
++                calls.append(cmd)
++                if cmd == ["git", "-C", str(target), "rev-parse", "HEAD"]:
++                    return SimpleNamespace(stdout="abc123\n")
++                raise AssertionError(f"unexpected command: {cmd}")
++
++            with patch.object(modal_runner, "REMOTE_BENCHMARK_DIR", Path(tmpdir)):
++                with patch("benchmark.modal_runner.subprocess.run", side_effect=fake_run):
++                    _ensure_polyglot_checkout(
++                        "https://example.invalid/repo.git",
++                        "abc123",
++                        target.name,
++                    )
++
++            self.assertEqual(calls, [["git", "-C", str(target), "rev-parse", "HEAD"]])
++
++    def test_parse_languages_defaults_and_normalizes(self):
++        self.assertEqual(parse_languages(None), DEFAULT_LANGUAGES)
++        self.assertEqual(parse_languages(" Python,go, javascript "), ("python", "go", "javascript"))
++
++    def test_default_polyglot_checkout_is_isolated_by_language(self):
++        self.assertEqual(
++            remote_exercises_dir_for_request("polyglot-benchmark", "cpp"),
++            "polyglot-benchmark-cpp",
++        )
++        self.assertEqual(
++            remote_exercises_dir_for_request("polyglot-benchmark", "javascript"),
++            "polyglot-benchmark-javascript",
++        )
++        self.assertEqual(
++            remote_exercises_dir_for_request("custom-exercises", "python"),
++            "custom-exercises",
++        )
++
++    def test_build_shards_names_by_language(self):
++        shards = build_shards("atomic-deepseek", ("go", "python"))
++        self.assertEqual([shard.language for shard in shards], ["go", "python"])
++        self.assertEqual([shard.run_name for shard in shards], [
++            "atomic-deepseek-go",
++            "atomic-deepseek-python",
++        ])
++
++    def test_build_benchmark_command_has_reproducible_flags(self):
++        cmd = build_benchmark_command(
++            run_name="atomic-deepseek-python",
++            model="deepseek/deepseek-chat",
++            edit_format="atomic",
++            language="python",
++            threads=3,
++            tries=2,
++            exercises_dir="polyglot-benchmark",
++        )
++
++        self.assertEqual(cmd[:2], ["./benchmark/benchmark.py", "atomic-deepseek-python"])
++        self.assertIn("--cont", cmd)
++        self.assertNotIn("--new", cmd)
++        self.assertIn("--model", cmd)
++        self.assertIn("deepseek/deepseek-chat", cmd)
++        self.assertIn("--edit-format", cmd)
++        self.assertIn("atomic", cmd)
++        self.assertIn("--languages", cmd)
++        self.assertIn("python", cmd)
++        self.assertIn("--threads", cmd)
++        self.assertIn("3", cmd)
++        self.assertIn("--tries", cmd)
++        self.assertIn("2", cmd)
++        self.assertNotIn("DEEPSEEK_API_KEY", " ".join(cmd))
++
++    def test_build_benchmark_command_can_force_fresh_run(self):
++        cmd = build_benchmark_command(
++            run_name="fresh-run",
++            model="deepseek/deepseek-chat",
++            edit_format="atomic",
++            language="python",
++            threads=1,
++            tries=1,
++            exercises_dir="polyglot-benchmark",
++            resume=False,
++        )
++
++        self.assertIn("--new", cmd)
++        self.assertNotIn("--cont", cmd)
++
++    def test_optional_filters_are_added_only_when_set(self):
++        cmd = build_benchmark_command(
++            run_name="sample",
++            model="deepseek/deepseek-chat",
++            edit_format="atomic",
++            language="go",
++            threads=1,
++            tries=1,
++            exercises_dir="polyglot-benchmark",
++            keywords="hexadecimal",
++            num_tests=1,
++            read_model_settings="settings.yml",
++            reasoning_effort="medium",
++            thinking_tokens=1024,
++        )
++
++        self.assertIn("--keywords", cmd)
++        self.assertIn("hexadecimal", cmd)
++        self.assertIn("--num-tests", cmd)
++        self.assertIn("1", cmd)
++        self.assertIn("--read-model-settings", cmd)
++        self.assertIn("settings.yml", cmd)
++        self.assertIn("--reasoning-effort", cmd)
++        self.assertIn("medium", cmd)
++        self.assertIn("--thinking-tokens", cmd)
++        self.assertIn("1024", cmd)
++
++    def test_no_aider_smoke_flags_are_added(self):
++        cmd = build_benchmark_command(
++            run_name="modal-smoke",
++            model="deepseek/deepseek-chat",
++            edit_format="atomic",
++            language="python",
++            threads=1,
++            tries=1,
++            exercises_dir="polyglot-benchmark",
++            no_aider=True,
++            no_unit_tests=True,
++        )
++
++        self.assertIn("--no-aider", cmd)
++        self.assertIn("--no-unit-tests", cmd)
++
++
++if __name__ == "__main__":
++    unittest.main()
+diff --git a/tests/basic/test_linter.py b/tests/basic/test_linter.py
+index 46b02a367..7d7e1cb0b 100644
+--- a/tests/basic/test_linter.py
++++ b/tests/basic/test_linter.py
+@@ -3,7 +3,7 @@ import unittest
+ from unittest.mock import MagicMock, patch
+ 
+ from aider.dump import dump  # noqa
+-from aider.linter import Linter
++from aider.linter import Linter, basic_lint
+ 
+ 
+ class TestLinter(unittest.TestCase):
+@@ -79,6 +79,20 @@ class TestLinter(unittest.TestCase):
+             self.assertIsNotNone(result)
+             self.assertIn("Error message", result.text)
+ 
++    def test_cpp_header_with_std_vector_signature_does_not_lint_as_c(self):
++        code = (
++            "#ifndef KNAPSACK_H\n"
++            "#define KNAPSACK_H\n"
++            "#include <vector>\n"
++            "namespace knapsack {\n"
++            "struct Item { int weight; int value; };\n"
++            "int maximumValue(int maximumWeight, const std::vector<Item>& items);\n"
++            "}\n"
++            "#endif\n"
++        )
++
++        self.assertIsNone(basic_lint("knapsack.h", code))
++
+ 
+ if __name__ == "__main__":
+     unittest.main()
+diff --git a/tests/basic/test_wholefile.py b/tests/basic/test_wholefile.py
+index deb192ec7..2ececf9c2 100644
+--- a/tests/basic/test_wholefile.py
++++ b/tests/basic/test_wholefile.py
+@@ -316,6 +316,88 @@ after b
+             updated_content = f.read()
+         self.assertEqual(updated_content, new_content)
+ 
++    def test_update_files_with_blank_line_between_filename_and_fence(self):
++        fname_a = Path("a.txt")
++        fname_b = Path("b.txt")
++        fname_a.write_text("before a\n")
++        fname_b.write_text("before b\n")
++
++        response = """
++a.txt
++
++```
++after a
++```
++
++b.txt
++
++```
++after b
++```
++"""
++        io = InputOutput(yes=True)
++        coder = WholeFileCoder(main_model=self.GPT35, io=io, fnames=[fname_a, fname_b])
++        coder.partial_response_content = response
++
++        edited_files = coder.apply_updates()
++
++        self.assertIn(str(fname_a), edited_files)
++        self.assertIn(str(fname_b), edited_files)
++        self.assertEqual(fname_a.read_text(), "after a\n")
++        self.assertEqual(fname_b.read_text(), "after b\n")
++
++    def test_atomic_prefers_final_filename_embedded_in_prose_over_earlier_fence(self):
++        sample_file = "connect.js"
++        original = "export const oldValue = 0;\n"
++        Path(sample_file).write_text(original)
++
++        io = InputOutput(yes=True)
++        coder = Coder.create(self.GPT35, "atomic", io=io, fnames=[sample_file])
++        coder.partial_response_content = (
++            "Here is a board example that is not a file listing:\n\n"
++            "```\n"
++            ". O . X .\n"
++            "```\n\n"
++            "Now produce final answer.connect.js\n"
++            "```javascript\n"
++            "export const newValue = 1;\n"
++            "```\n"
++        )
++
++        edited_files = coder.apply_updates()
++
++        self.assertEqual(edited_files, {sample_file})
++        self.assertEqual(Path(sample_file).read_text(), "export const newValue = 1;\n")
++
++    def test_atomic_skips_unlabeled_snippet_before_multi_file_listings(self):
++        header = "knapsack.h"
++        source = "knapsack.cpp"
++        Path(header).write_text("old header\n")
++        Path(source).write_text("old source\n")
++
++        io = InputOutput(yes=True)
++        coder = Coder.create(self.GPT35, "atomic", io=io, fnames=[header, source])
++        coder.partial_response_content = (
++            "The tests expect this C++ shape:\n\n"
++            "```cpp\n"
++            "int maximum_value(int max_weight);\n"
++            "```\n\n"
++            "We must output only file listings.knapsack.h\n"
++            "```\n"
++            "new header\n"
++            "```\n"
++            "knapsack.cpp\n"
++            "```\n"
++            "new source\n"
++            "```\n"
++        )
++
++        edited_files = coder.apply_updates()
++
++        self.assertEqual(edited_files, {header, source})
++        self.assertEqual(Path(header).read_text(), "new header\n")
++        self.assertEqual(Path(source).read_text(), "new source\n")
++
+     def test_full_edit(self):
+         # Create a few temporary files
+         _, file1 = tempfile.mkstemp()
+@@ -354,6 +436,69 @@ Do this:
+         # check for one trailing newline
+         self.assertEqual(content, new_content + "\n")
+ 
++    def test_atomic_edit_format_can_be_created(self):
++        from aider.coders.atomic_coder import AtomicWholeFileCoder
++
++        io = InputOutput(yes=True)
++        coder = Coder.create(self.GPT35, "atomic", io=io, fnames=[])
++
++        self.assertIsInstance(coder, AtomicWholeFileCoder)
++        self.assertEqual(coder.edit_format, "atomic")
++
++    def test_atomic_edit_format_rejects_invalid_python_before_write(self):
++        sample_file = "sample.py"
++        original = "def ok():\n    return 1\n"
++        Path(sample_file).write_text(original)
++
++        io = InputOutput(yes=True)
++        coder = Coder.create(self.GPT35, "atomic", io=io, fnames=[sample_file])
++        coder.partial_response_content = (
++            f"{sample_file}\n```python\n"
++            "def broken(:\n    return 2\n```"
++        )
++
++        edited_files = coder.apply_updates()
++
++        self.assertEqual(edited_files, {sample_file})
++        self.assertEqual(Path(sample_file).read_text(), original)
++        self.assertEqual(coder.num_malformed_responses, 1)
++
++    def test_atomic_edit_format_ignores_files_not_in_chat(self):
++        sample_file = "sample.py"
++        bogus_file = "Thus final answer.sample.py"
++        Path(sample_file).write_text("def value():\n    return 1\n")
++
++        io = InputOutput(yes=True)
++        coder = Coder.create(self.GPT35, "atomic", io=io, fnames=[sample_file])
++        coder.partial_response_content = (
++            f"{bogus_file}\n```python\n"
++            "def value():\n    return 999\n```\n"
++            f"{sample_file}\n```python\n"
++            "def value():\n    return 2\n```\n"
++        )
++
++        edited_files = coder.apply_updates()
++
++        self.assertEqual(edited_files, {sample_file})
++        self.assertFalse(Path(bogus_file).exists())
++        self.assertEqual(Path(sample_file).read_text(), "def value():\n    return 2\n")
++
++    def test_atomic_prompt_requires_file_listings_without_explanation(self):
++        from aider.coders.atomic_coder import AtomicWholeFilePrompts
++
++        prompt = AtomicWholeFilePrompts()
++        assistant_examples = [
++            message["content"].lstrip()
++            for message in prompt.example_messages
++            if message["role"] == "assistant"
++        ]
++
++        self.assertNotIn("Explain any needed changes", prompt.main_system)
++        self.assertIn("Return only file listings", prompt.main_system)
++        self.assertTrue(assistant_examples)
++        self.assertTrue(assistant_examples[0].startswith("sample.py\n"))
++        self.assertNotIn("Ok, I will", "\n".join(assistant_examples))
++
+ 
+ if __name__ == "__main__":
+     unittest.main()

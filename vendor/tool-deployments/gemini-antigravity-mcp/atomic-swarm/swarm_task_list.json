@@ -1,0 +1,1 @@
+{"name":"swarm_task_list","description":"List every task in .atomic/swarm-tasks.json with status and completion receipts (verified flag, acceptance exit code, output hashes). Read-only.","parameters":{"$schema":"http://json-schema.org/draft-07/schema#","properties":{},"type":"object"}}

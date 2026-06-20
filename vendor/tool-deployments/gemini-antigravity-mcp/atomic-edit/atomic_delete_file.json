@@ -1,0 +1,1 @@
+{"name":"atomic_delete_file","description":"Delete a file through the same governance guard as every atomic op: repo-containment, protected-file refusal, and trace persistence.","parameters":{"properties":{"expectedSha256":{"type":"string"},"file":{"type":"string"},"preview":{"type":"boolean"},"proofOfIncorrectness":{"type":"string"}},"required":["file"],"type":"object"}}

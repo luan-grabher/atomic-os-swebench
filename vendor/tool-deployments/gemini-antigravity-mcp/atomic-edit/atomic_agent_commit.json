@@ -1,0 +1,1 @@
+{"name":"atomic_agent_commit","description":"Apply the validated proposal via atomic write with receipt.","parameters":{"properties":{"sessionId":{"type":"string"}},"required":["sessionId"],"type":"object"}}

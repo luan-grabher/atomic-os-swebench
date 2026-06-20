@@ -1,0 +1,1 @@
+{"name":"atomic_agent_validate","description":"Validate the current proposal through atomic gates.","parameters":{"properties":{"sessionId":{"type":"string"}},"required":["sessionId"],"type":"object"}}

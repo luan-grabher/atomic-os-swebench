@@ -1,0 +1,1 @@
+{"name":"atomic_multi_create","description":"Create 1-N new files in a SINGLE macro-atomic transaction.","parameters":{"properties":{"files":{"items":{"properties":{"content":{"type":"string"},"file":{"type":"string"}},"required":["file","content"],"type":"object"},"maxItems":20,"minItems":1,"type":"array"},"preview":{"type":"boolean"}},"required":["files"],"type":"object"}}

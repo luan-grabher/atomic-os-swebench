@@ -1,0 +1,1 @@
+{"name":"atomic_repair_scope","description":"Run repairScope VERBATIM over a scope: for each gate-red it can resolve deterministically it applies the fix through the firewall; every red it cannot prove a fix for is returned in `needsIntent` (file, name, reason) for a human/agent decision — it NEVER guesses.","parameters":{"properties":{"scope":{"type":"string"}},"type":"object"}}

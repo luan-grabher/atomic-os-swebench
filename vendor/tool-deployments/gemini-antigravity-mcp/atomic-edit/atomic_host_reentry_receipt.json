@@ -1,0 +1,1 @@
+{"name":"atomic_host_reentry_receipt","description":"Issues an audit-friendly receipt for entering or verifying the Atomic whole-host boundary.","parameters":{"properties":{"command":{"items":{"type":"string"},"type":"array"}},"type":"object"}}

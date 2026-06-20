@@ -1,0 +1,1 @@
+{"name":"swarm_skill_list","description":"List every registered skill manifest with a live verification verdict (ok or the exact drift). Read-only.","parameters":{"$schema":"http://json-schema.org/draft-07/schema#","properties":{},"type":"object"}}

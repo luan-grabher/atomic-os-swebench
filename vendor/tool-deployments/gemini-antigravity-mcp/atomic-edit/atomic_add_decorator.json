@@ -1,0 +1,1 @@
+{"name":"atomic_add_decorator","description":"Add @decorator, @Annotation, #[attr] etc.","parameters":{"properties":{"decorator":{"type":"string"},"file":{"type":"string"},"preview":{"type":"boolean"},"targetLine":{"maximum":9007199254740991,"minimum":2,"type":"integer"}},"required":["file","targetLine","decorator"],"type":"object"}}

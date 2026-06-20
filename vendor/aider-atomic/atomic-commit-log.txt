@@ -1,0 +1,63 @@
+56881607e bench: drop injector unit tests (revert test files to upstream)
+aca9652d6 bench: use standard upstream retry harness (remove test-context augmentation)
+5b5add7c5 docs: add DeepSeek V4 Pro polyglot result
+104892a24 fix: sharpen failure reflection hints
+f6860607c fix: add targeted test failure guidance
+c4d9f2337 fix: widen nearby test context
+1113a225d fix: prioritize test context refs
+ebe89f998 fix: keep deeper test context
+002da1e68 fix: prioritize first failing test context
+d9598b0b4 fix: resolve nested test error context
+19417eae7 fix: target benchmark repair guidance
+4ae011020 fix: tighten literal repair guidance
+2fcc0d56a fix: preserve exact benchmark literals
+2b590f5d6 fix: expose benchmark helper files as read-only
+7684dcd0b fix: sharpen test repair evidence
+c437ab732 fix: infer opaque value test repairs
+b4a61e848 fix: preserve java repair contracts
+c442469aa fix: guide test repairs to failing entrypoint
+236e77497 fix: include wider test context during repair
+85016245c fix: pin rust toolchain for modal benchmark
+a29f0b97e fix: widen test repair context
+266f44be5 fix: pin jest for javascript benchmark tests
+f894e643e fix: detect repeated rhetorical response loops
+43fe46d7e fix: detect repeated planning suffix loops
+20bb84301 fix: copy only selected benchmark languages
+eb8c3eb40 fix: detect short repeated test loops
+03374dba7 fix: detect quoted payload response loops
+19abeb3ed fix: detect long numeric prefix loops
+f6eac7c14 fix: detect repetitive comparison loops
+048fd9c5f fix: detect dynamic repetitive explanations
+9645fe108 fix: resume modal shards after preemption
+cbeed3833 feat: aggregate modal polyglot shards
+27d519dbd fix: skip modal polyglot fetch when pinned
+9afb8541a fix: skip duplicate python install in modal image
+1e1e8ae74 fix: persist modal shard summaries
+dc35cf1dd fix: isolate modal polyglot checkouts by language
+b4f5fe9c6 fix: ignore modal symlink context noise
+ad3d14a4e fix: skip unlabeled snippet fences in wholefile listings
+7136edae1 fix: keep modal benchmark git hash clean
+abff4d689 fix: install modal runtime dependencies
+e1f510699 fix: pin modal dockerfile python runtime
+4fdb7c592 fix: make benchmark dockerfile modal-compatible
+b4e289aba chore: exclude local virtualenvs from docker context
+feb4575ea fix: accept blank lines before file fences
+a90534103 fix: lint cpp headers as cpp
+9d40b1f73 fix: prefer final atomic file listings
+a7f769f66 fix: catch incrementing repetitive loops
+0c50889ce fix: include test headers in failure reflections
+d4b2b9814 fix: broaden referenced test context
+ee4501e86 fix: reflect benchmark test source lines
+50f9d0d40 fix: include referenced test lines in reflections
+79ad3e559 feat: add Modal polyglot benchmark runner
+b84c3123c fix: catch very short repetitive prose loops
+2a4b0bf37 fix: guide test-error reflections
+dc4cd13a8 fix: catch repeated short analysis cycles
+39e98c8a4 fix: catch short repetitive response loops
+87a742701 fix: restrict atomic file listings to chat files
+f78ae2f99 fix: reflect repetitive non-stream responses
+c2ebe2076 test: catch shorter repetitive analysis loops
+7f3864e78 test: catch shorter repetitive response cycles
+b3f237ac3 fix: reflect repetitive streaming responses
+1fff7cc0f fix: make atomic edit prompt file-only
+22b51fca7 feat: add atomic whole-file edit format

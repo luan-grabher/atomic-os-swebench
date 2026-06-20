@@ -1,0 +1,1 @@
+{"name":"code_file_stat","description":"Returns file/directory metadata WITHOUT EVER returning file contents.","parameters":{"properties":{"file":{"type":"string"}},"required":["file"],"type":"object"}}

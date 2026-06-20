@@ -1,0 +1,1 @@
+{"name":"atomic_workspace_bind","description":"Declares the workspace root for this Atomic MCP process.","parameters":{"properties":{"root":{"minLength":1,"type":"string"}},"required":["root"],"type":"object"}}

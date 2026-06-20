@@ -1,0 +1,1 @@
+{"name":"continuity_status","description":"Summarizes progress docs, workboard, locks, PULSE certificate, runtime evidence, and the next honest action.","parameters":{"properties":{},"type":"object"}}

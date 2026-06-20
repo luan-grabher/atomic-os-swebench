@@ -1,0 +1,1 @@
+{"name":"atomic_agent_step","description":"Record investigation findings.","parameters":{"properties":{"findings":{"items":{"type":"string"},"type":"array"},"sessionId":{"type":"string"},"tool":{"type":"string"}},"required":["sessionId","tool","findings"],"type":"object"}}

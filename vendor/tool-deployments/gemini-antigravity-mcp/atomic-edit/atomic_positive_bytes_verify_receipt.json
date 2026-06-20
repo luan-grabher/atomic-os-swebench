@@ -1,0 +1,1 @@
+{"name":"atomic_positive_bytes_verify_receipt","description":"Recomputes the receipt body hash, validates accepted materialization receipts, and independently validates rejection receipts.","parameters":{"properties":{"receipt":{"type":"object"},"requireCurrentTarget":{"type":"boolean"}},"required":["receipt"],"type":"object"}}

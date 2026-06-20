@@ -1,0 +1,1 @@
+{"name":"atomic_glob","description":"Find files/dirs by glob pattern via the native engine, gitignore-aware.","parameters":{"properties":{"fileType":{"enum":["file","dir","symlink"],"type":"string"},"hidden":{"type":"boolean"},"maxResults":{"maximum":5000,"minimum":1,"type":"integer"},"path":{"type":"string"},"pattern":{"type":"string"}},"required":["pattern"],"type":"object"}}

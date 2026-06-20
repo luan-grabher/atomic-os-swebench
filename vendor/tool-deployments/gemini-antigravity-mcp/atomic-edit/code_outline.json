@@ -1,0 +1,1 @@
+{"name":"code_outline","description":"Token-cheap structural summary: every named function/class/method/interface/type/var with its selector and line range — NO bodies.","parameters":{"properties":{"file":{"type":"string"}},"required":["file"],"type":"object"}}

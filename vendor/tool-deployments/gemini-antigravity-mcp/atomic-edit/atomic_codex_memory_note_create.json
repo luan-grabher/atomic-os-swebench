@@ -1,0 +1,1 @@
+{"name":"atomic_codex_memory_note_create","description":"Narrow Codex memory operator: creates one new note under CODEX_HOME/memories/extensions/ad_hoc/notes.","parameters":{"properties":{"content":{"type":"string"},"preview":{"type":"boolean"},"slug":{"type":"string"},"timestamp":{"type":"string"}},"required":["slug","content"],"type":"object"}}

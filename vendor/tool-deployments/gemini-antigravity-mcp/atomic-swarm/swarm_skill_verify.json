@@ -1,0 +1,1 @@
+{"name":"swarm_skill_verify","description":"Re-hash a registered skill tree and report ok or the exact per-file drift (changed/missing/added). Read-only, no content served.","parameters":{"$schema":"http://json-schema.org/draft-07/schema#","properties":{"name":{"minLength":1,"type":"string"}},"required":["name"],"type":"object"}}

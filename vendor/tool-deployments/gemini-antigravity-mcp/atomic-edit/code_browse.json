@@ -1,0 +1,1 @@
+{"name":"code_browse","description":"Repo-relative directory listing (dirs first, node_modules/.","parameters":{"properties":{"dir":{"type":"string"}},"required":["dir"],"type":"object"}}

@@ -1,0 +1,1 @@
+{"name":"code_read_symbol","description":"Return the complete syntactic unit for a selector (e.","parameters":{"properties":{"column":{"maximum":9007199254740991,"minimum":1,"type":"integer"},"file":{"type":"string"},"line":{"maximum":9007199254740991,"minimum":1,"type":"integer"},"selector":{"type":"string"}},"required":["file","selector"],"type":"object"}}

@@ -1,0 +1,1 @@
+{"name":"os_gui_applescript","description":"Runs safe macOS AppleScripts for native GUI automation. Audited in ledger.","parameters":{"properties":{"script":{"description":"The AppleScript content to execute via osascript -e","type":"string"}},"required":["script"],"type":"object"}}

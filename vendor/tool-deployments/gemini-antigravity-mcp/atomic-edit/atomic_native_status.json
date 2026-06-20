@@ -1,0 +1,1 @@
+{"name":"atomic_native_status","description":"Reports whether the universal (web-tree-sitter WASM) engine is loaded and the list of languages it can parse/edit structurally.","parameters":{"properties":{},"type":"object"}}

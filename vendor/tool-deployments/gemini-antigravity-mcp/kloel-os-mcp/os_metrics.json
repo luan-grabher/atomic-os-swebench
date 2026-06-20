@@ -1,0 +1,1 @@
+{"name":"os_metrics","description":"Returns CPU, RAM, and disk usage.","parameters":{"properties":{},"type":"object"}}

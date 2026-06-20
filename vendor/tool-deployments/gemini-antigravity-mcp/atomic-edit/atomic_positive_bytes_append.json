@@ -1,0 +1,1 @@
+{"name":"atomic_positive_bytes_append","description":"Adds exactly one chunk to an existing positive-byte session.","parameters":{"properties":{"index":{"maximum":9007199254740991,"minimum":0,"type":"integer"},"sessionId":{"type":"string"},"sha256":{"type":"string"},"text":{"type":"string"}},"required":["sessionId","index","text"],"type":"object"}}

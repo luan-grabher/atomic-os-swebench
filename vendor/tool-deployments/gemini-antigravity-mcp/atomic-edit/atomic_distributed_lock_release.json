@@ -1,0 +1,1 @@
+{"name":"atomic_distributed_lock_release","description":"Releases a distributed lock (file + optional Redis).","parameters":{"properties":{"force":{"type":"boolean"},"frontId":{"minLength":1,"type":"string"},"owner":{"minLength":1,"type":"string"},"reason":{"type":"string"}},"required":["frontId","owner"],"type":"object"}}

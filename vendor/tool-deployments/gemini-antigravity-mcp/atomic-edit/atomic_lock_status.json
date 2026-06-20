@@ -1,0 +1,1 @@
+{"name":"atomic_lock_status","description":"Lists .atomic-edit-locks fronts and their owner/objective/heartbeat metadata.","parameters":{"properties":{},"type":"object"}}

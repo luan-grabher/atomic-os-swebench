@@ -1,0 +1,1 @@
+/Users/danielpenin/.codex/bin/semantic-edit.cjs

@@ -1,0 +1,1 @@
+{"name":"atomic_grep_calls","description":"Find every actual call expression whose callee === \u003cname\u003e across a scope, using the AST (perception.","parameters":{"properties":{"name":{"minLength":1,"type":"string"},"scope":{"type":"string"}},"required":["name"],"type":"object"}}

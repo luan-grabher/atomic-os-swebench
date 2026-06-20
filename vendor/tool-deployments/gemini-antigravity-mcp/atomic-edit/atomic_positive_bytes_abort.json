@@ -1,0 +1,1 @@
+{"name":"atomic_positive_bytes_abort","description":"Drops staged Atomic chunks.","parameters":{"properties":{"sessionId":{"type":"string"}},"required":["sessionId"],"type":"object"}}

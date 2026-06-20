@@ -1,0 +1,1 @@
+{"name":"atomic_positive_bytes_commit","description":"Joins staged chunks, verifies final sha256/Merkle receipt, runs Atomic validation, and materializes the target through the same mutation firewall as atomic_create_file.","parameters":{"properties":{"sessionId":{"type":"string"}},"required":["sessionId"],"type":"object"}}

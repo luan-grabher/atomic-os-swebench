@@ -1,0 +1,1 @@
+{"name":"os_process_exec","description":"Sandboxed shell execution with deny-list, timeout, and output limits. Audited in append-only ledger.","parameters":{"properties":{"command":{"description":"The shell command to execute","type":"string"},"timeoutMs":{"description":"Execution timeout in milliseconds (default: 30000)","type":"number"}},"required":["command"],"type":"object"}}

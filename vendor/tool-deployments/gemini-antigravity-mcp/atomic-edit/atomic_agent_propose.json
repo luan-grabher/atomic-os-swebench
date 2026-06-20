@@ -1,0 +1,1 @@
+{"name":"atomic_agent_propose","description":"Submit a candidate edit.","parameters":{"properties":{"arguments":{"type":"object"},"modifiedFiles":{"items":{"type":"string"},"type":"array"},"sessionId":{"type":"string"},"summary":{"type":"string"},"tool":{"type":"string"}},"required":["sessionId","tool","arguments","summary","modifiedFiles"],"type":"object"}}

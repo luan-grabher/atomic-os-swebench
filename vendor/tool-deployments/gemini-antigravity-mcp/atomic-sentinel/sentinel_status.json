@@ -1,0 +1,1 @@
+{"name":"sentinel_status","description":"Get the current status of the atomic sentinel and recent events.","parameters":{"properties":{},"required":[],"type":"object"}}

@@ -1,0 +1,24 @@
+export const meta = {
+  name: 'swarm-j-designheavy-p2-safe-slices',
+  description: 'Execute the SAFE slices of the design-heavy P2 families: behavior-preserving resolver/rename dedups + flag-gated routing-through-canonical-service. Atomic-edit only, behavior-preserving-or-flag-gated, no frontend, no-commit.',
+  phases: [{ title: 'Execute', detail: '4 parallel tracks: prove-safe -> atomic-fix -> test' }, { title: 'Verify', detail: 'adversarial per fixed' }],
+}
+const ROOT = '/Users/danielpenin/kloel'
+const ATOMIC = 'HARD RULE: ONLY mcp__atomic-edit__* tools for code edits. NEVER Write/Edit/sed. Investigation = Grep/Glob/Read/Bash(read-only). Do NOT git commit. Report filesChanged.'
+const SAFE = 'SAFETY: BEHAVIOR-PRESERVING (replace N identical impls with 1) OR FLAG-GATED (new default-OFF flag so flag-OFF is byte-identical to today). NEVER touch frontend/. No schema. No public-API break. If behavior would change and it cannot be cleanly flag-gated, SKIP (skipped-unsafe) + document. Prove equivalence/safety before editing. Add tests.'
+const TRACKS = [
+  { key: 'P2-11-billing-resolver', prompt: 'P2-11: a private Stripe-subscription->workspaceId resolver is copied across 3 billing services (billing-webhook.service.ts:233, billing-checkout-helper.service.ts:253, billing-checkout-webhook.service.ts:288). PROVE the 3 method bodies are identical, extract ONE shared pure resolver (a helper or the billing-subscription-status.helper port) and repoint all 3 to it — behavior-identical (same method body, just one copy). Add a test for the shared resolver. If the 3 bodies differ subtly, SKIP + document the diff.' },
+  { key: 'P2-10-ltm-rename', prompt: 'P2-10: the two *LongTermMemory* services (LongTermMemoryService vs MindLongTermMemoryService) + a consolidation surface have confusing proximate names. They are ALREADY distinct symbols (no collision) — so do ONLY a behavior-preserving intent RENAME if it clarifies without risk: e.g. rename the graph-fact one and the case-consolidation one to intent names (GraphFactMemoryService / CaseConsolidationService) via atomic_rename_symbol_cross_file (DI tokens are class symbols, preserved). If the rename touches too many DI sites or risks confusion, SKIP — naming churn is not worth a regression.' },
+  { key: 'P2-6-recordcase-route', prompt: 'P2-6: direct prisma.mindCase.create writers (mind-multimodal-perception.service.ts:103, mind-canonical.service.ts:105) bypass MindCaseMemoryService.recordCase (which adds token-extraction/dedup invariants). FLAG-GATE the canonicalization: add a new default-OFF flag (e.g. KLOEL_MINDCASE_VIA_RECORDCASE) so when ON the 2 direct creates route through recordCase, when OFF they keep the exact current direct create (byte-identical). Add tests for both states. If recordCase requires deps not available at those call sites, SKIP + document.' },
+  { key: 'P2-13-tag-route', prompt: 'P2-13: addTagInline (crm.deals.helpers.ts:258, called :337 on deal-won) duplicates Tag upsert+connect outside CrmService.addTag. FLAG-GATE the canonicalization: add a default-OFF flag (e.g. KLOEL_TAG_VIA_CRM) so when ON the deal-won path routes through CrmService.addTag (canonical phone keying), when OFF it keeps the exact current addTagInline behavior (byte-identical). The digest warns the keying may differ — that is exactly why it is flag-gated. Add tests both states. If CrmService cannot be injected into the helper cleanly, SKIP + document.' },
+]
+phase('Execute')
+const RES = { type: 'object', additionalProperties: false, properties: { id: { type: 'string' }, outcome: { enum: ['fixed', 'skipped-unsafe', 'skipped-not-real', 'failed'] }, flag: { type: 'string' }, filesChanged: { type: 'array', items: { type: 'string' }, maxItems: 16 }, testAdded: { type: 'boolean' }, typecheck: { type: 'string' }, note: { type: 'string' } }, required: ['id', 'outcome', 'note'] }
+const results = await parallel(TRACKS.map((t) => () =>
+  agent([`Track ${t.key} (cwd ${ROOT}).`, ATOMIC, SAFE, t.prompt, 'Typecheck: `cd backend && npx tsc -p tsconfig.build.json --noEmit`. Run affected specs. Return StructuredOutput (id=key).'].join('\n'),
+    { schema: RES, phase: 'Execute', label: `j:${t.key}` }).catch((e) => ({ id: t.key, outcome: 'failed', note: String(e).slice(0, 160) }))))
+phase('Verify')
+const verify = await parallel(results.filter((r) => r && r.outcome === 'fixed').map((r) => () =>
+  agent([`Adversarially verify ${r.id} (cwd ${ROOT}). Files: ${JSON.stringify(r.filesChanged || [])}. Read git diff.`, 'Prove behavior-preserving (or flag-OFF byte-identical), all callers repointed, no frontend, no public-API break, typecheck passes. If unsafe -> skipped-unsafe. Return StructuredOutput (id+final outcome).'].join('\n'),
+    { schema: RES, phase: 'Verify', label: `verify:${r.id}` }).catch(() => r)))
+return { results: results.filter(Boolean), verify: verify.filter(Boolean) }

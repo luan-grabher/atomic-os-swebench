@@ -1,0 +1,1 @@
+{"name":"atomic_agent_status","description":"Display current phase, step, and trajectory length.","parameters":{"properties":{"sessionId":{"type":"string"}},"required":["sessionId"],"type":"object"}}

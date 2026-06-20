@@ -1,0 +1,1 @@
+{"name":"atomic_y_certificate","description":"Reports whether atomic-edit can honestly claim Y for a requested scope.","parameters":{"properties":{"includeAudits":{"type":"boolean"},"scope":{"enum":["mcp-controlled","whole-host"],"type":"string"}},"type":"object"}}

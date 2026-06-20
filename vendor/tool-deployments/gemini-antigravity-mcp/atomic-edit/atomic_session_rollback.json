@@ -1,0 +1,1 @@
+{"name":"atomic_session_rollback","description":"Restores the repo byte-exact to the begin snapshot.","parameters":{"properties":{"close":{"type":"boolean"},"sessionId":{"minLength":1,"type":"string"},"toSavepoint":{"type":"string"}},"required":["sessionId"],"type":"object"}}

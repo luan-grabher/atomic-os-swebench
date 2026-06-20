@@ -1,0 +1,1 @@
+{"name":"atomic_agent_decide","description":"Final decision on the current step.","parameters":{"properties":{"detail":{"type":"string"},"reason":{"type":"string"},"sessionId":{"type":"string"},"verdict":{"enum":["accepted","needs_revision"],"type":"string"}},"required":["sessionId","verdict","reason"],"type":"object"}}

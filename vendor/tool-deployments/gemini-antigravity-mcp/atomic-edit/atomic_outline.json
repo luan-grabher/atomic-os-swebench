@@ -1,0 +1,1 @@
+{"name":"atomic_outline","description":"Structural outline of a source file via tree-sitter — for ANY supported language, not just TS.","parameters":{"properties":{"file":{"type":"string"},"lang":{"type":"string"}},"required":["file"],"type":"object"}}

@@ -1,0 +1,1 @@
+{"name":"atomic_agent_verify","description":"Typecheck, lint, or test the committed state.","parameters":{"properties":{"command":{"type":"string"},"sessionId":{"type":"string"},"verifyType":{"enum":["typecheck","lint","test"],"type":"string"}},"required":["sessionId","verifyType"],"type":"object"}}

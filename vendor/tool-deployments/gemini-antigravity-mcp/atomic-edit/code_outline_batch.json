@@ -1,0 +1,1 @@
+{"name":"code_outline_batch","description":"Returns outline (signature map, no bodies) for every file matching a glob pattern.","parameters":{"properties":{"cwd":{"type":"string"},"glob":{"type":"string"}},"required":["glob"],"type":"object"}}

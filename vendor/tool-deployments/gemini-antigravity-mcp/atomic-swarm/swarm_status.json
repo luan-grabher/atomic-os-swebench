@@ -1,0 +1,1 @@
+{"name":"swarm_status","description":"Report the swarm configuration: repo root, broker reachability (fail-closed indicator for swarm_exec_batch), ledger locations and registered skill count. Read-only.","parameters":{"$schema":"http://json-schema.org/draft-07/schema#","properties":{},"type":"object"}}
