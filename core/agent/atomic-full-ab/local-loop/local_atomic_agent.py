@@ -51,7 +51,20 @@ def deepseek(messages, tools):
 
 
 # ── atomic hands: dispatch one tool through atomic-call against the local workdir ──
+# NOTE: atomic-call.mjs blanks ATOMIC_WORKSPACE_ROOT, so relative paths resolve against the WRONG
+# root (the host repo). We absolutize every path/file arg against the workdir → unambiguous resolution
+# AND a hard jail (combined with ATOMIC_EDIT_ALLOWED_ROOTS=workdir the agent can't touch the host repo).
+def _absolutize(workdir, args):
+    out = dict(args)
+    for k in ("file", "path"):
+        v = out.get(k)
+        if isinstance(v, str) and v and not os.path.isabs(v):
+            out[k] = str(Path(workdir) / v)
+    return out
+
+
 def atomic_call(workdir, tool, args):
+    args = _absolutize(workdir, args)
     env = {**os.environ, "ATOMIC_DISABLE_HOT_RELOAD": "1",
            "ATOMIC_WORKSPACE_ROOT": workdir, "ATOMIC_DECLARED_WORKSPACE_ROOT": workdir,
            "ATOMIC_EDIT_ALLOWED_ROOTS": workdir}
