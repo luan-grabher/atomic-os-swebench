@@ -41,6 +41,15 @@ for f in engine.js lang-bridge.js engine-structural.js engine-zones.js server-he
   cp "$ATOMIC/dist/$f" "$BR/dist/$f"
 done
 
+# 2b. CRITICAL: the dist/*.js files are ESM (top-level `import`/`export`). node decides a `.js`
+# file's module type from the NEAREST package.json `"type"`. The source ships dist/package.json
+# = {"type":"module"} for exactly this reason; WITHOUT it the sandbox node loads dist/engine.js as
+# CommonJS and dies with "Cannot use import statement outside a module". Newer node (>=20 on the dev
+# mac) silently re-parses typeless .js as ESM (MODULE_TYPELESS_PACKAGE_JSON), which masked this bug
+# in the local build selftest — but the older conda-forge nodejs in the Modal sandbox does NOT, so
+# the ON arm failed in-sandbox. Ship the marker so dist is unambiguously ESM on ALL node versions.
+cp "$ATOMIC/dist/package.json" "$BR/dist/package.json" 2>/dev/null || printf '{"type":"module"}\n' > "$BR/dist/package.json"
+
 # 3. minimal typescript: only the import target + its package.json (drop _tsc/tsserver/locales/.d.ts)
 cp "$ATOMIC/node_modules/typescript/package.json" "$BR/node_modules/typescript/package.json"
 cp "$ATOMIC/node_modules/typescript/lib/typescript.js" "$BR/node_modules/typescript/lib/typescript.js"
@@ -53,13 +62,19 @@ JSON
 # 5. self-test inside the staged bundle so a broken bundle fails the build, not the sandbox.
 #    Use a PURELY ADDITIVE edit (no byte removal) so exit 0 proves the engine loaded + python3
 #    syntax gate ran, without tripping the negative-byte governance.
+#    --no-experimental-detect-module DISABLES node>=20's silent typeless-.js -> ESM reparse, so the
+#    local build node behaves like the OLDER conda-forge node in the sandbox. Without this flag the
+#    selftest passes on the dev mac even when dist/package.json is missing, masking the very bug that
+#    broke the ON arm in-sandbox. If the flag is unsupported on this node, fall back to plain node.
+NODE_STRICT=(node --no-experimental-detect-module)
+node --no-experimental-detect-module -e "1" >/dev/null 2>&1 || NODE_STRICT=(node)
 cat > "$STAGE/selftest.py" <<'PY'
 def f(x):
     return x + 1
 PY
 printf 'return x + 1' > "$STAGE/old.txt"
 printf 'return x + 1  # bundle selftest ok' > "$STAGE/new.txt"
-SELFTEST_OUT="$(node "$BR/headless-edit.mjs" "$STAGE/selftest.py" "$STAGE/old.txt" "$STAGE/new.txt" 2>"$STAGE/err")" || {
+SELFTEST_OUT="$("${NODE_STRICT[@]}" "$BR/headless-edit.mjs" "$STAGE/selftest.py" "$STAGE/old.txt" "$STAGE/new.txt" 2>"$STAGE/err")" || {
   echo "atomic-bundle: SELFTEST FAILED — bundle cannot run headless-edit:" >&2
   echo "$SELFTEST_OUT" >&2; cat "$STAGE/err" >&2
   exit 1
