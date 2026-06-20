@@ -199,11 +199,28 @@ def main():
     last_pass = False
     reads_since_edit = 0
     empties = 0
+    forced = False
+    # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
+    # pylint, never entering the feedback loop) needs the loop to FORCE a commit. After this many reads
+    # with no edit, offer ONLY edit+test tools + a firm steer. Not blind (ample context already gathered);
+    # feedback (run_tests) lets it refine. Generalist (any over-reading model, any task).
+    FORCE_EDIT_AFTER = 12
+    EDIT_TEST_NAMES = {"atomic_replace", "atomic_create", "run_tests"}
 
     for step in range(1, args.max_steps + 1):
         metrics["steps"] = step
+        step_tools = active_tools
+        if reads_since_edit >= FORCE_EDIT_AFTER:
+            step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
+            if not forced:
+                messages.append({"role": "user", "content": (
+                    "You have read extensively without editing. STOP reading — you have enough context. "
+                    "Make your single best edit NOW with atomic_replace/atomic_create" +
+                    ("" if NO_GATE else ", then run_tests; the test result will tell you if it's right and you can refine") + ".")})
+                metrics["transcript"].append(f"s{step} FORCE-EDIT engaged (>= {FORCE_EDIT_AFTER} reads, 0 edits) — read tools withheld")
+                forced = True
         try:
-            msg, usage = deepseek(messages, active_tools)
+            msg, usage = deepseek(messages, step_tools)
         except Exception as e:
             metrics["transcript"].append(f"s{step} DEEPSEEK-ERROR {str(e)[:200]}")
             break
@@ -273,6 +290,7 @@ def main():
                     if after != before:
                         metrics["edits_applied"] += 1
                         reads_since_edit = 0
+                        forced = False
                     elif any(m in res.lower() for m in REFUSAL_MARKERS):
                         metrics["invalid_states_prevented"] += 1
                 metrics["transcript"].append(f"s{step} {fn}({json.dumps(a)[:90]}) -> {res.splitlines()[0][:120] if res else '(empty)'}")
