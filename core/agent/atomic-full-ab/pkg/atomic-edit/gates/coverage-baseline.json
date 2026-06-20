@@ -1,0 +1,30 @@
+{
+  "_doc": "COVERAGE RATCHET FLOOR (PARADIGM L18). The coverage metric is the set of named invariant CLASSES and each one's enforcement status (partial<enforced). The ratchet proof asserts current coverage is a non-decreasing extension of THIS floor: no class removed, no status regressed. Raising the floor (admitting a class / promoting partial->enforced) is the ONLY allowed edit, and must be a deliberate commit. statusRank: partial=1, enforced=2.",
+  "capturedAtCommit": "U2-floor-raise (PART C: (a)+(e) admitted as first-class invariant classes)",
+  "classCount": 23,
+  "classes": {
+    "syntax": "enforced",
+    "types": "enforced",
+    "relative-connection": "enforced",
+    "supply-chain": "partial",
+    "secrets": "enforced",
+    "iac-refs": "enforced",
+    "config-refs": "enforced",
+    "schema-refs": "enforced",
+    "render-conformance": "enforced",
+    "telemetry-emission": "enforced",
+    "behavior-contract": "enforced",
+    "liveness": "enforced",
+    "findings-delta": "enforced",
+    "formal-property": "enforced",
+    "test-execution": "enforced",
+    "convergence": "enforced",
+    "idempotency": "partial",
+    "concurrency-lock": "enforced",
+    "resource-lifetime": "enforced",
+    "fd-socket-lifetime": "enforced",
+    "temp-artifact": "partial",
+    "negative-action-justification": "enforced",
+    "commute-obligation-preservation": "enforced"
+  }
+}

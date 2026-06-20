@@ -1,0 +1,262 @@
+Part A — engine
+  PASS  posToOffset 1:1 = 0
+  PASS  posToOffset 2:1 = 4
+  PASS  range swap produces null
+  PASS  range swap validates ok
+  PASS  expansion factor measured
+  PASS  insert semicolon
+  PASS  delete stray space
+  PASS  regression detected (ok=false)
+  PASS  pre-existing error tolerated
+  PASS  batch applies both
+  PASS  replace_text unique match
+  PASS  replace_text refuses ambiguity
+  PASS  replace_text occurrence=2
+  PASS  replace_text refuses syntax regression
+  PASS  overlapping batch rejected
+  PASS  scoped rename both sites
+  PASS  rename counts references
+  PASS  literal swap -> null
+  PASS  ambiguous literal refused without onLine
+  PASS  wrap try-catch validates + structures
+  PASS  wrap if requires explicit condition
+  PASS  wrap refuses syntax regression
+Part B — live MCP stdio round-trip
+[atomic-edit] ready — repo=/Users/danielpenin/kloel node=v22.22.2 pid=10826
+[atomic-edit] tmpdir=/tmp
+  PASS  server lists the required Atomic tool surface (registry may grow monotonically)
+  PASS  atomic_batch_replace_text advertises macro fast path and intent-derived proof
+  PASS  code_readcode directory response advertises ready code_readcode_batch next call
+  PASS  code_read_symbols_batch reads clustered known symbols in one compact call
+  PASS  code_readcode_batch reads clustered mixed file/symbol context in one adaptive call
+  PASS  atomic_scan_bytes summarizes reachable source as positive within declared battery
+  PASS  atomic_scan_bytes can omit clean positives while keeping totals
+  PASS  atomic_scan_bytes keeps direct non-source files as explicit proof debt
+  PASS  product intent maps chat persistence
+  PASS  intent converge generates a green product-contract preview without writing
+  PASS  zero-code trust reaches 100 with product proof
+  PASS  behavior receipt produces founder proof
+  PASS  truth receipt refuses stub as real
+  PASS  continuity status reads repo state
+  PASS  Y certificate blocks whole-host universality for every non-green mandatory domain
+[atomic-edit] ERROR refused (self-expansion admission): scripts/mcp/atomic-edit/.self-expansion-denied.10825.ts is part of atomic-edit itself. Expanding the atomic MCP is allowed only through atomic_expand_self, which wraps the write in self-expansion admission and requires proof commands before the expansion can stand. Use atomic_expand_self to execute the closed loop: atomic executes the computation, or atomic first implements the missing computation inside atomic under proof.
+  PASS  direct atomic self-expansion is refused outside atomic_expand_self
+[atomic-edit] ERROR atomic_expand_self rolled back 0 file effect(s): EPERM: operation not permitted, open '/Users/danielpenin/kloel/.atomic/.atomic-edit.10826.1781669269180.tmp'
+  FAIL  atomic_expand_self creates atomic source only after proofs pass {
+  "ok": false,
+  "error": "atomic_expand_self rolled back 0 file effect(s): EPERM: operation not permitted, open '/Users/danielpenin/kloel/.atomic/.atomic-edit.10826.1781669269180.tmp'"
+}
+[atomic-edit] ERROR atomic_expand_self rolled back 0 file effect(s): EPERM: operation not permitted, open '/Users/danielpenin/kloel/.atomic/.atomic-edit.10826.1781669272911.tmp'
+  FAIL  atomic_expand_self deletes only with explicit negative-byte proof {
+  "ok": false,
+  "error": "atomic_expand_self rolled back 0 file effect(s): EPERM: operation not permitted, open '/Users/danielpenin/kloel/.atomic/.atomic-edit.10826.1781669272911.tmp'"
+}
+[atomic-edit] ERROR atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered.
+  FAIL  atomic_exec allows classified read-only command without effect proof {
+  "ok": false,
+  "error": "atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered."
+}
+[atomic-edit] ERROR atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered.
+  FAIL  atomic_exec auto-proves mutable-or-unknown command when proveEffect is omitted {
+  "ok": false,
+  "error": "atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered."
+}
+[atomic-edit] ERROR atomic_exec refused (effect proof required): mutable-or-unknown command cannot run with explicit proveEffect:false under Y admission; omit proveEffect to auto-run byte-effect proof or set proveEffect:true. rollbackOnNonZero is recovery, not proof, and unproven shell effects are not byte-correct-by-construction.
+  PASS  atomic_exec refuses mutable-or-unknown command with explicit proveEffect false
+[atomic-edit] ERROR atomic_exec refused (external effect unproved): external-or-host-effect command refused under Y admission: network client effect is outside the filesystem byte snapshot. Filesystem proveEffect cannot approve network, database, provider, remote-host, package-registry, or runtime-control effects. Use a domain-specific MCP/gate with observed external-state proof, or run this outside atomic admission with owner approval.
+  PASS  atomic_exec refuses external/host effect commands even with filesystem proof
+[atomic-edit] ERROR atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered.
+  FAIL  atomic_exec proven mutable command records byte effect {
+  "ok": false,
+  "error": "atomic_exec refused (sandbox unavailable): atomic_exec requires a real process sandbox under Y admission; /usr/bin/sandbox-exec is unavailable or sandbox_apply is denied in this process, and no live broker endpoint was recovered."
+}
+[atomic-edit] ERROR EPERM: operation not permitted, mkdir '/Users/danielpenin/kloel/.atomic-edit-locks/.smoke-lock-10825'
+  FAIL  atomic lock acquire works {
+  "ok": false,
+  "error": "EPERM: operation not permitted, mkdir '/Users/danielpenin/kloel/.atomic-edit-locks/.smoke-lock-10825'"
+}
+  FAIL  atomic lock status lists acquired lock Locks ativos: 1
+  FAIL  atomic lock release works {
+  "ok": true,
+  "changed": false,
+  "note": "lock already absent"
+}
+  PASS  sha guard passes on correct hash
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got 8d0236c0bad8…). Re-read and retry — NOT written.
+  PASS  sha guard refuses on stale hash
+  PASS  atomic_batch_replace_text previews clustered replacements without writing
+[atomic-edit] atomic_batch_replace_text wrote 1/1 file(s), replacements=2
+  FAIL  atomic_batch_replace_text commits multiple replacements with one receipt atomic_batch_replace_text applied: 1 file(s), 2 replacement(s), one transaction. Full byte proof persisted to trace files.
+[atomic-edit] ERROR refused (convergence): this write would introduce dangling relative import(s) — ./does_not_exist_zzz. A wire that resolves to nothing is not a change. Create the target first, or commit the set together (atomic_converge / a transaction). NOT written.
+  PASS  byte-floor REFUSES a write that introduces a dangling relative import
+[atomic-edit] semantic edit {"action":"created-declaration","moduleSpecifier":"./engine","name":"applyEdits","alias":null,"typeOnly":false} in scripts/mcp/atomic-edit/.smoke-converge.10825.ts
+  PASS  byte-floor COMMITS a write whose relative import resolves
+  PASS  atomic_converge refuses a mutation that introduces a dangling dependency (supply-chain gate fires through the one tool)
+  PASS  atomic_converge passes a clean mutation — no false red from the 7 folded write gates
+[atomic-edit] ERROR refused (convergence): this write would introduce a dangling dependency — totally-absent-pkg-zzz. Install the package or fix the import. NOT written.
+  PASS  byte-floor refuses a NEW bare import to an absent package (supply-chain at the floor)
+[atomic-edit] semantic edit {"property":"phone","newKey":"whatsappPhoneId","selector":null,"line":2,"preservedValue":"'5511999999999'"} in scripts/mcp/atomic-edit/.smoke-rpk.10825.ts
+  PASS  live rename_property_key ok + changed
+  PASS  live rename_property_key renames key and preserves value
+[atomic-edit] ERROR property "k" matched 2 assignments (lines 1, 2); pass a selector to disambiguate
+  PASS  live rename_property_key refuses ambiguity
+[atomic-edit] semantic edit {"callee":"compute","selector":"build","line":2,"callText":"compute(1, 2)"} in scripts/mcp/atomic-edit/.smoke-await.10825.ts
+  PASS  live add_await_to_call wraps call with await
+  PASS  live add_await_to_call preserves call text
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-anchor.10825.ts (+8 bytes net)
+  PASS  insert_after_anchor inserts beta after alpha
+  PASS  insert_after_anchor preserves anchor and inserts only requested text
+  PASS  insert_after_anchor preview does not write
+[atomic-edit] ERROR anchor text not found in scripts/mcp/atomic-edit/.smoke-anchor.10825.ts: "NONEXISTENT_ANCHOR"
+  PASS  insert_after_anchor refuses missing anchor
+  PASS  insert_after_anchor refuses empty anchor
+[atomic-edit] ERROR unsafe insert_after_anchor in scripts/mcp/atomic-edit/.smoke-anchor-switch.10825.ts: anchor ends at a switch case/default label; insertion would split the label from its body. Use a complete case-body replacement or choose an anchor after the body boundary.
+  PASS  insert_after_anchor refuses dangling switch label anchor
+[atomic-edit] ERROR anchor text appears 2 times in scripts/mcp/atomic-edit/.smoke-anchor-ambig.10825.ts at lines 1, 1. Provide occurrence to select one.
+  PASS  insert_after_anchor refuses ambiguity without occurrence
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-anchor-ambig.10825.ts (+10 bytes net)
+  PASS  insert_after_anchor occurrence targets requested match
+  PASS  insert_after_anchor occurrence preserves first match
+[atomic-edit] ERROR occurrence 99 out of range (found 2 match(es)).
+  PASS  insert_after_anchor refuses out-of-range occurrence
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got b54eda2ec940…). Re-read and retry — NOT written.
+  PASS  insert_after_anchor sha guard refuses stale hash
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-before-anchor.10825.ts (+8 bytes net)
+  PASS  insert_before_anchor inserts beta before alpha
+  PASS  insert_before_anchor preserves anchor and inserts only requested text
+  PASS  insert_before_anchor preview does not write
+[atomic-edit] ERROR anchor text not found in scripts/mcp/atomic-edit/.smoke-before-anchor.10825.ts: "NONEXISTENT_ANCHOR"
+  PASS  insert_before_anchor refuses missing anchor
+  PASS  insert_before_anchor refuses empty anchor
+[atomic-edit] ERROR anchor text appears 2 times in scripts/mcp/atomic-edit/.smoke-before-anchor-ambig.10825.ts at lines 1, 1. Provide occurrence to select one.
+  PASS  insert_before_anchor refuses ambiguity without occurrence
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-before-anchor-ambig.10825.ts (+10 bytes net)
+  PASS  insert_before_anchor occurrence targets requested match
+  PASS  insert_before_anchor occurrence inserts before second match
+[atomic-edit] ERROR occurrence 99 out of range (found 2 match(es)).
+  PASS  insert_before_anchor refuses out-of-range occurrence
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got a78a8ed267f3…). Re-read and retry — NOT written.
+  PASS  insert_before_anchor sha guard refuses stale hash
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-replace-anchors.10825.ts (+2 bytes net)
+  PASS  replace_between_anchors replaces text between anchors
+  PASS  replace_between_anchors preserves both anchors
+  PASS  replace_between_anchors preview does not write
+[atomic-edit] ERROR start anchor text not found in scripts/mcp/atomic-edit/.smoke-replace-anchors.10825.ts: "NONEXISTENT"
+  PASS  replace_between_anchors refuses missing start anchor
+[atomic-edit] ERROR end anchor text not found after selected start anchor in scripts/mcp/atomic-edit/.smoke-replace-anchors.10825.ts: "NONEXISTENT"
+  PASS  replace_between_anchors refuses missing end anchor after start
+  PASS  replace_between_anchors refuses empty start anchor
+  PASS  replace_between_anchors refuses empty end anchor
+[atomic-edit] ERROR start anchor text appears 2 times in scripts/mcp/atomic-edit/.smoke-replace-anchors-ambig.10825.ts at lines 1, 1. Provide occurrence to select one.
+  PASS  replace_between_anchors refuses ambiguous start without occurrence
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-replace-anchors-ambig.10825.ts (+1 bytes net)
+  PASS  replace_between_anchors occurrence targets requested match
+  PASS  replace_between_anchors occurrence replaces only between second pair
+[atomic-edit] ERROR occurrence 99 out of range (found 2 start anchor match(es)).
+  PASS  replace_between_anchors refuses out-of-range occurrence
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got 188fd6017053…). Re-read and retry — NOT written.
+  PASS  replace_between_anchors sha guard refuses stale hash
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-rta.10825.ts (+2 bytes net)
+  PASS  replace_text_in_anchor_region replaces text inside region
+  PASS  replace_text_in_anchor_region preserves anchors
+  PASS  replace_text_in_anchor_region preview does not write
+[atomic-edit] ERROR startAnchorText not found in scripts/mcp/atomic-edit/.smoke-rta.10825.ts: "NONEXISTENT"
+  PASS  replace_text_in_anchor_region refuses missing startAnchorText
+[atomic-edit] ERROR endAnchorText not found after selected startAnchorText in scripts/mcp/atomic-edit/.smoke-rta.10825.ts: "NONEXISTENT"
+  PASS  replace_text_in_anchor_region refuses missing endAnchorText after start
+  PASS  replace_text_in_anchor_region refuses empty startAnchorText
+  PASS  replace_text_in_anchor_region refuses empty endAnchorText
+  PASS  replace_text_in_anchor_region refuses empty oldText
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-rta-outside.10825.ts (+-2 bytes net)
+  PASS  replace_text_in_anchor_region preserves outside identical oldText
+  PASS  replace_text_in_anchor_region only replaces inside the region
+[atomic-edit] ERROR start anchor text appears 2 times in scripts/mcp/atomic-edit/.smoke-rta-ambig.10825.ts at lines 1, 1. Provide regionOccurrence to select one.
+  PASS  replace_text_in_anchor_region refuses ambiguous region without regionOccurrence
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-rta-ambig.10825.ts (+4 bytes net)
+  PASS  replace_text_in_anchor_region regionOccurrence targets correct region
+  PASS  replace_text_in_anchor_region regionOccurrence replaces only in selected region
+[atomic-edit] ERROR regionOccurrence 99 out of range (found 2 region(s)).
+  PASS  replace_text_in_anchor_region refuses out-of-range regionOccurrence
+[atomic-edit] ERROR oldText appears 3 times in the selected region of scripts/mcp/atomic-edit/.smoke-rta-textoc.10825.ts. Provide textOccurrence to select one.
+  PASS  replace_text_in_anchor_region refuses ambiguous oldText without textOccurrence
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-rta-textoc.10825.ts (+5 bytes net)
+  PASS  replace_text_in_anchor_region textOccurrence selects correct match
+  PASS  replace_text_in_anchor_region textOccurrence replaces only selected match
+[atomic-edit] ERROR textOccurrence 99 out of range (found 2 match(es) in region).
+  PASS  replace_text_in_anchor_region refuses out-of-range textOccurrence
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got 4f4954bd181d…). Re-read and retry — NOT written.
+  PASS  replace_text_in_anchor_region sha guard refuses stale hash
+  PASS  create_file preview does not create file
+  PASS  create_file preview does not create parent directory
+  FAIL  create_file preview trace is honest {}
+[atomic-edit] created scripts/mcp/atomic-edit/.smoke-create-base.10825/nested/file.10825.ts (2 lines)
+  PASS  create_file commit creates file
+  PASS  create_file commit created parent directories
+  PASS  create_file commit wrote correct content
+  FAIL  create_file commit trace has complete topology {}
+[atomic-edit] ERROR refused: scripts/mcp/atomic-edit/.smoke-create-base.10825/nested/file.10825.ts already exists and is non-empty. atomic_create_file is for NEW files only. To CHANGE part of an existing file use a surgical operator — atomic_edit_symbol (replace/remove a symbol), atomic_delete_range / atomic_replace_range (a span), atomic_replace_text (a verbatim block), atomic_add_import — so only the changed sub-structure is emitted, never the whole file.
+  PASS  create_file refuses existing non-empty file
+  PASS  create_file non-empty refusal preserved original content
+[atomic-edit] created scripts/mcp/atomic-edit/.smoke-create-empty.10825.ts (2 lines)
+  PASS  create_file fills existing empty file
+  PASS  create_file empty fill wrote content
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got e3b0c44298fc…). Re-read and retry — NOT written.
+  PASS  create_file refuses stale sha on existing empty file
+[atomic-edit] created scripts/mcp/atomic-edit/.smoke-create-empty.10825.ts (2 lines)
+  PASS  create_file correct sha on empty file succeeds
+  PASS  create_file correct sha wrote expected content
+[atomic-edit] ERROR refused: CLAUDE.md is governance-protected (matches "CLAUDE.md" in CLAUDE.md). Only the repo owner may change it — ask, do not bypass.
+  PASS  create_file refuses governance-protected path
+[atomic-edit] created scripts/mcp/atomic-edit/.smoke-create-mjs.10825.mjs (11 lines)
+  PASS  create_file multi-line .mjs source file
+  PASS  create_file .mjs content written correctly
+  PASS  live code_outline ok
+  PASS  live code_outline omits fullText
+  PASS  live code_outline reports target root
+  PASS  code_file_stat fixture file returns ok+exists
+  PASS  code_file_stat fixture file raw hash matches bytes
+  PASS  code_file_stat fixture file never returns content
+  PASS  code_file_stat fixture file reports unproven byte classification
+  PASS  code_file_stat missing path is non-throwing (ok:true, kind:missing)
+  PASS  code_file_stat directory returns kind=directory, no sha256/bytes/content
+  PASS  code_file_stat protected path marked protected=true, no content/bytes/sha256
+  PASS  preview dry-run does not write
+  PASS  literal preview dry-run does not write
+  FAIL  literal preview trace marks proposed but not written {}
+[atomic-edit] wrote scripts/mcp/atomic-edit/.smoke-fixture.10825.ts (+-11 bytes net)
+  PASS  live literal swap returns human summary first
+  PASS  live literal swap ok
+  PASS  fixture mutated on disk
+[atomic-edit] ERROR refused: CLAUDE.md is governance-protected (matches "CLAUDE.md" in CLAUDE.md). Only the repo owner may change it — ask, do not bypass.
+  PASS  protected file refused
+[atomic-edit] ERROR refused: .github/workflows/codeql.yml is governance-protected (matches ".github/workflows/" in CLAUDE.md). Only the repo owner may change it — ask, do not bypass.
+  PASS  protected workflow prefix refused before preview/write
+  PASS  delete_file preview does not delete
+  FAIL  delete_file preview trace is honest {}
+[atomic-edit] ERROR refused: atomic_delete_file is a negative byte action on scripts/mcp/atomic-edit/.smoke-delete.10825.ts; provide proofOfIncorrectness (>=20 chars) explaining why the affected bytes are non-correct/negative. Correct-by-construction bytes are immutable to negative actions.
+  PASS  delete_file refuses commit without negative-byte proof
+  PASS  delete_file no-proof refusal preserves target bytes
+[atomic-edit] deleted scripts/mcp/atomic-edit/.smoke-delete.10825.ts (30 bytes)
+  PASS  delete_file commit deletes the file
+  FAIL  delete_file commit trace is honest {}
+  FAIL  delete_file commit trace has complete topology {}
+  PASS  delete_file idempotent on absent file
+[atomic-edit] ERROR refused: scripts/mcp/atomic-edit is a directory, not a file.
+  PASS  delete_file refuses directory
+[atomic-edit] ERROR refused: CLAUDE.md is governance-protected (matches "CLAUDE.md" in CLAUDE.md). Only the repo owner may change it — ask, do not bypass.
+  PASS  delete_file refuses governance-protected file
+[atomic-edit] ERROR sha256 mismatch: file changed since you read it (expected deadbeef…, got 05917160ec5c…). Re-read and retry — NOT written.
+  PASS  delete_file sha guard refuses stale hash
+[atomic-edit] ERROR refused: scripts/mcp/atomic-edit/.smoke-delete-dep-target.10825.ts is still imported by 1 dependent file(s): scripts/mcp/atomic-edit/.smoke-delete-dep-importer.10825.ts imports ./.smoke-delete-dep-target.10825. Remove or rewrite those reverse imports in the same atomic transaction before deleting this file.
+  PASS  delete_file refuses a still-imported target
+  PASS  delete_file referenced-target refusal preserves target bytes
+  PASS  delete_file referenced-target refusal preserves importer bytes
+SMOKE CRASH: Error: Command failed: git worktree add --detach atomic-edit-wt-10825-qQB8Qd/repo HEAD
+    at genericNodeError (node:internal/errors:983:15)
+    at wrappedFn (node:internal/errors:537:14)
+    at checkExecSyncError (node:child_process:916:11)
+    at Module.execFileSync (node:child_process:952:15)
+    at partBDeleteFile (file:///Users/danielpenin/kloel/scripts/mcp/atomic-edit/dist/smoke-part-b-delete-file.js:141:22)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async partB (file:///Users/danielpenin/kloel/scripts/mcp/atomic-edit/dist/smoke-part-b.js:46:9)
+    at async file:///Users/danielpenin/kloel/scripts/mcp/atomic-edit/dist/smoke.js:15:5

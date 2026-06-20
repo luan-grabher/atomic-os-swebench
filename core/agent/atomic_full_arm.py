@@ -166,7 +166,7 @@ def atomic_full_provision(sb, iid, sbexec, log, full_bundle_path, conda, sandbox
         "os.makedirs('/tmp/_afw',exist_ok=True)\n"
         "open('/tmp/_afw/m.py','w').write('def f(x):\\n    return x + 1\\n')\n"
         "args=json.dumps({'file':'/tmp/_afw/m.py','oldText':'return x + 1','newText':'return x + 1  # full selftest'})\n"
-        f"env={{**os.environ,'ATOMIC_WORKSPACE_ROOT':'/tmp/_afw','ATOMIC_EDIT_ALLOWED_ROOTS':'/tmp/_afw'}}\n"
+        f"env={{**os.environ,'ATOMIC_WORKSPACE_ROOT':'/tmp/_afw','ATOMIC_EDIT_ALLOWED_ROOTS':'/tmp/_afw','ATOMIC_DISABLE_HOT_RELOAD':'1'}}\n"
         f"r=subprocess.run([{json.dumps(nb)},'{sandbox_dir}/atomic-call.mjs','atomic_replace_text',args],"
         "stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,env=env)\n"
         "print((r.stdout or '').strip()[-400:] or (r.stderr or '').strip()[-400:])\n"
@@ -191,7 +191,7 @@ def sb_atomic_call(sb, sbexec, node_bin, tool, args, sandbox_dir="/root/atomic-e
     driver = (
         "import json,subprocess,os,sys\n"
         "d=json.loads(sys.stdin.read())\n"
-        f"env={{**os.environ,'ATOMIC_WORKSPACE_ROOT':{json.dumps(workspace)},'ATOMIC_EDIT_ALLOWED_ROOTS':{json.dumps(workspace)}}}\n"
+        f"env={{**os.environ,'ATOMIC_WORKSPACE_ROOT':{json.dumps(workspace)},'ATOMIC_EDIT_ALLOWED_ROOTS':{json.dumps(workspace)},'ATOMIC_DISABLE_HOT_RELOAD':'1'}}\n"
         "r=subprocess.run([d['node'],d['cli'],d['tool'],json.dumps(d['args'])],"
         "stdout=subprocess.PIPE,stderr=subprocess.PIPE,universal_newlines=True,env=env)\n"
         "out=(r.stdout or '').strip()\n"
