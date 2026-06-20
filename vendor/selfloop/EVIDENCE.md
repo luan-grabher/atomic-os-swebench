@@ -50,7 +50,8 @@ Run everything: `node scripts/atomic-selfloop/run-all.mjs <repoRoot>`
   novelty · F3 corpus-chain-break (unexplained writer). All adversarially tested; SILENT on normal state.
 - Live verdict: **no strong-emergence candidate — mechanical weak emergence only.**
 - Evidence base verified untampered: disproof-corpus hash-chain INTACT (0 breaks / 256).
-- Recompute: `node ../mcp/atomic-edit/emergence-report.mjs <root>` · `node ../mcp/atomic-edit/gates/emergence-report.proof.mjs`
+- Recompute (WAVE K — canonical atomic-edit substrate; override root via `ATOMIC_EDIT_REPO_ROOT`):
+  `node ../../core/atomic-edit/emergence-report.mjs <root>` · `node ../../core/atomic-edit/gates/emergence-report.proof.mjs`
 
 ## 6. Honesty record — claims I MEASURED then KILLED (not defended)
 1. HumanEval 94.2% was oracle-leak → removed.

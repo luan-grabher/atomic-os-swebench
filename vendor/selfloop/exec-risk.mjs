@@ -15,6 +15,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 const sigmoid = (z) => 1 / (1 + Math.exp(-z));
 
@@ -145,6 +146,6 @@ export function evalExecRisk(repoRoot, { cap = 12000, vocabK = 180, model = 'lin
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   console.log(JSON.stringify(evalExecRisk(repoRoot), null, 2));
 }

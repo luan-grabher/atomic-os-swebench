@@ -30,6 +30,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 const FROZEN_REL = '.atomic/held-out-walls.jsonl';
 const POWER_MIN_NEW_INVARIANTS = 15; // below this, ABSTAIN (binomial underpowered at alpha=0.05)
@@ -146,7 +147,7 @@ function score(repoRoot) {
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   const mode = process.argv[2];
-  const repoRoot = process.argv[3] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[3]);
   if (mode === 'freeze') console.log(JSON.stringify(freeze(repoRoot), null, 2));
   else if (mode === 'score') console.log(JSON.stringify(score(repoRoot), null, 2));
   else console.log('usage: node held-out-wall.mjs freeze <root> | score <root>');

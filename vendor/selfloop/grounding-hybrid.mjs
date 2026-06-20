@@ -33,7 +33,14 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { proposeFromCorpus } from '../mcp/atomic-edit/hypothesis-generator.mjs';
+import { pathToFileURL } from 'node:url';
+import { resolveAtomicRoot } from './atomic-root.mjs';
+
+// CONVERGENCE: hypothesis-generator now lives in the ONE canonical atomic-edit substrate
+// (env-overridable via ATOMIC_EDIT_REPO_ROOT). Resolved at runtime -> dynamic import.
+const { proposeFromCorpus } = await import(
+  pathToFileURL(path.join(resolveAtomicRoot(), 'hypothesis-generator.mjs')).href
+);
 
 const WIN_MARGIN = 0.005;
 const Ks = [10, 20, 30];
@@ -180,6 +187,6 @@ export function evaluateHybridGrounding(repoRoot) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   console.log(JSON.stringify(evaluateHybridGrounding(repoRoot), null, 2));
 }

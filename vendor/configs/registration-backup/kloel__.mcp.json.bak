@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/2025-03-26/mcp.schema.json",
+  "mcpServers": {
+    "atomic-edit": {
+      "command": "bash",
+      "args": ["/Users/danielpenin/kloel/scripts/mcp/atomic-edit-mcp-launcher.sh"],
+      "description": "Structured code action space for atomic, validated code edits."
+    },
+    "atomic-swarm": {
+      "command": "node",
+      "args": ["scripts/mcp/atomic-swarm/server.mjs"],
+      "description": "Governed swarm surface: receipted web fetch/search, hash-verified skills, parallel read-only job fan-out through the atomic broker."
+    },
+    "chrome-devtools": {
+      "command": "bash",
+      "args": ["scripts/mcp/chrome-devtools-open-mcp-launcher.sh", "--browserUrl=http://127.0.0.1:9222"],
+      "description": "Browser inspection, console, network, performance and interaction audit through Chrome DevTools MCP."
+    },
+    "chrome-devtools-live": {
+      "command": "bash",
+      "args": ["scripts/mcp/chrome-devtools-open-mcp-launcher.sh", "--browserUrl=http://127.0.0.1:9223"],
+      "description": "Second Chrome DevTools MCP channel for live product validation when the primary browser context is busy."
+    },
+    "chrome-devtools-open": {
+      "command": "bash",
+      "args": ["scripts/mcp/chrome-devtools-open-mcp-launcher.sh", "--browserUrl=http://127.0.0.1:9333"],
+      "description": "Third Chrome DevTools MCP channel for connecting to an already debuggable local Chrome target."
+    },
+    "atomic-sentinel": {
+      "command": "node",
+      "args": ["scripts/mcp/atomic-sentinel/server.mjs"],
+      "description": "Background daemon monitoring .atomic/ for failed tasks and expired locks, with auto-heal integration."
+    },
+    "atomic-memory": {
+      "command": "node",
+      "args": ["scripts/mcp/atomic-memory/server.mjs"],
+      "description": "Semantic intent ledger: record and query code-change rationale with SHA-256 receipts."
+    },
+    "kloel-os-mcp": {
+      "command": "node",
+      "args": ["scripts/mcp/kloel-os-mcp/server.mjs"],
+      "description": "OS-level shell execution, system metrics, and macOS GUI automation with deny-list and audit ledger."
+    }
+  }
+}

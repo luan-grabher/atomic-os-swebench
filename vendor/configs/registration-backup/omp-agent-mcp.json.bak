@@ -1,0 +1,42 @@
+{
+  "$schema": "https://raw.githubusercontent.com/can1357/oh-my-pi/main/packages/coding-agent/src/config/mcp-schema.json",
+  "mcpServers": {
+    "obsidian": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "obsidian-mcp@latest",
+        "/Users/danielpenin/Documents/Obsidian Vault"
+      ]
+    },
+    "lsp-mesh": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["/Users/danielpenin/whatsapp_saas/scripts/mcp/lsp-mesh-mcp-launcher.sh"]
+    },
+    "protocol-hub": {
+      "type": "stdio",
+      "command": "bash",
+      "args": ["/Users/danielpenin/whatsapp_saas/scripts/mcp/cognitive/protocol-hub-launcher.sh"]
+    }
+  },
+  "disabledServers": [
+    "figma:figma",
+    "slack:slack",
+    "atlassian:atlassian",
+    "supabase:supabase",
+    "prisma:Prisma-Local",
+    "prisma:Prisma-Remote",
+    "linear:linear",
+    "telegram:telegram",
+    "greptile:greptile",
+    "gitlab:gitlab",
+    "sentry:sentry",
+    "stripe:stripe",
+    "vercel:vercel",
+    "github:github",
+    "railway:railway",
+    "chrome-devtools-mcp:chrome-devtools"
+  ]
+}

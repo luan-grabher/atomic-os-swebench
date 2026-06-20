@@ -20,6 +20,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { createHash } from 'node:crypto';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 export const ORIGIN_LEDGER_REL = '.atomic/candidate-origin.jsonl';
 const sha256 = (s) => createHash('sha256').update(String(s)).digest('hex');
@@ -79,6 +80,6 @@ export function verifyOriginLedger(repoRoot) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   console.log(JSON.stringify(verifyOriginLedger(repoRoot), null, 2));
 }

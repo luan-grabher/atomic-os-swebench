@@ -19,9 +19,16 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { fileURLToPath } from 'node:url';
-import { proposeFromCorpus } from '../mcp/atomic-edit/hypothesis-generator.mjs';
+import { pathToFileURL } from 'node:url';
+import { resolveAtomicRoot, resolveGatesDir } from './atomic-root.mjs';
 import { computeGateFitness } from './fitness.mjs';
+
+// CONVERGENCE: hypothesis-generator lives in the canonical atomic-edit substrate, whose
+// location is env-overridable (ATOMIC_EDIT_REPO_ROOT) and resolved at runtime — so it must
+// be a dynamic import, not a static one. Resolved once against the default root here.
+const { proposeFromCorpus } = await import(
+  pathToFileURL(path.join(resolveAtomicRoot(), 'hypothesis-generator.mjs')).href
+);
 
 const short = (s) => String(s).replace(/^gate\.node gates\//, '').replace(/^gate\.node /, '').replace(/ --json$/, '').replace(/\.proof\.mjs$/, '').replace(/\.proof\.ts$/, '');
 
@@ -31,7 +38,7 @@ const short = (s) => String(s).replace(/^gate\.node gates\//, '').replace(/^gate
 const slugPart = (s) => short(s).replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 36).toLowerCase();
 const couplingName = (a, c) => ('auto-coupling-' + slugPart(a) + '--' + slugPart(c)).slice(0, 78).replace(/-+$/, '');
 function admittedCouplingNames(repoRoot) {
-  const gdir = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', 'gates');
+  const gdir = resolveGatesDir(repoRoot);
   try {
     return new Set(fs.readdirSync(gdir).filter((f) => f.startsWith('auto-coupling-') && f.endsWith('.proof.mjs')).map((f) => f.replace(/\.proof\.mjs$/, '')));
   } catch { return new Set(); }
@@ -72,7 +79,7 @@ export function runSelfLoopDryRun(repoRoot) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   const r = runSelfLoopDryRun(repoRoot);
   console.log(`P3 generated=${r.generated} informative candidates | P2 ranked ${r.fitnessGates} gates`);
   if (r.selected) {

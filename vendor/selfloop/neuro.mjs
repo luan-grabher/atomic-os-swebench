@@ -18,6 +18,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 const DEFAULT_TARGET = 'gate.node gates/compiled-mcp-y-certificate.proof.mjs --json'; // ~46% base rate
 
@@ -128,6 +129,6 @@ export function trainAndEvaluate(repoRoot, target = DEFAULT_TARGET) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   console.log(JSON.stringify(trainAndEvaluate(repoRoot), null, 2));
 }

@@ -33,6 +33,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { resolveAtomicRoot, resolveGatesDir, gateRelPath } from './atomic-root.mjs';
 
 const K = 10;
 const FROZEN_REL = '.atomic/held-out-walls.jsonl';
@@ -40,7 +41,7 @@ const sha = (s) => createHash('sha256').update(s).digest('hex');
 const gateToInvariantId = (file) => `gate.node gates/${file} --json`;
 
 function definedGates(repoRoot) {
-  const dir = path.join(repoRoot, 'scripts/mcp/atomic-edit/gates');
+  const dir = resolveGatesDir(repoRoot);
   return fs.readdirSync(dir).filter((f) => f.endsWith('.proof.mjs'));
 }
 function firedGateFiles(repoRoot) {
@@ -62,7 +63,7 @@ export function extrapolate(repoRoot) {
   const neverFired = defined.filter((f) => !fired.has(f));
   // recency: git ctime per never-fired gate; newest first = highest extrapolated firing risk.
   const ranked = neverFired
-    .map((f) => ({ file: f, ctime: gitCTime(repoRoot, `scripts/mcp/atomic-edit/gates/${f}`) }))
+    .map((f) => ({ file: f, ctime: gitCTime(repoRoot, gateRelPath(repoRoot, f)) }))
     .sort((a, b) => b.ctime - a.ctime);
   const predictions = ranked.slice(0, K).map((r) => ({
     sig: gateToInvariantId(r.file),
@@ -93,6 +94,6 @@ export function extrapolate(repoRoot) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   console.log(JSON.stringify(extrapolate(repoRoot), null, 2));
 }

@@ -16,6 +16,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 const MODEL_REL = '.atomic/exec-risk-model.json';
 const sigmoid = (z) => 1 / (1 + Math.exp(-z));
@@ -79,12 +80,12 @@ export function scoreCommand(repoRoot, { command, cwd, intent }) {
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
   const mode = process.argv[2];
   if (mode === 'train') {
-    const repoRoot = process.argv[3] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+    const repoRoot = resolveAtomicRoot(process.argv[3]);
     const m = trainModel(repoRoot);
     console.log(JSON.stringify({ trained: true, rows: m.trainedRows, vocab: m.vocab.length, threshold: Number(m.threshold.toFixed(4)), baseRate: m.baseRate }, null, 2));
   } else if (mode === 'score') {
     const command = process.argv[3] || '';
-    const repoRoot = process.argv[4] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+    const repoRoot = resolveAtomicRoot(process.argv[4]);
     console.log(JSON.stringify(scoreCommand(repoRoot, { command }), null, 2));
   } else {
     console.log('usage: node exec-guard.mjs train [repoRoot] | score "<command>" [repoRoot]');

@@ -11,6 +11,7 @@
  */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { resolveAtomicRoot } from './atomic-root.mjs';
 
 function recs(repoRoot) {
   const file = path.join(repoRoot, '.atomic', 'disproof-corpus.jsonl');
@@ -70,7 +71,7 @@ export function evalMLP(repoRoot, target) {
 }
 
 if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
-  const repoRoot = process.argv[2] || process.env.ATOMIC_EDIT_REPO_ROOT || process.cwd();
+  const repoRoot = resolveAtomicRoot(process.argv[2]);
   const rs = recs(repoRoot);
   const sets = rs.map((r) => new Set(Array.isArray(r.verdictCodes) && r.verdictCodes.length ? r.verdictCodes : (r.invariantId ? [r.invariantId] : []))).filter((s) => s.size > 0);
   const cnt = {}; sets.forEach((s) => [...s].forEach((g) => { cnt[g] = (cnt[g] || 0) + 1; })); const N = sets.length;
