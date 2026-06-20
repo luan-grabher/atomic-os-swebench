@@ -1,4 +1,4 @@
-# kloel-atomic-edit MCP server (v4)
+# atomic-edit MCP server (v4)
 
 Closes the **Line-Oriented Action Bottleneck**: built-in coding-agent editors
 operate at line/block/hunk granularity, so microscopic intentions become

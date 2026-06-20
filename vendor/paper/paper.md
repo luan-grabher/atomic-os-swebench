@@ -38,7 +38,7 @@ The system formulates causal hypotheses from observed patterns, designs interven
 |--------|-------|
 | Paradigm gates | 17/17 green |
 | MCP tools | 123 |
-| Languages | 11 (WASM tree-sitter) |
+| Languages | 29 (WASM tree-sitter) |
 | Self-host LOC | 64,242 (496 files) |
 | Multi-agent confluence | 92% (300 edits) |
 | Corpus records | 56 (disproof witnesses) |
