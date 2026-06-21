@@ -399,6 +399,38 @@ same-model (no DeepSeek-verbosity confound).
 - Unification verified within-machine (single source, all 5 hosts → canonical, proof-gated propagation),
   stale relay orphan removed.
 
+## Round 008 — SWE-Bench-Verified psf__requests-1921 — post-L01-H — ATOMIC representation WIN (diff + convergence), NOT full dominance (instrumentation gap is binding)
+- date: 2026-06-21
+- host change: OpenCode this session (native arm = OpenCode worker subagent; prior rounds were Codex). atomic arm unchanged: DeepSeek V4 Pro + atomic-only via local_atomic_agent.py.
+- L01-H landed at HEAD (4d63453): pre-edit topology fires after BODY-level reads, not navigation.
+- task: tasks/SWE-psf__requests-1921/PROBLEM.md (psf/requests @ 3c88e520da24ae6f736929a750876e7654accc3d).
+- workspaces: /Users/danielpenin/.config/atomic-loop/rounds/codex-vs-atomic-008-swe-requests-1921-20260621125202/{atomic,native} (fresh clones at base_commit, detached HEAD).
+- containers: psf__requests_1921_{atomic,native} restarted (were OOM-killed exit 137); arms run concurrency=1 per the OOM rule.
+- baseline: hidden FAIL_TO_PASS test failed in both arms pre-fix. Both produced the CORRECT canonical fix — strip None from the MERGED settings while iterating a copy (`list(merged_setting.items())`).
+
+| metric | ATOMIC (DeepSeek+atomic) | NATIVE (OpenCode worker) | winner |
+|---|---:|---:|---|
+| final gate (INDEPENDENT re-run by orchestrator, anti-facade) | 21/21 PASS exit 0 | 21/21 PASS exit 0 | TIE |
+| changed files | 1 (requests/sessions.py) | 1 (requests/sessions.py) | TIE |
+| diff lines | 5 (3+, 2-) | 12 (8+, 4-) | ATOMIC |
+| changed source bytes | 695 | 881 | ATOMIC |
+| edits applied | 1 | 1 | TIE |
+| gate/test runs to green | 1 (one-shot fix) | 4 (2 flaky httpbin.org failures en route, both pass isolated/final) | ATOMIC |
+| reads | 7 (5 body_context) | ~3 (self-reported, approximate) | NATIVE (model-confounded + approximate) |
+| tokens | 91,490 | not exposed by OpenCode subagent API | instrumentation gap (L01-C) |
+| wall | 122.0s internal / 122.2s external | capture failed (`date +%s%03m` = month not ms on macOS) | instrumentation gap (L01-C) |
+| invalid-states-on-disk prevented | 0 | n/a | TIE |
+| trace/receipt | atomic_result.json + .atomic/traces/* | none exposed | ATOMIC |
+
+L01-H representation gain (SAME task/model/snapshot; ONLY L01-H differs) vs Round 007:
+- tokens 191,292 -> 91,490 (-52%); reads 11 -> 7 (-36%); edits 2 -> 1 (-50%); run_tests 2 -> 1 (-50%); wall 149.2s -> 122.0s (-18%); R7 diff was the identical 1-liner (TIE), here atomic's 5 lines BEATS native's 12. Topology-after-body-reads cleanly cut wasted navigation-triggered cycles. Clean representation gain by number.
+
+Verdict: ATOMIC representation-attributable WIN — diff surface -58% lines / -21% bytes, and ONE-SHOT convergence (1 gate run vs 4). NOT wide-margin dominance in EVERYTHING: correctness TIE; native reads fewer (model-confounded DeepSeek-verbosity + approximate count); native tokens/wall UNMEASURED. The L01-C native-telemetry gap is now the BINDING constraint on any "atomic wins everything" claim — unprovable by construction while those metrics are hidden, not false. No escalation.
+
+Binding next lever (generalist): L01-C — close the native-arm telemetry gap. A native-arm wrapper recording a monotonic start/end wall (not `date`), gate-run count, and any host-exposed tool/token counts, around ANY native worker (OpenCode/Codex/Claude). Until then, "dominance in everything" is structurally unmeasurable for the cross-model arm. Unblocks the dominance verdict at this level; does NOT touch the model ceiling.
+
+Next exact step: implement the L01-C telemetry wrapper (generalist, via atomic_expand_self on the harness/agent layer), validate, then re-run the SAME psf__requests-1921 round with comparable native telemetry. Do not escalate complexity.
+
 ---
 
 ## Round 008 — SWE-bench-Verified psf__requests-1921 — L01-H landed + re-measured (frozen-isolation)
@@ -459,3 +491,50 @@ Two honest fronts (per master memory; cross-model dominance on a trivial task is
 Also: a concurrent Codex autonomous-evolution session contends on the canonical repo — coordinate via the
 distributed lock or run frozen-isolated (as R008 did). emergence-loop launchd booted out to stop re-thrash
 (re-enable with `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.kloel.atomic-edit.emergence-loop.plist`).
+
+---
+
+## Round 008 — CORRECTION (honesty law: R008 head-to-head was INVALID; demolition FALSIFIED)
+- date: 2026-06-21 (same session, after reading BOTH arms' full reasoning per the "loss = my representation" law)
+- **METHODOLOGY BUG found in R008 → its "native won operationally" verdict is VOID.** The NATIVE subagent
+  prompt I wrote contained a HINT ("Where to look: ... function merge_setting"); the ATOMIC PROBLEM.md (raw
+  SWE-bench issue) did NOT. I handed native the fix location. The loop's own rule (R2: "prompts must be
+  IDENTICAL per instance") was violated → incommensurable → discard the R008 efficiency comparison.
+- **FAIR re-run (identical no-hint prompt, both arms must DISCOVER merge_setting):**
+
+| arm | total tool-calls | tokens | wall | correct fix |
+|---|---|---|---|---|
+| NATIVE (no hint) | **14** (4 just to locate) | 38,089 | 69s | ✅ |
+| **ATOMIC pre-demolition (no hint)** | **6** | 54,394 | 48s | ✅ |
+
+  → On a FAIR prompt the EXISTING atomic agent uses **6 tool-calls vs native's 14 (<½)** and is FASTER
+  (48s<69s), ties correctness/edits/diff, loses only tokens (54k vs 38k). **Atomic LEADS the
+  representation-attributable metric (tool-calls) by 2.3× once I stop cheating in native's favor.** The
+  R008 "native dominance" was entirely my asymmetric-prompt facade — caught and corrected by number.
+- **DEMOLITION FALSIFIED (NOT committed):** I hypothesized 3 walls (survey-first prompt mandate; the L01-H
+  forced topology turn; atomic_read-returns-signatures) and demolished them in the frozen worktree. Result:
+  **8 tool-calls / 83,771 tok / 115s — WORSE than the 6/54k/48s baseline.** Root cause of the regression =
+  my own over-correction: forcing maxFullChars=24000 on selectorless reads made the model dump FULL bodies
+  of big classes (PreparedRequest, Session) → token explosion; and removing the cheap survey overview let
+  the model free-explore (PreparedRequest, prepare_headers, Request.__init__) it didn't need. Honesty law:
+  a change that regresses the number does not land. Discarded; canonical keeps L01-H (4d63453) unchanged.
+- **What the full-reasoning read PROVED (the real walls, re-attributed honestly):** the ATOMIC model's
+  internal reasoning was clean and correct at every step; at step 3 it had ALREADY formed the ideal call
+  (atomic_read_many selector=merge_setting) but the L01-H topology turn (tools withheld) forced it to emit
+  that call as dead DSML prose → 1 wasted round-trip. So the L01-H topology turn IS a real (small) wall —
+  but removing it NAIVELY (bundled with the read over-correction) regressed. The clean isolated fix
+  (remove ONLY the topology turn, keep survey + signature-on-plain-read) is untested and is the next experiment.
+- **Remaining real representation lever = read-output verbosity (tokens).** Atomic read results headline
+  byte-classification jargon ("UNJUDGED; 1 classified byte zone(s)...") instead of the code; this inflates
+  every read's tokens. That is engine-side (code_readcode/atomic_read_file output) → needs atomic_expand_self
+  (currently deadlocking) or an agent-layer post-filter. This — not "DeepSeek verbosity" — is the honest
+  attribution of the token gap.
+
+### Next exact step (R009)
+1. Re-run the A/B with the FAIR identical-no-hint prompt as the STANDING protocol (never hint one arm).
+   Record atomic's 6-vs-14 tool-call lead as the corrected baseline.
+2. Test the topology-turn removal IN ISOLATION (keep survey + signature-on-plain-read; remove ONLY the
+   forced text-only topology turn) → does atomic drop 6→5 calls without the token regression?
+3. Attack read-output verbosity (the token wall): an agent-layer clean read result (strip the byte-class
+   jargon headline, surface code) — measure the token drop. Generalist.
+4. Escalate to a harder multi-file instance where atomic's structural ops produce signal.
