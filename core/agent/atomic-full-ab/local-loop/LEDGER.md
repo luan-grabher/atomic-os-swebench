@@ -703,3 +703,42 @@ atomic below 23 (parity→MARGIN) WITHOUT over-exploration regression? If clean 
 assert the faithful behavior (no blocking essay turn) + land. If it regresses → keep it, record honestly.
 Then: the cognitive layer (active memory/corpus, verifier-as-error-corrector — edit-correction is the seed) +
 the pylint-with-feedback thesis test (does the cognitive layer lift DeepSeek past its one-shot ceiling?).
+
+---
+
+## Round 014 — topology-turn removal FALSIFIED (kept; it pays its own round-trip)
+- date: 2026-06-21. Isolated A/B (ATOMIC_TOPOLOGY_TURN env gate; everything else held: survey, compaction, editfix).
+
+| instance | topology-OFF | topology-ON (R013) | native |
+|---|---|---|---|
+| requests-1921 | 9 | 7 | 7 |
+| pytest-7982 | 6 | 5 | 5 |
+| pytest-5262 | 8 | 6 | 5 |
+| flask-5014 | 5 | 5 | 6 |
+| **TOTAL** | **28** | **23** | **23** |
+
+- **VERDICT: removing the topology turn REGRESSES (28 > 23).** My hypothesis that it was a wasteful "tax"
+  is FALSIFIED by number — the forced pre-edit topology beat CONSTRAINS exploration and nets FEWER total
+  calls (it earns the ~1 round-trip it costs by preventing extra reads). KEPT. Canonical unchanged (the
+  removal was behind ATOMIC_TOPOLOGY_TURN, default ON). Third hypothesis this session the loop falsified by
+  number (after R008 asymmetric-prompt facade and R009 compaction-demolition over-correction) — the
+  anti-facade machine working as designed.
+- So the R013 config (L01-H + compaction + edit-correction + topology-ON) is the validated best: tool-call
+  PARITY with native on solvable instances (23==23), edit-friction eliminated, +proof differential.
+
+### Honest standing after 7 rounds this session (R008–R014)
+- EASY/MEDIUM representation walls are CLOSED: atomic ties native on tool-calls (23==23) + resolved (4/4) +
+  carries proof native lacks. Further micro-shaving = diminishing returns (and topology-removal falsified).
+- Remaining non-representation gaps: pylint = MODEL ceiling (DeepSeek; capstone: atomic-Claude solves it);
+  exploration VARIANCE dominates single-run totals.
+- The "dominance with WIDE margin" target is structurally unreachable on trivial one-liners (atomic's floor
+  IS native+proof; no room for margin) — margin lives in HARD/multi-file/long-horizon + WITH FEEDBACK.
+
+### Next exact step (R015) — pivot to the cognitive frontier (where the thesis lives)
+THESIS TEST on the discriminating instance: does the current cognitive stack (force-edit bound + line-range
+reads + compaction + edit-correction) let DeepSeek-atomic solve pylint-7080 WITH FEEDBACK (warm-container
+gate) — i.e. lift the weak model past its one-shot ceiling? Capstone showed DeepSeek-atomic FAILED pylint
+even with feedback (analysis paralysis) BEFORE these landed; re-test now. If solves → equalization thesis
+demonstrated by number on the hard instance. If not → honest MODEL ceiling, recorded (atomic-Claude solves
+it → representation sufficient, model insufficient). Then: harder multi-file instances + begin the active
+memory/corpus layer (edit-correction is its first seed).
