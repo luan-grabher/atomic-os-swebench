@@ -575,3 +575,38 @@ distributed lock or run frozen-isolated (as R008 did). emergence-loop launchd bo
 2. Run BOTH model arms (DeepSeek-atomic AND same-model atomic-Claude via ac.py) every round = the permanent
    representation×model isolation axis the /goal mandates (separate cognition-gain from model-gain by number).
 3. Keep the FAIR identical-no-hint prompt protocol. Compaction staged + unit-validated in frozen worktree.
+
+---
+
+## Round 010 — perception-compaction LANDED (proven by same-model ON/OFF control)
+- date: 2026-06-21 (cognitive-prosthesis layer: lean pre-digested perception)
+- **Same-model control (DeepSeek-atomic, pylint-7080 read-heavy, ATOMIC_COMPACT 1 vs 0, identical task/steps):**
+
+| metric | compaction OFF | compaction ON | effect |
+|---|---|---|---|
+| avg tool-result size (chars) | 2357 | **531** | **4.4× leaner perception** |
+| final-step prompt (tokens, matched depth) | 75,616 | **63,845** | **16% leaner resent context** |
+| survey result (unit) | 46,742 | **4,301** | 10.9× |
+| single read (unit) | 1,956 | **1,203** | code preserved, JSON scaffold gone |
+| total tokens | 1.08M | 1.13M | confounded (ON ran 18 vs 16 steps — exploration variance) |
+
+- **VERDICT:** compaction wins unambiguously on the metric it controls — context cost per result/step at
+  matched depth (4.4× smaller results, 16% leaner prompt). Total-token is NOT the clean metric (3rd time it's
+  dominated by DeepSeek step-count variance: 54k/68k/79k/81k same agent on requests-1921). Correctness cannot
+  regress (code preserved + defensive raw fallback; unit-verified). LANDED to canonical (commit 6890e62) via
+  governed edit + FULL agent-gate battery GREEN (expand_self still deadlocks). ATOMIC_COMPACT=0 = A/B off-switch.
+- This is the /goal's "percepção pré-digerida / o leitor que não mente" cognitive layer made real & measured.
+
+### Methodology lesson (generalized, standing)
+TOTAL-token / total-step counts are NOT valid single-run A/B metrics on these tasks — DeepSeek exploration
+depth varies ~1.5× run-to-run and swamps representation signal. Use metrics ROBUST to step-count: per-result
+context size, per-step prompt at matched depth, tool-calls (R008 fair: 6 vs 14), resolved-rate over a SUITE,
+and same-model controls. Single-run total-tokens = noise. (This is why requests-1921 "looked" like a loss.)
+
+### Next exact step (R011)
+1. SUITE measurement (noise-robust): DeepSeek-atomic (compaction ON) vs native, FAIR identical-no-hint prompts,
+   across the 5 instances with task dirs (requests-1921, pytest-7982, pytest-5262, pylint-7080, flask-5014),
+   official Docker scoring → aggregate resolved-rate + tool-calls + per-result context cost (averages out
+   per-run variance — the only honest way to support the equalization thesis "por número, em vários repos").
+2. Model-control axis: same-model atomic-Claude (ac.py) on ≥1 discriminating instance every suite.
+3. Escalate to a genuinely multi-file instance once the suite baseline is clean.
