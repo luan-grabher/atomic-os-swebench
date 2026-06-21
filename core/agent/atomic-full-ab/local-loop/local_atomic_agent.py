@@ -75,6 +75,86 @@ def _absolutize(workdir, args):
     return out
 
 
+# PERCEPTION-COMPACTION (R009, generalist): the engine returns rich JSON (sha256, columns, target, mode,
+# language, full signature dumps) — the model only needs the CODE + file:line. Raw results were ~6000 chars
+# each and rode in the resent history every step → measured 90% of token cost was prompt resend. Render a
+# lean, pre-digested perception: code with its location, survey as compact symbol@line lines. Defensive:
+# any parse failure falls back to the raw capped body (never lose information → never regress correctness).
+def _rel(workdir, f):
+    try:
+        return os.path.relpath(f, workdir) if os.path.isabs(f) else f
+    except Exception:
+        return f
+
+def _compact_result(workdir, tool, raw):
+    i = raw.find("{")
+    if i < 0:
+        return raw[:6000]
+    try:
+        d = json.loads(raw[i:])
+    except Exception:
+        return raw[:6000]
+    if not isinstance(d, dict):
+        return raw[:6000]
+    try:
+        # single symbol / whole-file read
+        if isinstance(d.get("code"), str):
+            f = _rel(workdir, d.get("file", "")); s = d.get("startLine"); e = d.get("endLine")
+            loc = f + (f":{s}-{e}" if s and e else "")
+            return f"{loc}\n{d['code']}"
+        # batch read
+        if isinstance(d.get("items"), list):
+            parts = []
+            for it in d["items"]:
+                if not isinstance(it, dict):
+                    continue
+                f = _rel(workdir, it.get("file") or it.get("path") or "")
+                code = it.get("code") or it.get("content") or ""
+                s = it.get("startLine"); e = it.get("endLine")
+                loc = f + (f":{s}-{e}" if s and e else "")
+                parts.append(f"## {loc}\n{code}".rstrip())
+            if parts:
+                return "\n\n".join(parts)
+        # read_file with content/lines
+        if isinstance(d.get("content"), str):
+            f = _rel(workdir, d.get("file", "")); s = d.get("startLine"); e = d.get("endLine")
+            loc = f + (f":{s}-{e}" if s and e else "")
+            return f"{loc}\n{d['content']}"
+        # survey / outline_batch
+        if isinstance(d.get("files"), list):
+            lines = []
+            for fe in d["files"]:
+                if not isinstance(fe, dict):
+                    continue
+                f = _rel(workdir, fe.get("file", ""))
+                syms = fe.get("symbols") or []
+                names = ", ".join(f"{sy.get('selector')}@L{sy.get('startLine')}" for sy in syms if isinstance(sy, dict))
+                lines.append(f"{f}: {names}" if names else f"{f}")
+            note = ""
+            if d.get("truncated"):
+                note = f"\n(showing {d.get('returned')}/{d.get('matchedTotal')} files — narrow the glob for more)"
+            if lines:
+                return "\n".join(lines) + note
+        # single-file outline
+        if isinstance(d.get("symbols"), list):
+            f = _rel(workdir, d.get("file", ""))
+            names = ", ".join(f"{sy.get('selector')}@L{sy.get('startLine')}" for sy in d["symbols"] if isinstance(sy, dict))
+            return f"{f}: {names}"
+        # grep
+        if isinstance(d.get("matches"), list):
+            out = []
+            for m in d["matches"]:
+                if isinstance(m, dict):
+                    out.append(f"{_rel(workdir, m.get('file',''))}:{m.get('line')}: {(m.get('text') or '').strip()}")
+            if out:
+                return "\n".join(out[:80])
+    except Exception:
+        return raw[:6000]
+    # edits / unknown: keep the headline (status), drop the JSON scaffold
+    head = raw[:i].strip()
+    return (head or raw[:1200])[:1200]
+
+
 def atomic_call(workdir, tool, args):
     args = _absolutize(workdir, args)
     if tool == "code_outline_batch" and not args.get("cwd"):  # glob is workdir-relative
@@ -90,9 +170,15 @@ def atomic_call(workdir, tool, args):
     out = (p.stdout or "").strip()
     err = (p.stderr or "").strip()
     ok = p.returncode == 0 and not err
-    body = out if out else (err or "(empty)")
-    if err and out:
-        body = out + "\n[stderr] " + err
+    # Compact the STDOUT payload regardless of `ok`: stderr almost always holds the harmless
+    # `[atomic-edit] ready ...` banner (which flips ok=False), not a real error. Only surface stderr
+    # when there's no usable stdout. This is the perception-compaction win (raw ride-along → lean).
+    if out:
+        if os.environ.get("ATOMIC_COMPACT", "1") == "1":
+            return _compact_result(workdir, tool, out)[:6000], ok
+        body = out if not err else out + "\n[stderr] " + err  # OFF = original raw-capped behavior
+        return body[:6000], ok
+    body = err or "(empty)"
     return body[:6000], ok
 
 
