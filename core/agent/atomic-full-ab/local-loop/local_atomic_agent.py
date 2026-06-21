@@ -169,7 +169,6 @@ def main():
     ap.add_argument("--gate", default="node --test")
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-steps", type=int, default=60)
-    ap.add_argument("--hint-cmd", default="", help="run once at start; output = localization anchor (e.g. failing-test traceback)")
     args = ap.parse_args()
 
     workdir = str(Path(args.workdir).resolve())
@@ -201,16 +200,7 @@ def main():
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
                   "ONLY atomic tools, plus run_tests to verify. " + survey + lean + "Then run_tests; iterate until "
                   "fully green, then STOP with a short summary and NO tool call. Paths are relative to the repo root.")
-    hint = ""
-    if args.hint_cmd:
-        try:
-            ho = subprocess.run(args.hint_cmd, shell=True, capture_output=True, text=True, timeout=200).stdout
-        except Exception:
-            ho = ""
-        if ho.strip():
-            hint = ("\n\n# Failing test output (your localization anchor — read this FIRST to find where to fix)\n"
-                    + ho[-2800:] + "\n")
-    user = f"# Repository files\n{tree}{hint}\n\n# Your task\n{task}\n\nBegin. Use atomic tools only."
+    user = f"# Repository files\n{tree}\n\n# Your task\n{task}\n\nBegin. Use atomic tools only."
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
     last_pass = False
@@ -357,8 +347,8 @@ def main():
                 else:
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
                     res = f"pass={np_} fail={nf_} all_green={last_pass}\n" + gate_out[-1500:]
+                    reads_since_edit = 0  # test feedback received (pass OR fail) → fresh read budget to diagnose & refine; without this a failed edit deadlocks against the force-edit read-lockout
                     if last_pass:
-                        reads_since_edit = 0
                         if green_minimize_active:
                             minimized_lines = diff_lines(git_diff(workdir))
                             metrics["transcript"].append(
