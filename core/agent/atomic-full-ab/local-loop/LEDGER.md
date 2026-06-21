@@ -613,6 +613,23 @@ and same-model controls. Single-run total-tokens = noise. (This is why requests-
 
 ---
 
+## Ready-to-land contribution (OpenCode session) — concurrent-clobber wall demolished (validated, awaiting clean canonical window)
+- date: 2026-06-21 (GLM-5.2 OpenCode session; concurrent Claude session is primary driver)
+- **WALL observed (live):** two concurrent `atomic_expand_self` sessions on overlapping selfRoot snapshots clobber each other — one session's `rollbackEffectStrict` (server-tools-self.ts:1606/1636/1689) reverts the snapshot IN PLACE, overwriting the other's already-landed commit. A landed engine fix was reverted by a concurrent session's expand rollback. This blocks doctrine §4d (multi-host unification / safe composition).
+- **Generalist fix (any host/session/selfRoot):** advisory serialization lock `.atomic-expand-self.lock` per selfRoot, with PID-liveness + 30min staleness check. Acquire inside the expand try (before snapshot capture); release in a `finally`. If another live expand holds the lock → clear refusal ("concurrent atomic_expand_self in flight; retry") instead of silent clobber. Serializes expands per selfRoot → clobber impossible.
+- **Validation (isolated worktree, rebased on 33cf022):**
+  - `node build.mjs` = GREEN (compiles on the current engine, post broker/temp-root fixes)
+  - `node gates/self-expansion-real-self-evolution.proof.mjs --json` = ok:true
+  - `node gates/self-expansion-validator-lattice.proof.mjs --json` = ok:true (the gate the concurrent just strengthened)
+  - `node gates/atomic-exec-broker.proof.mjs --json` = ok:true
+  - diff = 1 file (`server-tools-self.ts`), +51/−1, zero task-specific code, universal class. Compatible with the concurrent's engine work (different regions of the same file; cherry-pick was conflict-free).
+- **Commit (in isolated worktree `/tmp/atomic-fix-wt`, shared git db):** `8ec5989` — `engine(self-expansion): demolish concurrent-clobber wall — advisory serialization lock (+51/-1, validated)`.
+- **Landing:** `git cherry-pick 8ec5989` in canonical during a CLEAN window (canonical is persistently dirty with the concurrent's in-flight work — 59 files; that's the primary driver's work, not to be stashed/clobbered). After cherry-pick + commit, each host's atomic MCP server must restart to load the rebuilt `dist/` — until then the in-place engine still clobbers.
+- **Dogfood proof:** the fix was developed + validated in an isolated git worktree (the fix's own proposal: worktree-isolation for self-expansion) — without touching the dirty canonical tree, exactly the safety the fix brings to multi-host composition.
+- Honest boundary: this fix does NOT make self-expansion worktree-isolated (the larger restructure); it SERIALIZES via lock (prevents clobber) as the minimal viable demolition. Full worktree-isolation (each session its own worktree, merge-composed) remains a future generalist increment.
+
+---
+
 ## Round 011 — SUITE A/B (DeepSeek-atomic compaction-ON vs FROZEN native-Claude, fair no-hint, official Docker)
 - date: 2026-06-21. Native baseline FROZEN (native_baseline_suite.json) — doctrine: native runs ONCE, atomic-only loop hereafter.
 - 5 real SWE-bench-Verified instances, identical no-hint PROBLEM.md both arms, one-shot, official Docker harness, 502-retry.
@@ -651,3 +668,38 @@ Close CLASS-EDIT-FRICTION (generalist): on a failed atomic_replace (oldText not 
 actionable feedback — the actual text at the best-match location (and/or nearest anchor) — so the model fixes
 in ONE retry instead of blind-retrying. Validate (agent-gate battery), re-run atomic-only on pytest-5262 +
 the suite, measure tool-call drop vs the FROZEN baseline. Then revisit the topology-turn tax in isolation.
+
+---
+
+## Round 013 — atomic-only RE-VERIFY (compaction+editfix landed) vs FROZEN native baseline — PARITY reached
+- date: 2026-06-21. 4 solvable instances, atomic-only (native NOT re-run — frozen baseline reused, per doctrine).
+
+| instance | R013 atomic calls | R011 atomic calls | native (frozen) | edits | invalid_prevented |
+|---|---|---|---|---|---|
+| requests-1921 | 7 | 9 | 7 | 1 | 0 |
+| pytest-7982 | 5 | 5 | 5 | 1 | 0 |
+| pytest-5262 | 6 | 9 | 5 | 1 | 0 |
+| flask-5014 | 5 | 6 | 6 | 1 | 0 |
+| **TOTAL** | **23** | 29 | **23** | — | 0 |
+
+- **TOOL-CALL PARITY: atomic 23 == native 23** on the solvable set (was atomic 29 > 23 in R011). This session's
+  representation work CLOSED the gap from behind: compaction (requests 9→7, flask 6→5) + edit-correction
+  (pytest-5262 9→6, invalid_prevented 3→0). **Edit-friction eliminated end-to-end** (invalid_prevented=0,
+  replaces=1 on ALL 4). Compaction holding (avg result 1420 chars, ~4× leaner). Correctness parity (all edit=1).
+- **Atomic now ties native on tool-calls AND carries proof native lacks** (receipts/traces — doctrine diff (c)).
+  Not yet "dominance with wide margin" (pytest-5262 still 6 vs 5; ties elsewhere). The remaining ~1-call/task
+  representation tax is the TOPOLOGY TURN (re-confirmed wasting a round-trip in requests s3 + pytest-5262 s3:
+  model emits its intended read as DSML prose on the tools-withheld turn, then redoes it).
+
+**Verdict R013:** the closed representation walls (compaction, edit-friction) moved atomic from behind to
+PARITY on tool-calls with the frozen native baseline, with correctness parity + the proof differential. The
+last clear representation tax = the topology turn (~1 call/task). Remaining non-representation gaps: pylint
+(MODEL, capstone-proven) + exploration variance.
+
+### Next exact step (R014)
+Remove the topology turn IN ISOLATION (keep survey-mandate + compaction + edit-fix; the lean-patch lesson
+stays passive in the system prompt). Measure on the 4 solvable atomic-only vs frozen baseline: does it drop
+atomic below 23 (parity→MARGIN) WITHOUT over-exploration regression? If clean → rewrite the topology gates to
+assert the faithful behavior (no blocking essay turn) + land. If it regresses → keep it, record honestly.
+Then: the cognitive layer (active memory/corpus, verifier-as-error-corrector — edit-correction is the seed) +
+the pylint-with-feedback thesis test (does the cognitive layer lift DeepSeek past its one-shot ceiling?).
