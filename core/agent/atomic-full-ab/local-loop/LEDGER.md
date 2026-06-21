@@ -239,3 +239,54 @@ The representation is proven sufficient-and-leading at fixed model. Two fronts: 
 A/B (atomic-Claude vs native-Claude) across the WHOLE suite WITH feedback for a robust same-model
 resolved-rate + efficiency number (the cleanest proof of the atomic edge); (2) keep the cross-model arm
 (DeepSeek) as the product-as-configured track. Do NOT hardcode. Warm containers + images kept.
+
+---
+
+## Codex-corrected loop update — current governing track
+
+User correction for this session: the governing local A/B is **Codex worker from this TUI vs Atomic Agent
+CLI with DeepSeek V4 Pro**. Same task/prompt, isolated workspaces, Atomic first, Codex worker second.
+
+### Round 004 — L01 tiny-csv — ATOMIC dominant measured round 1/2
+- snapshot: `983de7fe3c2aad148e90c27ce53c708caa0d9464`
+- workspaces: `/Users/danielpenin/.config/atomic-loop/rounds/codex-vs-atomic-004-20260620174216/{atomic,native}`
+- both started at `npm test` 2/6 and ended 6/6.
+- ATOMIC: 59 changed lines, 1 changed file, 1 edit, 40,843 tokens, 50.4s observed.
+- NATIVE/Codex: 98 changed lines, 2 changed files, 107.3s observed wrapper window.
+- verdict: valid dominance round on measured metrics, but only 1/2.
+
+### Round 005 — L01 tiny-csv — no dominance confirmation
+- snapshot: `0625316c7a755fd89fb28ca6dd9f899308e8a25c`
+- workspaces: `/Users/danielpenin/.config/atomic-loop/rounds/codex-vs-atomic-005-20260620174601/{atomic,native}`
+- both started at `npm test` 2/6 and ended 6/6.
+- ATOMIC: 62 changed lines, 1,687 changed-source bytes, 59 changed-source lines, 3 edits, 98,143 tokens, 135.8s observed.
+- NATIVE/Codex: 96 changed lines, 1,631 changed-source bytes, 93 changed-source lines, 136.2s observed.
+- verdict: no dominance confirmation. Atomic won diff lines and source lines, but lost final bytes and edit count; dominance count resets to 0.
+
+### Self-expansion updates landed in this Codex-corrected track
+- L01-B: Atomic Agent CLI driver became legally evolvable by `atomic_expand_self` through a proven multi-root snapshot/rollback scope.
+- L01-A: lean-surface prompt/policy landed.
+- L01-E: agent-driver self-expansion snapshot narrowed to admitted source files only, so dirty ledgers/evidence/tasks no longer poison candidate effects.
+- L01-D: bounded post-green minimization landed and proved; Round 005 transcript shows it reduced an accepted green diff from 93 to 62 and re-ran tests.
+
+### Open gap after Round 005
+- **CODEX-VS-ATOMIC-L01-F — post-green repair instead of pre-edit topology choice.**
+  Atomic can now shrink after green, but it still sometimes writes duplicate topology first and compresses later. Generalist fix: before the first edit, require a bounded topology choice over already-read files: if multiple exported functions need the same semantics, choose one canonical implementation plus wrappers when that preserves API and reduces surface.
+- **CODEX-VS-ATOMIC-L01-C — incomplete native telemetry** remains open: native exact tokens/tool-calls/first-write timing are not exposed by the subagent API.
+
+## Next exact step (Codex-corrected loop)
+Close L01-F via `atomic_expand_self`, then repeat the exact same L01-csv task in fresh isolated workspaces.
+Do not escalate.
+
+## Unification VERIFIED + hardened (2026-06-21)
+Evidence the single-live-instance principle holds within-machine (no fork, all agents → canonical):
+- Source-of-truth: local HEAD == origin/master (no fork/divergence).
+- All 5 host MCP configs (~/.mcp.json, .claude.json, .codex/config.toml, .vibe/config.toml, .agents/mcp.json)
+  point at the canonical launcher core/atomic-edit/atomic-edit-mcp-launcher.sh — no private copies.
+- Propagation: post-commit auto-push + pre-push PROOF-GATE (nothing broken propagates) + launchd
+  com.atomic.unify-sync (loaded, status 0). hooksPath=.githooks.
+- Eliminated a loose end: com.kloel.atomic-relay was a stale orphan (script ~/kloel/.atomic/relay/mac-relay.sh
+  gone → exit 127 KeepAlive loop). Booted out + plist disabled (reversible). unify-sync intact.
+HONEST BOUNDARY: within-machine unification is live + verified; cross-machine/other-host LIVE simultaneous
+execution requires those hosts to run (they pull on session start ≤ git latency) — that's architecture, not
+a claim of literal global instantaneity.
