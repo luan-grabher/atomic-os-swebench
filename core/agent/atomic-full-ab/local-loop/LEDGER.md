@@ -610,3 +610,44 @@ and same-model controls. Single-run total-tokens = noise. (This is why requests-
    per-run variance — the only honest way to support the equalization thesis "por número, em vários repos").
 2. Model-control axis: same-model atomic-Claude (ac.py) on ≥1 discriminating instance every suite.
 3. Escalate to a genuinely multi-file instance once the suite baseline is clean.
+
+---
+
+## Round 011 — SUITE A/B (DeepSeek-atomic compaction-ON vs FROZEN native-Claude, fair no-hint, official Docker)
+- date: 2026-06-21. Native baseline FROZEN (native_baseline_suite.json) — doctrine: native runs ONCE, atomic-only loop hereafter.
+- 5 real SWE-bench-Verified instances, identical no-hint PROBLEM.md both arms, one-shot, official Docker harness, 502-retry.
+
+| instance | ATOMIC resolved | NATIVE resolved | atomic tool-calls | native tool-calls |
+|---|---|---|---|---|
+| requests-1921 | ✅ | ✅ | 9 | 7 |
+| pytest-7982 | ✅ | ✅ | 5 | 5 |
+| pytest-5262 | ✅ | ✅ | 9 (3 failed replaces) | 5 |
+| pylint-7080 | ❌ (0 edits, max-steps) | ❌ (plausible fix fails F2P) | 21 | 11 |
+| flask-5014 | ✅ | ✅ | 6 | 6 |
+| **RESOLVED** | **4/5** | **4/5** | 50 | 34 |
+
+- **RESOLVED-RATE PARITY 4/5 == 4/5** (reproduces S1). Both fail pylint-7080 one-shot: atomic-DeepSeek gave up
+  (0 edits — MODEL gap, capstone-proven that atomic-Claude solves it); native-Claude produced a plausible-but-
+  wrong fix that fails `test_ignore_path_recursive_current_dir`. Neither cross-model arm solves the hard one
+  one-shot → pylint is a hard-task/feedback ceiling, not representation.
+- **Perception-compaction confirmed across the suite:** avg tool-result 6000→~1000 chars (6×). Landed R010.
+- **Tool-calls: atomic 50 > native 34 (atomic behind).** Drivers, attributed honestly:
+  - pylint 21 (0 edits) = MODEL gap (DeepSeek read-loops/quits; not representation — atomic-Claude solves it).
+  - **pytest-5262 = NEW REPRESENTATION WALL (CLASS-EDIT-FRICTION):** atomic_replace fired 4× but applied 1
+    (invalid_states_prevented=3). The first replace "didn't persist" (oldText mismatch) and the failed-edit
+    result gave NO corrective feedback (actual bytes at the site) → 3 BLIND retries of nearly-identical oldText.
+    native's Edit succeeded in 1. Generalist class: exact-oldText replace is brittle, and a failed replace must
+    return the ACTUAL text at the intended location so the model corrects in ONE shot (or anchor/structural
+    fallback). Closeable, generalist, any model/lang.
+  - topology turn (L01-H) still costs ~1 wasted round-trip per task (model emits the edit as DSML prose on the
+    text-only turn) — re-confirmed on pytest-5262 s3. Candidate for isolated removal.
+
+**Verdict R011:** correctness PARITY; atomic behind on tool-calls due to one MODEL gap (pylint) + one
+REPRESENTATION wall (edit-friction) + topology-turn tax. NO dominance → NO escalation. Close the
+representation walls (atomic-only, vs frozen baseline) before anything else.
+
+### Next exact step (R012)
+Close CLASS-EDIT-FRICTION (generalist): on a failed atomic_replace (oldText not found/not unique), return
+actionable feedback — the actual text at the best-match location (and/or nearest anchor) — so the model fixes
+in ONE retry instead of blind-retrying. Validate (agent-gate battery), re-run atomic-only on pytest-5262 +
+the suite, measure tool-call drop vs the FROZEN baseline. Then revisit the topology-turn tax in isolation.
