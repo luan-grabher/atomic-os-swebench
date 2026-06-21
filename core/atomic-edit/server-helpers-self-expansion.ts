@@ -26,7 +26,14 @@ function isEphemeralAtomicFixture(rel: string): boolean {
     rel.includes('/.smoke-') ||
     rel.includes('/.audit-') ||
     rel.includes('/.positive-byte-sessions/') ||
-    rel.includes('/dist/')
+    rel.includes('/dist/') ||
+    // Workspace data directories: these live inside the atomic source root
+    // but are NOT atomic source code. They are user/benchmark data.
+    rel.includes('/.atomic/loop/') ||
+    rel.startsWith('.atomic/loop/') ||
+    rel.includes('/loop-data/') ||
+    rel.startsWith('loop-data/') ||
+    rel.startsWith('dist/')
   );
 }
 
@@ -106,8 +113,35 @@ function admitsUnderSelfSourceRoot(absPath: string): boolean {
   return !isEphemeralAtomicFixture(rel);
 }
 
+const ATOMIC_AGENT_CLI_SELF_EXPANSION_ROOT_REL = 'core/agent/atomic-full-ab/local-loop';
+const ATOMIC_AGENT_CLI_SELF_EXPANSION_SOURCE_FILES = new Set([
+  'local_atomic_agent.py',
+  'swe_gate.sh',
+  'swe_suite_setup.py',
+]);
+
+export function atomicAgentCliSelfExpansionRootRel(): string {
+  return ATOMIC_AGENT_CLI_SELF_EXPANSION_ROOT_REL;
+}
+
+export function atomicAgentCliSelfExpansionSourceRelPaths(): string[] {
+  return Array.from(
+    ATOMIC_AGENT_CLI_SELF_EXPANSION_SOURCE_FILES,
+    (file) => ATOMIC_AGENT_CLI_SELF_EXPANSION_ROOT_REL + '/' + file,
+  );
+}
+
+export function isAtomicAgentCliSelfExpansionPath(repoRoot: string, absPath: string): boolean {
+  const rel = normalizeRel(path.relative(repoRoot, absPath));
+  const prefix = ATOMIC_AGENT_CLI_SELF_EXPANSION_ROOT_REL + '/';
+  if (!rel.startsWith(prefix)) return false;
+  const rest = rel.slice(prefix.length);
+  if (!rest || rest.includes('/')) return false;
+  return ATOMIC_AGENT_CLI_SELF_EXPANSION_SOURCE_FILES.has(rest);
+}
+
 export function isAtomicSelfExpansionPath(repoRoot: string, absPath: string): boolean {
-  return admitsUnderLegacyScriptsPath(repoRoot, absPath) || admitsUnderSelfSourceRoot(absPath);
+  return admitsUnderLegacyScriptsPath(repoRoot, absPath) || admitsUnderSelfSourceRoot(absPath) || isAtomicAgentCliSelfExpansionPath(repoRoot, absPath);
 }
 
 export function atomicSelfSourceRoot(): string {
