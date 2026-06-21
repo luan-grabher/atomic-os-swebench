@@ -1,0 +1,13 @@
+{
+  "_doc": "FROZEN native-Claude baseline (fair no-hint, one-shot, source-only). Reused across atomic-only rounds; do NOT re-run native per round (token waste, prohibited per doctrine). Captured 2026-06-21.",
+  "model": "claude (subagent, native tools only)",
+  "protocol": "fair identical no-hint PROBLEM.md; discovery part of task; no test execution (one-shot)",
+  "instances": {
+    "requests-1921": {"tool_uses": 7, "files_changed": 1, "reads_to_locate": 4, "fix": "merge_setting: strip None from merged dict"},
+    "pytest-7982":  {"tool_uses": 5, "files_changed": 1, "reads_to_locate": 2, "fix": "pathlib visit(): remove follow_symlinks=False"},
+    "pytest-5262":  {"tool_uses": 5, "files_changed": 1, "reads_to_locate": 2, "fix": "EncodedFile.mode property strips 'b'"},
+    "pylint-7080":  {"tool_uses": 11, "files_changed": 1, "reads_to_locate": 6, "fix": "_discover_files: _is_ignored_file on yielded files"},
+    "flask-5014":   {"tool_uses": 6, "files_changed": 1, "reads_to_locate": 3, "fix": "Blueprint.__init__ empty-name ValueError"}
+  },
+  "totals": {"tool_uses": 34, "files": 5, "all_single_file": true}
+}
