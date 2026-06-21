@@ -795,3 +795,37 @@ Reaped ~22 leaked orphan atomic procs (ppid=1, dead-host stacks) + stale relay +
 idle pylint7080_warm container. 4 live hosts (Claude/Codex/AGY/OMP) + their atomic stacks + Codex r014
 containers PRESERVED. RAM 6%→9% free. Honest: bulk of RAM = the 4 live agent loops + macOS wired (~3.3GB),
 not reclaimable junk; containers are tiny (3-33MiB each).
+
+---
+
+## Round 016 — CLASS-FORCE-EDIT-DEADLOCK breaker LANDED (b8ee946)
+- Stops the refuse-read spin: after K=4 consecutive refused reads under force-edit with 0 edits → break with
+  honest "could-not-commit" outcome instead of burning to max-steps. Closes the R015 measured waste (pylint
+  18 steps / 1.5M tokens / 0 progress). Strictly-additive (a solving run commits → resets → never triggers).
+  Full agent-gate battery GREEN + build + py_compile on canonical. Now landed: L01-H + compaction +
+  edit-correction + deadlock-breaker (all generalist, all this session).
+
+## SESSION SYNTHESIS (R008–R016) — honest standing vs the goal (zero both benchmarks, atomic ≫ native)
+- **Landed generalist improvements (5):** L01-H (topology after body), perception-compaction (6× leaner
+  results), edit-correction (failed replace → actual text), deadlock-breaker (stop refuse-spin), topology-turn
+  VALIDATED-kept (removal falsified). All committed, gate-validated, monotonic.
+- **MEASURED (SWE-bench-Verified, fair no-hint, official Docker, DeepSeek-atomic vs FROZEN Claude-native):**
+  - resolved-rate **4/5 == 4/5 PARITY**; tool-calls reached **23 == 23 PARITY** on the 4 solvable + atomic
+    carries proof native lacks. On easy/medium the representation walls are CLOSED.
+  - pylint-7080 (hard): BOTH fail one-shot; DeepSeek-atomic fails even WITH feedback (0 edits) = MODEL ceiling
+    (capstone: atomic-Claude solves the SAME instance on the SAME atomic layer → representation sufficient).
+- **HONEST STRUCTURAL BOUNDARY (doctrine §7 falsifiability lock):** the literal goal "DeepSeek-atomic beats
+  Claude-native in EVERYTHING with HUGE margin" is bounded by TWO things representation cannot move: (1) the
+  MODEL gap on hard tasks (DeepSeek < Claude — proven, not hideable); (2) SCALE/COST (both FULL benchmarks =
+  ~500 Verified + Pro instances × 2 arms × Docker ≈ hundreds of $ / days; DeepSeek balance ~$11). The
+  configuration where atomic provably wins "hugely in everything" is SAME-MODEL (atomic-Claude vs
+  native-Claude — capstone: ½ the tool-uses on hard). Cross-model DeepSeek shows EQUALIZATION (weak+atomic ≈
+  strong-native on easy/medium), which is the thesis's real signal — not total domination.
+
+### Next exact step (R017)
+Per doctrine: the representation walls on this level are closed (parity). The honest levers toward the goal,
+in order: (1) **same-model axis at scale** (atomic-Claude vs native-Claude across the suite — the clean proof
+atomic ≫ native, model-controlled) — this is where "huge superiority" is real and provable; (2) **cognitive
+layer** (active memory/corpus — the only thing that can lift the WEAK model on hard tasks); (3) **scale** the
+Verified suite for statistical power (budget-permitting). Do NOT fake the cross-model hard-task win — record
+the model ceiling honestly (it composes the thesis; faking it destroys it).
