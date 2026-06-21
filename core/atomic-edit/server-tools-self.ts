@@ -6,7 +6,14 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { resolveSafeTarget, REPO_ROOT } from './guard.js';
 import { guardSha, atomicWrite, readUtf8, sha256, targetDetails } from './server-helpers-io.js';
-import { withSelfExpansionAdmission, isAtomicSelfExpansionPath, atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
+import {
+  withSelfExpansionAdmission,
+  isAtomicSelfExpansionPath,
+  isAtomicAgentCliSelfExpansionPath,
+  atomicAgentCliSelfExpansionRootRel,
+  atomicAgentCliSelfExpansionSourceRelPaths,
+  atomicSelfSourceRoot,
+} from './server-helpers-self-expansion.js';
 import { ok, fail } from './server-helpers-result.js';
 import {
   captureEffectSnapshot,
@@ -59,7 +66,11 @@ function isSelfExpansionInfraAbsence(p: { command: string; ok: boolean; stdout?:
   if (p.ok) return false;
   if (!HOST_DEPENDENT_SELF_EXPANSION_PROOFS.has(p.command)) return false;
   const blob = String(p.stdout ?? '') + '\n' + String(p.stderr ?? '');
-  return /Connection closed|-32000|ECONNREFUSED|broker timed out|proof broker timed out|entrypointGreen"?\s*:\s*false|MCP error|budget exhausted/i.test(blob);
+  // Host-dependent proofs also abstain with UNJUDGED domain statuses (distFreshness/
+  // childAtomicityAuditStatus) when the live broker/admission infra is absent — that is
+  // infra-absence, NOT a real regression. Recognizing it unblocks atomic_expand_self from
+  // standalone/non-admitted contexts (the omp-vs-atomic A/B loop hit this false-block).
+  return /Connection closed|-32000|ECONNREFUSED|broker timed out|proof broker timed out|entrypointGreen"?\s*:\s*false|MCP error|budget exhausted|"distFreshness"?\s*:\s*"UNJUDGED"|"childAtomicityAuditStatus"?\s*:\s*"UNJUDGED"/i.test(blob);
 }
 
 const MANDATORY_SELF_EXPANSION_VALIDATORS: readonly SelfExpansionValidator[] = [
@@ -235,6 +246,7 @@ const MANDATORY_SELF_EXPANSION_VALIDATORS: readonly SelfExpansionValidator[] = [
   { phase: 'effect-admission', command: 'node gates/atomic-exec-prove-effect-required.proof.mjs --json' },
   { phase: 'no-bypass', command: 'node gates/atomic-exec-indirection-denial.proof.mjs --json' },
   { phase: 'effect-scope', command: 'node gates/self-expansion-unexpected-effects.proof.mjs --json' },
+  { phase: 'agent-driver-self-scope', command: 'node gates/atomic-agent-self-expansion-scope.proof.mjs --json' },
   { phase: 'self-evolution-real', command: 'node gates/self-expansion-real-self-evolution.proof.mjs --json' },
   { phase: 'generative', command: 'node gates/hypothesis-generator.proof.mjs --json' },
   { phase: 'generative', command: 'node gates/autonomous-evolution.proof.mjs --json' },
@@ -372,11 +384,74 @@ const PROOF_OUTPUT_MAX_BYTES = 32 * 1024 * 1024;
 const SELF_EXPANSION_SNAPSHOT_MAX_FILE_BYTES = 128 * 1024 * 1024;
 const SELF_EXPANSION_SNAPSHOT_MAX_BYTES = 512 * 1024 * 1024;
 
-function captureSelfExpansionSnapshot(selfRoot: string): EffectSnapshot {
+interface SelfExpansionSnapshotBundle extends EffectSnapshot {
+  primary: EffectSnapshot;
+  agentCli: EffectSnapshot | null;
+}
+
+interface SelfExpansionEffectBundle {
+  primary: FileEffect[];
+  agentCli: FileEffect[];
+  effects: FileEffect[];
+}
+
+function capturePrimarySelfExpansionSnapshot(selfRoot: string): EffectSnapshot {
   return captureEffectSnapshot(selfRoot, {
     maxFileBytes: SELF_EXPANSION_SNAPSHOT_MAX_FILE_BYTES,
     maxBytes: SELF_EXPANSION_SNAPSHOT_MAX_BYTES,
   });
+}
+
+function selfExpansionTouchesAtomicAgentCli(ops: SelfFileOp[]): boolean {
+  return ops.some((op) => {
+    const { absPath } = resolveSafeTarget(op.file);
+    return isAtomicAgentCliSelfExpansionPath(REPO_ROOT, absPath);
+  });
+}
+
+function captureSelfExpansionSnapshot(selfRoot: string, ops: SelfFileOp[] = []): SelfExpansionSnapshotBundle {
+  const primary = capturePrimarySelfExpansionSnapshot(selfRoot);
+  const agentCli = selfExpansionTouchesAtomicAgentCli(ops)
+    ? captureEffectSnapshot(REPO_ROOT, {
+        includeRel: atomicAgentCliSelfExpansionSourceRelPaths(),
+        maxFileBytes: SELF_EXPANSION_SNAPSHOT_MAX_FILE_BYTES,
+        maxBytes: SELF_EXPANSION_SNAPSHOT_MAX_BYTES,
+      })
+    : null;
+  return Object.assign(primary, { primary, agentCli });
+}
+
+function captureSelfExpansionCandidateSnapshot(selfRoot: string): EffectSnapshot {
+  return capturePrimarySelfExpansionSnapshot(selfRoot);
+}
+
+function diffSelfExpansionSnapshot(snap: SelfExpansionSnapshotBundle): SelfExpansionEffectBundle {
+  const primary = diffEffect(snap.primary);
+  const agentCli = snap.agentCli ? diffEffect(snap.agentCli) : [];
+  return { primary, agentCli, effects: [...primary, ...agentCli] };
+}
+
+function rollbackSelfExpansionSnapshotStrict(snap: SelfExpansionSnapshotBundle, effects: SelfExpansionEffectBundle, action: string): number {
+  let restored = 0;
+  const failures: string[] = [];
+  if (snap.agentCli) {
+    try {
+      restored += rollbackEffectStrict(snap.agentCli, effects.agentCli, action + ':agent-cli');
+    } catch (error) {
+      failures.push(error instanceof Error ? error.message : String(error));
+    }
+  }
+  try {
+    restored += rollbackEffectStrict(snap.primary, effects.primary, action);
+  } catch (error) {
+    failures.push(error instanceof Error ? error.message : String(error));
+  }
+  if (failures.length > 0) throw new Error(failures.join('; '));
+  return restored;
+}
+
+function selfExpansionSnapshotLimitReached(snap: SelfExpansionSnapshotBundle): boolean {
+  return snap.primary.limitReached || Boolean(snap.agentCli?.limitReached);
 }
 
 function appendProofOutput(current: string, chunk: Buffer | string, maxBytes = PROOF_OUTPUT_MAX_BYTES): string {
@@ -488,11 +563,17 @@ function runProofCommandDirect(
   });
 }
 
-function runProofCommandViaBroker(command: string, cwd: string, timeoutMs: number): Promise<ProofCommandResult | null> {
+function runProofCommandViaBroker(
+  command: string,
+  cwd: string,
+  timeoutMs: number,
+  proofEnv: NodeJS.ProcessEnv = selfExpansionProofEnv(selfExpansionBrokerSocketPath(), command),
+): Promise<ProofCommandResult | null> {
   const socket = selfExpansionBrokerSocketPath();
   if (!socket) return Promise.resolve(null);
-  const brokerRoot = process.env.ATOMIC_HOST_WRITE_ROOT ?? REPO_ROOT;
-  const codexHome = process.env.CODEX_HOME ?? path.join(brokerRoot, '.codex');
+  const brokerRoot = proofEnv.ATOMIC_HOST_WRITE_ROOT ?? process.env.ATOMIC_HOST_WRITE_ROOT ?? REPO_ROOT;
+  const codexHome = proofEnv.CODEX_HOME ?? process.env.CODEX_HOME ?? path.join(brokerRoot, '.codex');
+  const brokerTempRoot = proofEnv.TMPDIR ?? selfExpansionProofTempRoot(brokerRoot);
   const client = path.join(atomicSelfSourceRoot() ?? REPO_ROOT, 'atomic-exec-broker-client.mjs');
   const req = {
     command,
@@ -501,15 +582,18 @@ function runProofCommandViaBroker(command: string, cwd: string, timeoutMs: numbe
     timeoutMs,
     env: {
       ATOMIC_BUILD_BROKER: '1',
-      ATOMIC_HOST_ATOMIC_ONLY: process.env.ATOMIC_HOST_ATOMIC_ONLY ?? '1',
-      ATOMIC_HOST_SANDBOX: process.env.ATOMIC_HOST_SANDBOX ?? 'macos-sandbox-exec',
+      ATOMIC_HOST_ATOMIC_ONLY: proofEnv.ATOMIC_HOST_ATOMIC_ONLY ?? process.env.ATOMIC_HOST_ATOMIC_ONLY ?? '1',
+      ATOMIC_HOST_SANDBOX: proofEnv.ATOMIC_HOST_SANDBOX ?? process.env.ATOMIC_HOST_SANDBOX ?? 'macos-sandbox-exec',
       ATOMIC_HOST_WRITE_ROOT: brokerRoot,
       ATOMIC_EXEC_BROKER_SOCKET: socket,
+      ATOMIC_SINGLE_TOOL_CALL: '',
+      ATOMIC_SINGLE_TOOL_NAME: '',
+      ATOMIC_SINGLE_TOOL_ARGS_JSON: '',
       CODEX_HOME: codexHome,
       CODEX_PROJECT_DIR: brokerRoot,
-      TMPDIR: brokerRoot,
-      TMP: brokerRoot,
-      TEMP: brokerRoot,
+      TMPDIR: brokerTempRoot,
+      TMP: brokerTempRoot,
+      TEMP: brokerTempRoot,
     },
   };
   return new Promise((resolve) => {
@@ -613,27 +697,45 @@ function selfExpansionProofRoot(): string {
 
 function selfExpansionProofTempRoot(hostRoot: string): string {
   const requested = process.env.TMPDIR ? path.resolve(process.env.TMPDIR) : '';
-  const selfRoot = REPO_ROOT;
-  if (requested === selfRoot || requested.startsWith(selfRoot + path.sep)) return requested;
-  return hostRoot;
+  const selfRoot = path.resolve(atomicSelfSourceRoot());
+  const host = path.resolve(hostRoot);
+  const insideSelfRoot = requested === selfRoot || requested.startsWith(selfRoot + path.sep);
+  const insideHostRoot = requested === host || requested.startsWith(host + path.sep);
+  if (requested && !insideSelfRoot && !insideHostRoot) return requested;
+  const fallback = path.join(host, '.atomic', 'self-expansion-proof-tmp');
+  fs.mkdirSync(fallback, { recursive: true });
+  return fallback;
 }
 
 function selfExpansionProofSuppressesNestedBroker(command: string): boolean {
   return command.includes('effect-metadata-mode.proof.mjs');
 }
 
-function selfExpansionHostProofEnv(socket: string, cwd: string, command: string): NodeJS.ProcessEnv {
+function selfExpansionProofEnv(socket: string | null, command: string): NodeJS.ProcessEnv {
   const hostRoot = selfExpansionProofRoot();
   const tempRoot = selfExpansionProofTempRoot(hostRoot);
   const suppressNestedBroker = selfExpansionProofSuppressesNestedBroker(command);
-  const inheritBroker = !suppressNestedBroker;
+  const inheritBroker = Boolean(socket && !suppressNestedBroker);
+  // SCRUB single-tool delegation env so it cannot leak into gate subprocesses. This env is built for
+  // a gate running inside an atomic_expand_self validation lattice, which may itself be delegated through
+  // a fresh single-tool runtime (ATOMIC_SINGLE_TOOL_CALL=1). If those vars reach a gate that spawns
+  // its own atomic server to read live state (doc-honesty list_tools count, mcp-tool-list-compact,
+  // lsp-mesh-e2e, compiled-mcp-y-certificate), the nested server starts in single-tool mode and
+  // reports 0/1 tools instead of the full MCP surface — a deterministic-but-false RED that appears
+  // ONLY under self-expansion and never standalone. Generalist: closes the 'gate green standalone,
+  // red under atomic_expand_self' env-contamination class for every gate that introspects a live
+  // atomic server, regardless of whether a host proof broker is available.
+  const cleanProofEnv = { ...process.env };
+  delete cleanProofEnv.ATOMIC_SINGLE_TOOL_CALL;
+  delete cleanProofEnv.ATOMIC_SINGLE_TOOL_NAME;
+  delete cleanProofEnv.ATOMIC_SINGLE_TOOL_ARGS_JSON;
   return {
-    ...process.env,
+    ...cleanProofEnv,
     ATOMIC_BUILD_BROKER: '1',
     ATOMIC_HOST_ATOMIC_ONLY: inheritBroker ? process.env.ATOMIC_HOST_ATOMIC_ONLY || '1' : '',
     ATOMIC_HOST_SANDBOX: inheritBroker ? process.env.ATOMIC_HOST_SANDBOX || 'macos-sandbox-exec' : '',
     ATOMIC_HOST_WRITE_ROOT: hostRoot,
-    ATOMIC_EXEC_BROKER_SOCKET: inheritBroker ? socket : '',
+    ATOMIC_EXEC_BROKER_SOCKET: inheritBroker && socket ? socket : '',
     ATOMIC_EXEC_BROKER_ROOT: '',
     ATOMIC_ALLOW_NESTED_PROOF_BROKER: inheritBroker ? '1' : '',
     CODEX_HOME: process.env.CODEX_HOME ?? path.join(hostRoot, '.codex'),
@@ -681,10 +783,11 @@ async function runSingleProofCommand(command: string, cwd: string, deadlineMs: n
   }
   const timeout = proofTimeoutForDeadline(command, deadlineMs);
   const socket = selfExpansionBrokerSocketPath();
+  const proofEnv = selfExpansionProofEnv(socket, command);
   if (socket && selfExpansionProofMustRunHostDirect(command)) {
-    return runProofCommandDirect(command, cwd, timeout, selfExpansionHostProofEnv(socket, cwd, command));
+    return runProofCommandDirect(command, cwd, timeout, proofEnv);
   }
-  return (await runProofCommandViaBroker(command, cwd, timeout)) ?? runProofCommandDirect(command, cwd, timeout);
+  return (await runProofCommandViaBroker(command, cwd, timeout, proofEnv)) ?? runProofCommandDirect(command, cwd, timeout, proofEnv);
 }
 
 type ProofQueueItem = { command: string; index: number; priority: number };
@@ -1567,7 +1670,7 @@ export function registerToolsSelf(server: McpServer): void {
             claimedPreflightDisproofBriefingDigest === null ||
             claimedPreflightDisproofBriefingDigest === computedPreflightDisproofBriefingDigest,
         };
-        const snap = captureSelfExpansionSnapshot(selfRoot);
+        const snap = captureSelfExpansionSnapshot(selfRoot, ops);
         try {
           const guardedSelfPaths = new Set<string>();
           const applied = withSelfExpansionAdmission(() => ops.map((op) => applySelfFileOp(op, guardedSelfPaths)));
@@ -1590,12 +1693,12 @@ export function registerToolsSelf(server: McpServer): void {
             process.stderr.write(`[atomic_expand_self] ${skippedInfraAbsent.length} host-dependent validator(s) ABSTAINED (unjudged, infra absent): ${skippedInfraAbsent.map((p) => p.command).join(', ')}\n`);
           }
           if (failed.length > 0) {
-            const effectsBeforeRejectRollback = diffEffect(snap);
-            const rejectionCandidateSnap = captureSelfExpansionSnapshot(selfRoot);
+            const effectsBeforeRejectRollback = diffSelfExpansionSnapshot(snap);
+            const rejectionCandidateSnap = captureSelfExpansionCandidateSnapshot(selfRoot);
             const rejectionReceipt = buildRealSelfExpansionPromotionReceipt({
-              parentSnap: snap,
+              parentSnap: snap.primary,
               candidateSnap: rejectionCandidateSnap,
-              effectsBeforePromotion: effectsBeforeRejectRollback,
+              effectsBeforePromotion: effectsBeforeRejectRollback.effects,
               proofs,
               proofCommands,
               proofDurationMs,
@@ -1603,12 +1706,12 @@ export function registerToolsSelf(server: McpServer): void {
               preflightDisproofBriefing: admittedPreflightDisproofBriefing,
               intent: a.intent ?? null,
             });
-            const restored = rollbackEffectStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self');
+            const restored = rollbackSelfExpansionSnapshotStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self');
             const selfEvolutionReject = recordSelfEvolutionRejection(selfRoot, {
               receipt: rejectionReceipt,
               reason: 'proof failed',
               failedProofs: failed,
-              effectsBeforeRollback: effectsBeforeRejectRollback,
+              effectsBeforeRollback: effectsBeforeRejectRollback.effects,
               intent: a.intent ?? null,
             });
             return fail(
@@ -1617,13 +1720,13 @@ export function registerToolsSelf(server: McpServer): void {
                 `; selfEvolutionReject=${stableJson({ rejections: selfEvolutionReject.rejections, archive: selfEvolutionReject.archive, disproofCorpus: selfEvolutionReject.disproofCorpus, nextDisproofBriefing: selfEvolutionReject.nextDisproofBriefing })}`,
             );
           }
-          const effectsBeforePromotion = diffEffect(snap);
-          assertNoUnexpectedSelfExpansionEffects(effectsBeforePromotion, applied);
-          const candidateSnap = captureSelfExpansionSnapshot(selfRoot);
+          const effectsBeforePromotion = diffSelfExpansionSnapshot(snap);
+          assertNoUnexpectedSelfExpansionEffects(effectsBeforePromotion.effects, applied);
+          const candidateSnap = captureSelfExpansionCandidateSnapshot(selfRoot);
           const promotionReceipt = buildRealSelfExpansionPromotionReceipt({
-            parentSnap: snap,
+            parentSnap: snap.primary,
             candidateSnap,
-            effectsBeforePromotion,
+            effectsBeforePromotion: effectsBeforePromotion.effects,
             proofs,
             proofCommands,
             proofDurationMs,
@@ -1632,13 +1735,13 @@ export function registerToolsSelf(server: McpServer): void {
             intent: a.intent ?? null,
           });
           if (promotionReceipt.decision !== 'promote') {
-            const effectsBeforeRejectRollback = diffEffect(snap);
-            const restored = rollbackEffectStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self');
+            const effectsBeforeRejectRollback = diffSelfExpansionSnapshot(snap);
+            const restored = rollbackSelfExpansionSnapshotStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self');
             const selfEvolutionReject = recordSelfEvolutionRejection(selfRoot, {
               receipt: promotionReceipt,
               reason: 'promotion rejected',
               failedProofs: [],
-              effectsBeforeRollback: effectsBeforeRejectRollback,
+              effectsBeforeRollback: effectsBeforeRejectRollback.effects,
               intent: a.intent ?? null,
             });
             const rejections = Array.isArray(promotionReceipt.rejections)
@@ -1659,8 +1762,8 @@ export function registerToolsSelf(server: McpServer): void {
           } catch {
             /* baseline persistence is best-effort; the check already passed */
           }
-          const effects = diffEffect(snap);
-          assertNoUnexpectedSelfExpansionEffects(effects, applied);
+          const effects = diffSelfExpansionSnapshot(snap);
+          assertNoUnexpectedSelfExpansionEffects(effects.effects, applied);
           return ok({
             ok: true,
             changed: true,
@@ -1672,9 +1775,9 @@ export function registerToolsSelf(server: McpServer): void {
             })),
             proofs: proofs.map((p) => ({ command: p.command, ok: p.ok })),
             effect: {
-              changedFiles: effects.length,
-              limitReached: snap.limitReached,
-              files: effects,
+              changedFiles: effects.effects.length,
+              limitReached: selfExpansionSnapshotLimitReached(snap),
+              files: effects.effects,
             },
             selfEvolution: {
               promotionReceipt,
@@ -1685,8 +1788,8 @@ export function registerToolsSelf(server: McpServer): void {
             admission: 'self-expansion-validator-lattice-green-and-darwin-godel-promoted',
           });
         } catch (e) {
-          const effects = diffEffect(snap);
-          const restored = rollbackEffectStrict(snap, effects, 'atomic_expand_self');
+          const effects = diffSelfExpansionSnapshot(snap);
+          const restored = rollbackSelfExpansionSnapshotStrict(snap, effects, 'atomic_expand_self');
           const message = e instanceof Error ? e.message : String(e);
           return fail(`atomic_expand_self rolled back ${restored} file effect(s): ${message}`);
         }
