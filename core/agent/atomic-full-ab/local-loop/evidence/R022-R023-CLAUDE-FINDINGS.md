@@ -327,3 +327,13 @@ gate). s1 gate_pass=True (2 edits/3 tests), s2 gate_pass=True (4 edits/4 tests) 
 GATE-ON resolves it RELIABLY (3/3). The proof-carrying iterate loop is the differentiator on a hard algorithm —
 atomic's core value, confirmed by number on a 2nd hard instance (pylint-7080 was the 1st).** The model iterates
 on real test feedback (pass=14/1→15/0) to converge where blind one-shot cannot.
+
+## ★ R045 CORRECTION (honest, multi-sample): gate-ON pylint-8898 = 3/4 (~75%), NOT 3/3 — and s3 reveals a wall
+s3 gate_pass=False → gate-ON N=3 = 2/3 (s1✓ s2✓ s3✗); with R044 = 3/4 (~75%). So the honest verdict: atomic
+GATE-ON on pylint-8898 ≈ 75% vs one-shot ~25% — the proof-carrying loop is a SUBSTANTIAL reliability boost on the
+hard algorithm, NOT a guarantee. s3 DIAGNOSIS (a real generalist wall): at s24 the model REACHED pass=15/fail=0
+(all_green — it HAD the fix!), then kept editing → s29+ pass=0 (broke it), never recovered, hit max-steps=60.
+**CLASS-GREEN-THEN-BROKE: the agent lets the model edit PAST a green gate and break it without preserving the
+green state.** Fix direction: snapshot the diff each time the gate goes green; at finalize (or when a later edit
+breaks green), RESTORE the last-green diff so the final answer is the best green reached. This would flip s3 to a
+win (gate-ON → 4/4). Generalist (any over-editing past green). Next demolition.
