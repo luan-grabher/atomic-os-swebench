@@ -24,7 +24,7 @@ atomic property), reads, diff surface (lines), tokens, wall time, and a transcri
 import json, os, re, sys, time, signal, argparse, subprocess, urllib.request
 from pathlib import Path
 
-API_KEY = os.environ["DEEPSEEK_API_KEY"]
+API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-pro")
 NODE = os.environ.get("ATOMIC_NODE_BIN", "node")
 ATOMIC_CALL = os.environ.get(
@@ -759,6 +759,12 @@ def main():
     ap.add_argument("--max-steps", type=int, default=60)
     args = ap.parse_args()
 
+    if not API_KEY:
+        raise SystemExit(
+            "DEEPSEEK_API_KEY is required in the environment. "
+            "Do not pass secrets on the command line or store them in code."
+        )
+
     workdir = str(Path(args.workdir).resolve())
     task = Path(args.task).read_text()
     tree = subprocess.run(["git", "ls-files"], cwd=workdir, capture_output=True, text=True).stdout
@@ -826,6 +832,7 @@ def main():
 
     last_pass = False
     last_green_diff = None   # CLASS-GREEN-THEN-BROKE: the best gate-green diff reached (restored at finalize if broken)
+    read_coverage = {}       # CLASS-OVERLAPPING-REREAD (WFB WALL-1): file -> list of (start,end) line ranges already returned
     reads_since_edit = 0
     # CLASS-FORCE-EDIT-TOO-RIGID (R030, generalist): the force-edit lockout fired on TOTAL reads_since_edit >= 12,
     # which on a genuinely hard multi-file task (pylint-7080: the model read _discover_files, _expand_files,
@@ -839,6 +846,8 @@ def main():
     force_refused = 0  # CLASS-FORCE-EDIT-DEADLOCK: consecutive refused reads under force-edit (deadlock-spin detector)
     green_minimize_prompted = False
     green_minimize_active = False
+    green_minimize_finalized = False  # CLASS-GREEN-MINIMIZE-RETEST-GREEN-FINALIZE: once post-green minimization
+    # is retested green, stop the round immediately instead of returning to full tools and spending more reads/edits.
     green_minimize_comment_surface_reduced = False  # CLASS-GREEN-MINIMIZE-DECLINE-COST (F1c): when F1b/F1d
     # deterministically reduce comment-only surface, DECLINE's forced minimize re-prompt is redundant because the
     # non-behavioral reduction already happened. Structural/hunk reducers (F4/F2b) do not set this: they prove one
@@ -875,6 +884,25 @@ def main():
                 str(_a.get("selector") or _a.get("pattern") or _a.get("startLine") or ""))
     def _redundant_reads():  # reads that did NOT surface a new target = the real paralysis signal
         return max(0, reads_since_edit - len(distinct_since_edit))
+    # CLASS-OVERLAPPING-REREAD (WFB WALL-1, generalist): the exact-key redundant gate misses OVERLAPPING line
+    # ranges (read 340-380, then 330-420, then 260-330 …) — the dominant token tax (astropy: 39 reads, fixedwidth.py
+    # re-read ~15× at overlapping ranges, 327k tokens / 377s for an 8-line diff). Track per-file covered intervals;
+    # a new range that is ≥85% already-covered (and the file is UNEDITED since) is a redundant re-read → serve a
+    # compact note instead of re-returning the content (the model already has it in history). Any file/lang.
+    def _iv_covered(_file, _s, _e):
+        ivs = read_coverage.get(_file)
+        if not ivs or _e < _s:
+            return False
+        span = _e - _s + 1
+        covered = 0
+        for a0, b0 in ivs:
+            lo, hi = max(_s, a0), min(_e, b0)
+            if hi >= lo:
+                covered += hi - lo + 1
+        return span > 0 and (covered / span) >= 0.85
+    def _iv_record(_file, _s, _e):
+        if _file and _e >= _s:
+            read_coverage.setdefault(_file, []).append((_s, _e))
 
     for step in range(1, args.max_steps + GREEN_MINIMIZE_MAXSTEP_RESERVE + 1):
         _pending_green_minimize = (last_pass and not green_minimize_prompted and not NO_GATE)
@@ -1071,7 +1099,8 @@ def main():
                 metrics["transcript"].append(f"s{step} PRE-EDIT-TOPOLOGY decision: {decision}")
                 pre_edit_topology_active = False
                 empties = 0
-                messages.append({"role": "user", "content": "Now implement that topology with the smallest faithful atomic edit(s), then run_tests."})
+                _topo_tail = " Then STOP with a short summary." if NO_GATE else ", then run_tests."  # CLASS-NONEXISTENT-RUN-TESTS (WFB WALL-6)
+                messages.append({"role": "user", "content": "Now implement that topology with the smallest faithful atomic edit(s)" + _topo_tail})
                 continue
             green_minimize_refusal_limit = 2 if green_minimize_helper_surface else 1
             if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < green_minimize_refusal_limit and not green_minimize_comment_surface_reduced:
@@ -1232,6 +1261,7 @@ def main():
                             if minimized_lines < green_minimize_start_lines:
                                 metrics["transcript"].append(
                                     f"s{step} GREEN-MINIMIZE result diff_lines={minimized_lines} start={green_minimize_start_lines} (SHRUNK, accepted)")
+                                green_minimize_finalized = True  # CLASS-GREEN-MINIMIZE-RETEST-GREEN-FINALIZE
                             else:
                                 # F1 CLASS-GREEN-MINIMIZE-NOSHRINK: a minimize edit that did NOT strictly reduce
                                 # surface is byte-negative (it claimed to shrink but didn't). REJECT it: restore the
@@ -1241,9 +1271,11 @@ def main():
                                         open(os.path.join(workdir, _cf), "w", encoding="utf-8").write(_c)
                                     except Exception:
                                         pass
+                                last_green_diff = git_diff(workdir)
                                 metrics["invalid_states_prevented"] += 1
                                 metrics["transcript"].append(
                                     f"s{step} GREEN-MINIMIZE REJECTED (did not shrink: {green_minimize_start_lines}->{minimized_lines}); reverted to pre-minimize green state")
+                                green_minimize_finalized = True  # CLASS-GREEN-MINIMIZE-RETEST-GREEN-FINALIZE
                             green_minimize_active = False
                 metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
             elif fn == "quick_check":
@@ -1284,24 +1316,45 @@ def main():
                     call_args = {"file": a.get("path", ""), "includeContent": True}
                     if a.get("startLine"): call_args["startLine"] = a["startLine"]
                     if a.get("endLine"): call_args["endLine"] = a["endLine"]
+                # CLASS-OVERLAPPING-REREAD (WFB WALL-1): suppress a line-range read already ≥85% covered by prior
+                # reads of the same unedited file. Counts as a redundant read (feeds the force-edit signal) but
+                # does NOT re-return content — the model has it above; this kills the overlapping-reread token tax.
+                _suppress_note = None
+                if fn == "atomic_read" and (a.get("startLine") or a.get("endLine")):
+                    _sf = a.get("path", ""); _ss = int(a.get("startLine") or 1)
+                    _se = int(a.get("endLine") or (_ss + 80))
+                    if _iv_covered(_sf, _ss, _se):
+                        _suppress_note = (f"[ALREADY READ] {_sf}:{_ss}-{_se} was returned earlier and is UNCHANGED — "
+                                          f"you have it in context above. Do NOT re-read it; make the edit now with "
+                                          f"atomic_replace, or read a DIFFERENT range/symbol you have not seen yet.")
                 if fn in ("atomic_read", "atomic_outline", "atomic_grep", "atomic_survey", "atomic_read_many", "atomic_callers"):
                     metrics["reads"] += 1
                     reads_since_edit += 1
-                    distinct_since_edit.add(_read_target_key(fn, a))  # breadth tracker (CLASS-FORCE-EDIT-TOO-RIGID)
+                    if _suppress_note is not None:
+                        metrics["reads_suppressed"] = metrics.get("reads_suppressed", 0) + 1
+                    else:
+                        distinct_since_edit.add(_read_target_key(fn, a))  # breadth tracker (CLASS-FORCE-EDIT-TOO-RIGID)
                 # L01-H: choose topology only after BODY-level context (real code bodies), not mere
                 # navigation (survey/outline/grep). Track body reads separately so the pre-edit topology
                 # turn fires after atomic_read/atomic_read_many — generalist (any model, any task).
                 if fn in ("atomic_read", "atomic_read_many"):
                     metrics["body_context_reads"] += 1
                 before = git_diff(workdir)
-                res, ok = atomic_call(workdir, tool, call_args)
-                # CLASS-SELECTOR-NOT-FOUND-DEADEND (R049): a selector read that the resolver can't find (ambiguous/
-                # overloaded class methods) must not dead-end into fragmented re-reads — grep the def(s) and return
-                # the bodies so the model gets what it asked for in one shot.
-                if fn == "atomic_read" and a.get("selector") and ("not found" in res.lower() and "selector" in res.lower()):
-                    fb = _selector_fallback(workdir, a.get("path", ""), a.get("selector"))
-                    if fb:
-                        res = fb
+                if _suppress_note is not None:
+                    res, ok = _suppress_note, True
+                    metrics["transcript"].append(f"s{step} atomic_read SUPPRESSED (overlapping re-read of {_sf}:{_ss}-{_se})")
+                else:
+                    res, ok = atomic_call(workdir, tool, call_args)
+                    # CLASS-SELECTOR-NOT-FOUND-DEADEND (R049): a selector read that the resolver can't find (ambiguous/
+                    # overloaded class methods) must not dead-end into fragmented re-reads — grep the def(s) and return
+                    # the bodies so the model gets what it asked for in one shot.
+                    if fn == "atomic_read" and a.get("selector") and ("not found" in res.lower() and "selector" in res.lower()):
+                        fb = _selector_fallback(workdir, a.get("path", ""), a.get("selector"))
+                        if fb:
+                            res = fb
+                    # record covered interval for line-range reads (CLASS-OVERLAPPING-REREAD)
+                    if fn == "atomic_read" and (a.get("startLine") or a.get("endLine")) and "error" not in res[:60].lower():
+                        _iv_record(a.get("path", ""), int(a.get("startLine") or 1), int(a.get("endLine") or (int(a.get("startLine") or 1) + 80)))
                 after = git_diff(workdir)
                 if fn in ("atomic_replace", "atomic_create"):
                     if after != before:
@@ -1309,6 +1362,7 @@ def main():
                             last_pass = False  # a new edit invalidates the previous green gate
                         metrics["edits_applied"] += 1
                         reads_since_edit = 0; distinct_since_edit.clear()
+                        read_coverage.pop(a.get("file", ""), None)  # CLASS-OVERLAPPING-REREAD: edited file content changed → its coverage is stale; allow fresh reads of it
                         forced = False
                         force_refused = 0  # an edit landed → spin broken
                         if green_minimize_active and fn == "atomic_replace":
@@ -1365,10 +1419,17 @@ def main():
 
         if deadlock_break:
             break  # CLASS-FORCE-EDIT-DEADLOCK: model spun on refused reads without committing; stop the waste
+        if green_minimize_finalized:
+            metrics["transcript"].append(f"s{step} GREEN-MINIMIZE finalized; preserving retested green minimized state")
+            break  # CLASS-GREEN-MINIMIZE-RETEST-GREEN-FINALIZE: no more model turns after proven post-minimize green
 
         # light read-loop steer (NO blind lockout — keep it honest; looping is a measured class)
+        # CLASS-NONEXISTENT-RUN-TESTS (WFB WALL-6): in NO_GATE one-shot there is no run_tests tool; telling the
+        # model to "then run_tests" is a contradiction it wastes attention reconciling (→ verify-by-reading loop).
         if reads_since_edit and reads_since_edit % 6 == 0:
-            messages.append({"role": "user", "content": "You have read a lot without editing. You likely have enough context — make the edit now with atomic_replace/atomic_create, then run_tests."})
+            _act = "make the edit now with atomic_replace/atomic_create." if NO_GATE else \
+                   "make the edit now with atomic_replace/atomic_create, then run_tests."
+            messages.append({"role": "user", "content": "You have read a lot without editing. You likely have enough context — " + _act})
 
     # final scoring (authoritative) + diff
     if NO_GATE:
