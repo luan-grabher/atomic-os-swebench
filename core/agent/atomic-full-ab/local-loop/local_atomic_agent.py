@@ -842,6 +842,7 @@ def main():
     last_pass = False
     last_green_diff = None   # CLASS-GREEN-THEN-BROKE: the best gate-green diff reached (restored at finalize if broken)
     read_coverage = {}       # CLASS-OVERLAPPING-REREAD (WFB WALL-1): file -> list of (start,end) line ranges already returned
+    suppress_counts = {}     # CLASS-COMPACTION-SUPPRESS-DEADLOCK (WFB+2): per-target suppression count — re-serve full on 2nd ask (F3 likely evicted it)
     reasoning_sigs = []      # CLASS-REASONING-THRASH (WFB WALL-2): per-step reasoning word-sets, to detect re-derivation
     last_latch_step = 0      # last step a conclusion-latch nudge fired (rate-limit)
     reads_since_edit = 0
@@ -1381,6 +1382,18 @@ def main():
                     _suppress_note = (f"[ALREADY READ] you already fetched `{_what}` in {a.get('path','')} since your "
                                       f"last edit and it is UNCHANGED — it's in context above. Do NOT re-read it; act "
                                       f"on what you have (edit, or read something genuinely new).")
+                # CLASS-COMPACTION-SUPPRESS-DEADLOCK (WFB+2, CRITICAL — a regression my own WALL-1 created): F3 keeps
+                # only the last 6 tool-results verbatim and compacts older ones to 200 chars. If suppression refuses
+                # to re-serve a range F3 already EVICTED, the model is told "you have it above" when it does NOT →
+                # deadlock (pylint-6528: 60 steps / 727k tok / 0 edits; the model literally said "it won't show it
+                # to me"). ESCAPE HATCH: suppress a redundant target only ONCE; on the 2nd+ ask, RE-SERVE the full
+                # body (it was clearly compacted out — the model genuinely needs it). Generalist.
+                if _suppress_note is not None:
+                    _supk = _read_target_key(fn, a)
+                    suppress_counts[_supk] = suppress_counts.get(_supk, 0) + 1
+                    if suppress_counts[_supk] >= 2:
+                        _suppress_note = None  # re-serve full content (F3 likely evicted it; break the deadlock)
+                        metrics["transcript"].append(f"s{step} re-serve (2nd ask of same range — likely compacted)")
                 if fn in ("atomic_read", "atomic_outline", "atomic_grep", "atomic_survey", "atomic_read_many", "atomic_callers"):
                     metrics["reads"] += 1
                     reads_since_edit += 1
@@ -1417,6 +1430,7 @@ def main():
                         metrics["edits_applied"] += 1
                         reads_since_edit = 0; distinct_since_edit.clear()
                         read_coverage.pop(a.get("file", ""), None)  # CLASS-OVERLAPPING-REREAD: edited file content changed → its coverage is stale; allow fresh reads of it
+                        suppress_counts.clear()  # CLASS-COMPACTION-SUPPRESS-DEADLOCK: edit changed state → reset re-serve counters
                         forced = False
                         force_refused = 0  # an edit landed → spin broken
                         force_no_edit_commit = False
