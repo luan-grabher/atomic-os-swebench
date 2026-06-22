@@ -88,3 +88,16 @@ BETTER with feedback (the gate could catch errors + steer to completion, possibl
 caught infra bug (3rd: shared-container, then wrong-image-grep) — the doctrine's rigor: verify the harness before trusting the
 number. RE-RUNNING with FIXED grep (working gate): FIXED R4 (p16597fix) launched; R3/R6 + R5/R7 confirmation needed. The prior
 'sympy weakness' + 'atomic=native+rare-edge' verdict is now SUSPECT for R3-R7 (broken gate) — must re-validate with working gate.
+
+## ★★ RE-VALIDATION with WORKING gates — sympy weakness is GENUINE (persists), gate-bug was real but SEPARATE
+R3 sympy-20438 re-run with FIXED grep (WORKING gate, INFRA_FAIL=0 confirmed): OFFICIAL still resolved=0. Tool dist: 33
+quick_check + 30 atomic_read + 7 atomic_grep but only 1 atomic_replace + 0 run_tests. So WITH a working gate, the atomic on
+sympy-20438 OVER-EXPLORES (70 read/check calls) + UNDER-COMMITS (1 edit) + never tests (0 run_tests) → fails. HONEST
+RECONCILIATION: my grep bug DID break the gate in R3-R7 (real — invalidated the 'gate-ON was active' claim), BUT fixing it did
+NOT flip the sympy failure — the sympy weakness PERSISTS with a working gate. So the sympy weakness is GENUINE + BEHAVIORAL (the
+atomic over-explores/under-commits/doesn't test on sympy structures), partly INDEPENDENT of the gate bug. The prior verdict's
+'sympy weakness' STANDS (correct conclusion), though the mechanism is over-exploration/under-commitment, not only selector/scope/
+empties. Two true things at once: (1) the gate WAS broken (my harness bug, caught + fixed), (2) the atomic's sympy weakness is
+real (survives the fix). Pending: R5/R6/R7 fixed (working gates) — R5/R7 sklearn expected to resolve (confirms working gate +
+atomic's sklearn capability), R6 sympy-13877 likely fails (empties + over-explore). R4 sympy-16597 paths collided (needs clean
+re-run with unique json/run_id). Honesty: the gate-bug correction did NOT rescue the atomic on sympy — recorded straight.
