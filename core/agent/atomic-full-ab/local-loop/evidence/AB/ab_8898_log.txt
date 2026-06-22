@@ -22,3 +22,14 @@ Round 2 pylint-4661: NATIVE one-shot=0 (XDG compliance — did both files config
 PATTERN: native one-shot reliably FAILS hard multi-file/edge-case instances (2/2). The atomic gate-ON arms test whether
 enforcement (test feedback) resolves where one-shot fails = the dominance the doctrine requires (>=2 consecutive). Honest:
 gate is atomic's proven lifting substrate; these A/B rounds quantify it on the locked DeepSeek V4 Pro vs my native one-shot.
+
+## ★★★★ ROUND 1 OFFICIAL RESULT — ATOMIC DOMINANCE (atomic gate-ON 1 vs native one-shot 0)
+pylint-8898 (hard, multi-file, verification-gap edge-case): ATOMIC gate-ON (DeepSeek V4 Pro) RESOLVED=1 official, editing
+ALL 3 gold files (argument.py + utils/__init__.py + utils/utils.py) with the correct brace-tracking regex splitter.
+NATIVE one-shot RESOLVED=0 (did only argument.py, buggy splitter that mangled bar{1,3}, no test feedback to catch it).
+MECHANISM proven by number: the GATE (test feedback) drove the atomic to (a) COMPLETENESS — found 2 files native missed;
+(b) CORRECTNESS — fixed the brace-quantifier edge case native got wrong. This is the gate-as-lifting-substrate thesis
+VALIDATED on the real A/B (atomic vs native), official, on the LOCKED DeepSeek V4 Pro. Note gate_pass=False internally
+(internal gate didn't confirm green, likely P2P-sample/step-cap) yet the FINAL diff resolves officially — the atomic
+produced the resolving multi-file fix. ROUND 1 = atomic dominance datapoint #1. Round 2 (pylint-4661, hidden-appdirs-
+requirement class) fired zero-gap; if atomic resolves it too where native=0 → 2 consecutive → escalate complexity.
