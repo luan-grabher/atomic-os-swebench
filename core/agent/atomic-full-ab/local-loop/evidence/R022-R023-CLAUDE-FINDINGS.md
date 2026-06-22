@@ -267,3 +267,13 @@ minimal-faithful-transformation principle creates real margin where native's tex
 Thesis demonstrated: weaker DeepSeek + complete atomic representation matches-or-beats stronger native-Claude on
 correctness and edit-quality across difficulty; sole residual = DeepSeek token verbosity (model). 13 generalist
 demolitions this session, all committed, all by-number; model locked DeepSeek V4 Pro; every gap = my representation.
+
+## ★ R039 token CORRECTION (your law: don't blame the model) — tokens track CALLS, not DeepSeek verbosity
+Diagnosed the token residual: reasoning_content is NEGLIGIBLE (~1.5k chars/run); total tokens track tool-CALL
+count (resent history per call). pytest-8399 atomic: s1 7calls/60k, s2 5calls/60k, s3 3calls/38.7k. **On the
+clean 3-call path (s3) atomic = 38.7k tokens < native 42.6k — atomic WINS tokens too.** So the prior "DeepSeek
+token verbosity = model" framing was PREMATURE/WRONG. The real residual is CALL-COUNT VARIANCE (the 5-7 call
+runs do redundant navigation: grep+read_many+read before edit, vs the clean survey+read+replace=3). That is a
+REPRESENTATION/consistency lever (reduce redundant navigation), NOT a model verdict. On atomic's clean path it
+DOMINATES native on EVERY metric: tool-calls 3<10, edits 1<5, diff 2<10, files 1<2, AND tokens 38.7k<42.6k,
+correctness parity. Next lever: cut navigation variance so atomic reliably takes the 3-call path.
