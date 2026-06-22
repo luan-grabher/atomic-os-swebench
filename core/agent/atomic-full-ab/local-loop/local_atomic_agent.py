@@ -972,6 +972,7 @@ def main():
 
     last_pass = False
     last_green_diff = None   # CLASS-GREEN-THEN-BROKE: the best gate-green diff reached (restored at finalize if broken)
+    _scope_steer_fired = False   # CLASS-SCOPE-FIXATION-EDITCOUNT (R055b): one-shot scope-expansion nudge by edit count
     read_coverage = {}       # CLASS-OVERLAPPING-REREAD (WFB WALL-1): file -> list of (start,end) line ranges already returned
     suppress_counts = {}     # CLASS-COMPACTION-SUPPRESS-DEADLOCK (WFB+2): per-target suppression count — re-serve full on 2nd ask (F3 likely evicted it)
     reasoning_sigs = []      # CLASS-REASONING-THRASH (WFB WALL-2): per-step reasoning word-sets, to detect re-derivation
@@ -1752,6 +1753,25 @@ def main():
                         # perception instead of spending a round-trip re-reading what it just changed.
                         res = res + _post_edit_view(workdir, a.get("file", ""),
                                                     a.get("newText") or a.get("content", ""))
+                        # CLASS-SCOPE-FIXATION-EDITCOUNT (R055b, generalist): the run_tests-based R055 trigger (3 consecutive
+                        # red) almost NEVER fires — the atomic makes few run_tests (R4 sympy-16597: only 3) so it never reaches
+                        # 3-consecutive-red → R055 was a DEAD demolition. Trigger on EDIT COUNT instead: after many edits all in
+                        # ≤2 files with the gate never green, the fix likely SPANS MORE FILES — nudge to expand scope (once).
+                        if not _scope_steer_fired and metrics["edits_applied"] >= 6 and metrics["run_tests_calls"] >= 1 and not last_green_diff:
+                            try:
+                                _dd = subprocess.run(["git", "-C", workdir, "diff", "HEAD", "--name-only"],
+                                                     capture_output=True, text=True).stdout
+                                _nf = len([l for l in _dd.splitlines() if l.strip()])
+                            except Exception:
+                                _nf = 1
+                            if _nf <= 2:
+                                _scope_steer_fired = True
+                                res = res + (f"\n[scope] You have made {metrics['edits_applied']} edits in only {_nf} file(s) "
+                                             "and the gate is still not green. A persistent red after many edits to one file "
+                                             "almost always means the fix SPANS MORE FILES. atomic_grep the failing symbol/"
+                                             "behavior across the WHOLE repo, find the OTHER files that implement it (a "
+                                             "registered handler, a generated/companion module, a caller, a sibling case), "
+                                             "and edit them too. The correct fix is often multi-file.")
                         # CLASS-OVERFIX-MULTIPATH (F2, generalist): detect when a FIX-phase edit adds a new
                         # loop or touches multiple non-adjacent regions (multi-path over-fix). Measured root cause
                         # of the minimality gap: DeepSeek fixes UNTESTED paths too (early-return + merge) -> 7-8 line
