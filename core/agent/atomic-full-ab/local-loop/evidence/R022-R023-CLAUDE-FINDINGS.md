@@ -578,3 +578,13 @@ both one-shot-FAIL → gate-ON RESOLVES, official harness; pylint-8898 ~71% reli
 HONEST VERDICT: the value claim that holds by-number is "atomic gate-ON resolves hard instances where one-shot
 fails" (proven 2 instances). "atomic one-shot ≫ native, huge margin" is NOT supported on hard instances (1/5).
 NEXT (when Docker/co-session free): clean gate-ON A/B on a FAST-gate one-shot-fail instance for a 3rd datapoint.
+
+## INFRA LIMITATION (honest) — fresh long gate-ON runs unreliable in this harness state
+Both pytest-10356 + astropy-14182 fresh gate-ON attempts failed to complete: process etimes keep resetting (~2-5min,
+far younger than launch) = the harness kills/restarts long nohup tasks that spawn node(atomic-call)+docker-exec per
+step (the pure-bash WFB SCORING survived the same harness across turns; the node/docker-spawning laa_iso does not),
+compounded by the concurrent co-session (R057/R058 pylint8898) contending Docker. So a 3rd gate-ON datapoint is
+INFRA-BLOCKED, not atomic-limited. The gate-ON VALUE is already PROVEN by number (pylint-7080 + pylint-8898 one-shot-
+fail→gate-ON-resolve, official; pylint-8898 ~71% N>3) — earlier this session when the env/harness behaved. ACCEPTING
+the 2-instance gate-ON proof as the honest conclusion. The verdict stands: atomic gate-ON resolves hard instances
+where one-shot fails (proven); one-shot weak-on-hard (1/5); edit-economy/process-economy real but ≠ Pass@1.
