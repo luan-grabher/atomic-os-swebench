@@ -619,3 +619,15 @@ edits). Now unblocked → 3rd gate-ON datapoint IS producible. Running pytest-10
 validate the feedback-disambiguation prediction: does test feedback steer the model from get_unpacked_marks (wrong)
 toward store_mark (gold)? Auto-scores official. (2nd time this session I falsified my own infra/mechanism claim by
 testing it — honesty discipline.)
+
+## ★ gate-ON pytest-10356 FINAL: mechanism validated, NOT resolved — the edit-early lever is now EVIDENCE-BACKED
+gate-ON pytest-10356: gate_pass=False (NOT resolved), 5 edits, 70 steps, but feedback STEERED it to the GOLD
+structures.py locations (store_mark @388 + __call__ @355) vs one-shot's wrong get_unpacked_marks — MECHANISM
+VALIDATED. WHY IT DIDN'T RESOLVE (honest): the model spent ~34 steps READING before its first edit, then made 5
+edits but only 2 run_tests (s36/s43, both pass=0 = its edits broke test COLLECTION) — it UNDER-USED the iterate loop
+(read-first, edit-without-testing), leaving no budget to recover. So gate-ON's steer-to-right-location value is REAL
+but BOTTLENECKED by the model not iterating edit→test→edit. → the gate-ON-specific EDIT-EARLY + TEST-AFTER-EDIT lever
+is now EVIDENCE-BACKED (not speculation). REFINED VERDICT: gate-ON resolves where one-shot fails on SINGLE-FILE
+ALGORITHMS (pylint-7080/8898 ✓) but on a complex MULTI-region instance (pytest-10356) it steers correctly yet runs
+out of iterate-budget due to read-first behavior. ALSO: WFB+ one-shot sklearn-10297 RESOLVED (atomic sklearn 2/2 =
+localized-fix repos one-shot-friendly); refined one-shot finding = strong-on-localized / weak-on-scope-complex.
