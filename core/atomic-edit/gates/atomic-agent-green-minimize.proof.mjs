@@ -88,6 +88,17 @@ record('CLASS-GREEN-MINIMIZE-NOSHRINK (F1): a non-shrinking minimize edit is rej
     shrinkGuard: source.includes('minimized_lines < green_minimize_start_lines'),
     rejectMarker: source.includes('GREEN-MINIMIZE REJECTED (did not shrink'),
   });
+record('CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b): deterministic strip of agent-ADDED stand-alone comment lines at minimize-offer',
+  source.includes('CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b, deterministic)') &&
+  source.includes('_cstrip') &&
+  source.includes('DETERMINISTIC comment-strip') &&
+  source.includes('not _cf.endswith(".py")'),
+  {
+    marker: source.includes('CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b, deterministic)'),
+    stripVar: source.includes('_cstrip'),
+    traceMarker: source.includes('DETERMINISTIC comment-strip'),
+    pyScoped: source.includes('not _cf.endswith(".py")'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
