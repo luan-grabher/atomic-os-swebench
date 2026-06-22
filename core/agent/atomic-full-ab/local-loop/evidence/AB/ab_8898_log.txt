@@ -72,3 +72,17 @@ falsifiability lock: representation gaps closed (faithful gate, right-file nav),
 recorded honestly. DECISION: drop pylint-4661 as a dominance round (non-discriminative tie); use sympy-20438 (R3) as the
 clean 2nd dominance attempt. A/B SCOREBOARD: R1 pylint-8898 atomic 1/native 0 (DOMINANCE); R2 pylint-4661 TIE 0/0 (lib-guess,
 dropped); R3 sympy-20438 native 0, atomic pending.
+
+## ★ R1 WIN MECHANISM (mined the win, honest self-correction) — quick_check = atomic's neuro-symbolic ADVANTAGE, not a wall
+Tool-call distribution of the R1 win (73 calls / 70 steps, resolved): quick_check=39 (53%!), atomic_replace=10, grep=7,
+read=7, run_tests=7. I hypothesized "39 quick_check = ceremony wall" — INVESTIGATION CORRECTED IT: quick_check lets the
+model RUN Python snippets to VERIFY its logic (reproduce the bug, test the regex splitter on bar{1,3}) instead of hand-
+simulating/hallucinating (it was added in WFB WALL-3 exactly because the model hand-simulated when it couldn't execute).
+So the 39 quick_checks are the atomic's NEURO-SYMBOLIC VERIFICATION ADVANTAGE — the mechanism of the R1 dominance: the
+atomic VERIFIED its edge-case fix via real execution; the native one-shot (no iteration/execution) wrote a buggy splitter
+that mangled bar{1,3}. This IS the doctrine's neuro-symbolic thesis demonstrated by number: symbolic execution-verification
+of the connectionist proposal catches edge-cases the raw model misses. NOT a wall — the WIN MECHANISM.
+REAL walls in the win (gate-side, address when R3 not running on the gate): (1) gate_pass=False despite official resolve
+(stale verdict — agent didn't re-verify final diff → didn't know it succeeded); (2) ARM_PATCH_FAILED 2/8 (apply residual).
+These are minor + gate-side; the win was thorough (execution-verified), not merely thrashy. Honest: mining the win found
+its MECHANISM (quick_check verification) + corrected my own wall hypothesis — exactly the doctrine's rigor on wins too.
