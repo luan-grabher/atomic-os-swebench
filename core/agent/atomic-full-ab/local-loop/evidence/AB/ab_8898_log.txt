@@ -181,3 +181,14 @@ both fail on too-hard). The neuro-symbolic tools LIFT DeepSeek to AT-LEAST-MATCH
 verification-gap. This is the doctrine's thesis PARTIALLY validated: NOT "overwhelming margin in everything" (ties on clean/
 hard), but DeepSeek-atomic is never inferior to Claude-native, and superior where the gate's verification overcomes a one-
 shot bug. The honest scoped claim: atomic = native's capability + verification edge. R6/R7 atomic firm the never-loses pattern.
+
+## Verification-gap HUNT reinforces: Claude-native is STRONG even on edge-cases (R1 dominance is RARE)
+Hunted verification-gap instances (edge-case-prone: strip_accents unicode R8, KBinsDiscretizer bin_edges R9). Native(Claude)
+one-shot did PLAUSIBLE CORRECT fixes: R8 = ASCII-shortcut vs NFKD-normalize (handles the already-NFKD edge-case); R9 =
+centers.sort() before bin_edges (the exact root-cause sort). Both look like NATIVE-WINS (scoring in flight to confirm). So
+Claude-native handles MOST edge-cases correctly too — the verification-gap regime (where native ships a plausible-BUT-BUGGY
+fix the gate catches, R1's brace-splitter) is RARE, because Claude is a strong base model that usually gets the edge-case
+right. HONEST consolidated truth: the atomic does NOT overwhelmingly dominate; against a strong Claude-native baseline, the
+atomic = Claude's capability + a RARE verification edge. R1 remains the one clean dominance (a case where Claude happened to
+ship buggy). The doctrine's 'overwhelming margin in everything' is FALSIFIED by extensive number (9 rounds): atomic wins-or-
+ties never loses, but dominance is rare-verification-gap-scoped, not broad. This is the falsifiability lock's honest verdict.
