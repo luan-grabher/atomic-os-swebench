@@ -102,16 +102,25 @@ def _compact_result(workdir, tool, raw):
             f = _rel(workdir, d.get("file", "")); s = d.get("startLine"); e = d.get("endLine")
             loc = f + (f":{s}-{e}" if s and e else "")
             return f"{loc}\n{d['code']}"
-        # batch read
-        if isinstance(d.get("items"), list):
+        # batch read — CLASS-BATCH-READ-BLIND (R022): code_readcode_batch returns its per-file payloads under
+        # `results` (NOT `items`), each {file, code, startLine, endLine, requestedSelector}. The old branch
+        # looked only for `items` → never matched → fell through to the headline ("returned 2/2 ...") with ZERO
+        # code → the model re-read every file as single reads (measured: requests batch-read 2 symbols, got no
+        # code, then did 5 single reads). atomic_read_many is the tool I tell the model to PREFER — it MUST
+        # return code. Accept both keys + render selector labels. Same "blind to code" class as R009, batch path.
+        batch = d.get("results") if isinstance(d.get("results"), list) else d.get("items")
+        if isinstance(batch, list):
             parts = []
-            for it in d["items"]:
+            for it in batch:
                 if not isinstance(it, dict):
                     continue
                 f = _rel(workdir, it.get("file") or it.get("path") or "")
                 code = it.get("code") or it.get("content") or ""
+                sel = it.get("resolvedSelector") or it.get("requestedSelector") or it.get("selector")
                 s = it.get("startLine"); e = it.get("endLine")
-                loc = f + (f":{s}-{e}" if s and e else "")
+                loc = f + (f":{s}-{e}" if s and e else "") + (f" [{sel}]" if sel else "")
+                if not code and it.get("error"):
+                    code = f"(read failed: {it.get('error')})"
                 parts.append(f"## {loc}\n{code}".rstrip())
             if parts:
                 return "\n\n".join(parts)
@@ -388,7 +397,10 @@ def main():
     lean = ("Prefer the smallest correct behavioral delta: preserve existing exports, comments, and "
             "call graph where possible; avoid rewriting unrelated helpers; when two touched functions "
             "need the same logic, implement one canonical helper and have wrappers delegate instead of "
-            "duplicating state machines or parsers. ")
+            "duplicating state machines or parsers. For merge/default-composition/update helpers, "
+            "reason over the final merged representation unless source identity is explicitly part "
+            "of the contract; preserve override precedence and filter by final value, not by "
+            "independently scanning input sources. ")
     if NO_GATE:
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
                   "ONLY atomic tools. " + survey + lean + "You CANNOT run the project's tests — there is no "
