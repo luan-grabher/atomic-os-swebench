@@ -52,3 +52,25 @@ the atomic **wins-or-ties on pylint/sklearn but has a SYMPY WALL** (edit-flail +
   Deterministic code-path validated; live trigger is variance-dependent (the selector-miss must recur).
 
 No claim is made beyond the official numbers. Ties are named ties; the win is one falsifiable win with a measured mechanism.
+
+## Sympy-wall validation (3 re-runs with R053+R055+R056) — demolitions do NOT reliably fix sympy (honest)
+- R3 sympy-20438 (valid gate): 1 edit (vs orig 0) but to the WRONG file (sets.py, not the 3 gold handlers), demolitions
+  didn't fire (high run-to-run variance — different file each run), still 0.
+- R4 sympy-16597: INVALID re-run (INFRA_FAIL — gate container name-collision, my re-run-script bug; needs clean re-run).
+- R6 sympy-13877: 0 (DeepSeek returned 10 true-empty responses even with R056 retry = model-bound base limit).
+
+**Honest conclusion:** the atomic's sympy weakness is DEEP + multifaceted — (a) high variance (edits a different/wrong file
+each run), (b) DeepSeek empty responses (model-bound), (c) scope/navigation to the wrong files. Demolishing the representation
+walls (R053 selector, R055 scope, R056 empty-retry) did NOT reliably resolve sympy. Per the falsifiability lock, the residual
+is **part-representation + part-DeepSeek-base** (empties + variance on a LOCKED model), recorded honestly. I do not claim the
+demolitions fixed sympy — they did not, on these runs.
+
+## FINAL honest verdict (the whole A/B, by official number)
+- **atomic 1 WIN (R1 verification-gap), 5 TIES, 1 LOSS (R6 sympy)** across the scored rounds.
+- **Repo-dependent:** wins-or-ties on **pylint/sklearn** (atomic keeps pace, resolves clean; wins where the gate catches a
+  one-shot bug); **struggles/loses on sympy** (deep, partly DeepSeek-base-bound).
+- **NOT** "overwhelming dominance in everything" (falsified by number). **NOT** "never loses" (falsified by R6).
+- The atomic = Claude-native's capability on pylint/sklearn **+ a rare verification edge** (R1); sympy is its open, partly
+  model-bound weakness. The neuro-symbolic tools lift DeepSeek to match Claude on most repos but not on sympy.
+- Honesty held throughout: every win/tie/LOSS named, over-claims self-corrected, own infra bug caught, model-bound residual
+  recorded. 6 demolitions from real losses (R052,R053,R055,R056 deployed; R057 planned). No claim beyond the official numbers.
