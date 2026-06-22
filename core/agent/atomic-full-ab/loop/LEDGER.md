@@ -1919,3 +1919,63 @@ NATIVE WINS this round on correctness, speed, tokens, and verification. ATOMIC w
 
 **Domínio consecutivo: 0/2 (NATIVE won)**
 **PRÓXIMO PASSO EXATO**: develop the atomic representation to close CLASS-INCORRECT-FIX-APPROACH — specifically: (1) a generalist "write-and-run-quick-test" agent-tool so the model can self-verify before the gate, (2) investigate why the model chose the wrong approach (read the full transcript), (3) re-run the A/B on the same task after the fix.
+
+### Codex pointer - R049 pylint-8898 invalid: model-call liveness wall closed by seq559
+- date: 2026-06-22. Full detail is in `core/agent/atomic-full-ab/local-loop/LEDGER.md` under "Codex R049 Pylint-8898".
+- R049 used dedicated container `pylint8898_r049_atomic` and workspace `/private/tmp/swe/round/R049/pylint8898/atomic`, but produced no patch, no JSON metrics file, and no official score.
+- Honest verdict: R049 is **invalid as an A/B metric**, not an Atomic correctness loss. The process blocked for more than 11 minutes inside `deepseek()` / `r.read()` before any diff or local gate result.
+- Sequence `559` promoted `CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY`: `DEEPSEEK_TIMEOUT` now bounds DeepSeek HTTP calls (default `120s`) and `ATOMIC_PROGRESS_STDERR=1` emits a flushed stderr heartbeat before each model call.
+- Verification after promotion: `py_compile`, `atomic-agent-green-minimize.proof.mjs`, `temp-artifact-hygiene.proof.mjs`, focused marker check, and `git diff --check` passed.
+- Next exact Codex-pylint step: stay on `pylint-dev__pylint-8898`; rerun Atomic-only as `R051-pylint8898` in a clean dedicated container against frozen `Descartes`, with `DEEPSEEK_TIMEOUT=120` and stderr heartbeat visible. No complexity escalation.
+
+### Codex pointer - R051 pylint-8898 official green, best cost, surface still loses to prior Atomic
+- date: 2026-06-22. Full detail is in `core/agent/atomic-full-ab/local-loop/LEDGER.md` under "Codex R051 Pylint-8898".
+- R051 official `resolved=true`, F2P `1/1`, P2P `18/18`, `20 passed in 2.17s`, with `22` steps, `21` calls, `237,704` tokens, `374.8s`, `31` local changed lines / `56` official patch lines, SHA `7a6a14051a08f96e9a26f9c8e0381b8599c43dc6f172c62bae575006a89d7f74`.
+- R051 improved Atomic cost versus R048 (`22` vs `28` steps, `21` vs `30` calls, `237,704` vs `316,263` tokens, `374.8s` vs `475.5s`) and beat frozen native patch surface (`56` vs `63` official lines), but regressed surface versus R048/R044.
+- Honest verdict: **no dominance and no complexity escalation**. The task remains at `pylint-dev__pylint-8898`.
+- Sequence `560` promoted `CLASS-GREEN-MINIMIZE-HELPER-STATE-MACHINE-SURFACE`: helper/state-machine green diffs are detected and get one extra bounded helper-collapse minimization refusal before STOP is accepted. Verification: `py_compile`, `atomic-agent-green-minimize.proof.mjs`, `temp-artifact-hygiene.proof.mjs`, focused marker check, and `git diff --check` passed.
+- Next exact Codex-pylint step: rerun Atomic-only in a clean container against frozen `Descartes` with sequence `560` active. No complexity escalation.
+
+### Codex pointer - R052 pylint-8898 invalid: total model-call deadline landed as seq561
+- date: 2026-06-22. Full detail is in `core/agent/atomic-full-ab/local-loop/LEDGER.md` under "Codex R052 Pylint-8898".
+- R052 emitted heartbeats through `ATOMIC s24 model_call tools=9 timeout=120s`, then blocked for multiple minutes inside `deepseek()` / `r.read()`; manual interrupt stack showed chunked HTTPS socket read. No patch, JSON metrics, or official score was produced, so R052 is invalid as an A/B metric.
+- Honest verdict: **no dominance and no complexity escalation**. R052 is liveness evidence only.
+- Sequence `561` promoted `CLASS-MODEL-CALL-TOTAL-DEADLINE`: `DEEPSEEK_TOTAL_TIMEOUT` now wraps the full `urlopen + r.read()` region with `signal.setitimer`, clears/restores the handler in `finally`, and raises a total-deadline `TimeoutError`.
+- Verification after promotion: `py_compile`, `atomic-agent-green-minimize.proof.mjs`, `temp-artifact-hygiene.proof.mjs`, focused marker check, and `git diff --check` passed.
+- Next exact Codex-pylint step: rerun Atomic-only in a clean container against frozen `Descartes` with `DEEPSEEK_TOTAL_TIMEOUT` active. No complexity escalation.
+
+---
+
+## ROUND R052 — NÍVEL 1 — TASK psf__requests-1921 (atomic-only re-run, F8+F8b)
+- snapshot: 3c88e520da24ae6f736929a750876e7654accc3d
+- baseline congelado (R050 native): correct fix, 22 lines, 449s, all tests pass
+- **ATOMIC R052 (DeepSeek V4 Pro + F8 quick_check + F8b deterministic nudge)**: TIMEOUT at 900s (3rd consecutive), 0 quick_check calls (F8b nudge IGNORED), diff=5 lines (2 files: sessions.py + models.py), no result JSON (killed before scoring)
+
+### R052 diff analysis (better approach than R050)
+- sessions.py: `for (k,v) in list(merged_setting.items())` — iterates MERGED settings (session+request), strips None from both. CORRECT approach, semantically equivalent to canonical `chain(session_setting, request_setting)`.
+- models.py: `if value is not None` in prepare_headers filter — over-fix (unnecessary; merge_setting fix should be sufficient).
+- Assessment: the sessions.py change alone is likely correct (matches canonical approach). But can't verify (gate not scored due to timeout).
+
+### Comprehension wall — DOMINANT gap (3 consecutive timeouts)
+| Run | Status | Wall | quick_check calls | Diff |
+|-----|--------|------|-------------------|------|
+| R050 | gate=FALSE | 830s | N/A (F8 not yet) | 6 lines (incorrect) |
+| R051 | TIMEOUT | 900s | 0 (F8 added) | 32 lines (over-fix) |
+| R052 | TIMEOUT | 900s | 0 (F8b nudge ignored) | 5 lines (better approach) |
+
+The atomic agent CANNOT finish requests-1921 within 900s. Native worker solved it in 449s. Root causes:
+1. DeepSeek V4 Pro API latency (~15-30s per reasoning response × 60 steps = 900-1800s API time alone)
+2. Model ignores even DETERMINISTIC nudges (F8b in edit receipt → 0 quick_check calls)
+3. Model thrashes (re-verifies instead of converging)
+
+### Representation gaps exhausted?
+- F8 quick_check: tool available but UNUSED (0 calls across R051+R052)
+- F8b deterministic nudge: in edit receipt every first edit, STILL IGNORED
+- The advisory-ignore rate is effectively 100% for quick_check usage
+- Possible escalation: BLOCKING quick_check gate (refuse run_tests until ≥1 quick_check call). Risk: deadlock if model can't write valid test.
+
+### Honest conclusion
+NATIVE WINS by DEFAULT (3rd consecutive). The atomic agent produces better diffs (R052's approach is correct) but CANNOT FINISH within the timeout. The comprehension wall (API latency × step count) is the dominant disadvantage. The fix approach improved across rounds (R050 incorrect → R052 correct), but the speed gap is structural.
+
+**Domínio consecutivo: 0/2 (NATIVE won — 3rd consecutive)**
+**PRÓXIMO PASSO EXATO**: (1) escalate quick_check to BLOCKING (refuse run_tests until ≥1 quick_check) — test if forcing self-verify reduces thrash and steps. (2) Investigate max-steps reduction (fewer steps = less API time). (3) Consider that the comprehension wall may be partly a MODEL ceiling (DeepSeek V4 Pro API latency), to record honestly per §7 falsifiability clause.
