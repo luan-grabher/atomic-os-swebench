@@ -60,3 +60,15 @@ This is the doctrine's loop closing: round-2 loss → MY gate-fidelity wall iden
 A faithful gate gives the atomic a TRUE green signal when it finds the right fix, instead of false-negatives that made it
 flail to the wrong file. NEXT: re-run round 2 (pylint-4661 atomic gate-ON) with the faithful gate — if atomic now resolves
 where it failed = the demolition lifts the atomic, and round 2 becomes a real dominance test.
+
+## ROUND 2 RE-RUN (faithful gate) — demolition HELPED (by number) but pylint-4661 = TIE (lib-guess, near model-bound)
+With the faithful gate (R052), atomic pylint-4661: edited the RIGHT file config/__init__.py (vs __main__.py wrong-file in
+v1), edits 2 (vs 12 thrash in v1) — the demolition IMPROVED navigation + cut thrash, BY NUMBER. But still official=0: the
+atomic did NOT use appdirs (the specific lib the hidden test imports/requires) → faithful gate gives TRUE red, but the
+atomic can't GUESS appdirs (the maintainer's specific choice, invisible without the hidden test). So pylint-4661 is a TIE
+(atomic 0, native 0) driven by lib-guessing — NOT a gate-fidelity gap (demolished) and NOT discriminative of gate-vs-one-
+shot; it's near a MODEL-BOUND residual (any solver fails without seeing the hidden test's appdirs import). Per the
+falsifiability lock: representation gaps closed (faithful gate, right-file nav), residual = lib-guess = model-bound,
+recorded honestly. DECISION: drop pylint-4661 as a dominance round (non-discriminative tie); use sympy-20438 (R3) as the
+clean 2nd dominance attempt. A/B SCOREBOARD: R1 pylint-8898 atomic 1/native 0 (DOMINANCE); R2 pylint-4661 TIE 0/0 (lib-guess,
+dropped); R3 sympy-20438 native 0, atomic pending.
