@@ -1918,3 +1918,32 @@ Workflow wf_a44b3ede-5e2: Setup → RunArms (atomic DeepSeek one-shot ∥ native
 representation walls from atomic reasoning, even in wins) → Verify (adversarial: real+generalist) → Synthesize
 (edit-economy scoreboard + ranked next demolitions). Docker resolution scored SEPARATELY after (avoids the 600s
 agent-Bash cap on image builds). NEXT: on workflow完成 → score 10 diffs officially → final scoreboard + demolitions.
+
+### Codex R054 Pylint-8898 - official empty patch; no-edit STOP wall closed
+- date: 2026-06-22. Same Codex-paired task/snapshot remains `pylint-dev__pylint-8898`, base `1f8c4d9eb185c16a2c1d881c054f015e1c2eb334`; frozen native baseline remains Codex-native worker `Descartes`.
+- R054 setup: dedicated container `pylint8898_r054_atomic`, host workspace `/tmp/swe/round/R054/pylint8898/atomic`, sequence `563`, `DEEPSEEK_TIMEOUT=120`, `DEEPSEEK_TOTAL_TIMEOUT=120`, stderr heartbeat on.
+- R054 evidence: `evidence/R054/pylint8898__atomic_gateON.json`, `evidence/R054/pylint8898__atomic_gateON.log`, empty prediction `evidence/R054/pylint8898__atomic_gateON.pred.jsonl`, official summary `atomic-gateon-R054.pylint8898_R054_atomic_gateON.json`.
+- R054 local metrics: `gate_pass=false`, `steps=42`, `edits_applied=0`, `reads=34`, `body_context_reads=26`, `run_tests_calls=0`, `quick_check_calls=0`, `diff_lines=0`, `tokens=639,017`, `wall_s=1186.6`, tool calls `atomic_survey=1`, `atomic_read_many=1`, `atomic_grep=7`, `atomic_read=25`.
+- R054 terminal trace: the model kept reading after it already had enough context, said it would trace TOML config flow, then ended with `s42 STOP (gave up)` without any edit.
+- R054 official SWE-bench result: submitted `1`, completed `0`, resolved `0`, empty patch `1`, errors `0`, empty patch id `pylint-dev__pylint-8898`. This is an official loss/empty submission, not dominance.
+- Failure class: `CLASS-NO-EDIT-STOP-FORBIDDEN`. In a gated run, zero edits plus no green gate plus repeated no-tool STOP is byte-negative absence, not a valid final state. The driver must refuse that STOP, count it as prevented invalid state, disable read tools, and force edit/test-only mode until a first edit lands.
+- Infrastructure note: first admission attempt became archive sequence `564` rejection after hard gates hit `ENOSPC` / proof-budget fallout. Generated benchmark cache `/tmp/swe/round` was cleaned; evidence is in repo and pristine suites remain in `/tmp/swe/suite`. Free disk rose from about 3.1 GiB to about 15 GiB.
+- Product update after R054: archive sequence `565` promoted `CLASS-NO-EDIT-STOP-FORBIDDEN` via `atomic_expand_self` (`candidateId=real-self-expansion-candidate:9941f083845fc1c3561881f12efa81d59e135ff3178da53143b18989b48b9995`, receipt SHA `0080e5b867afd84304ca53337a82a3db3aabf044de40dd38ecbe8498602d6a6c`). `local_atomic_agent.py` now tracks `no_edit_stop_refusals` and `force_no_edit_commit`, refuses empty STOP before any edit in gated runs, appends `STOP refused (no edit yet) -> edit/test-only mode`, increments `invalid_states_prevented`, withholds read tools with `NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)`, and resets the lockout after the first accepted edit.
+- Proof update: `atomic-agent-green-minimize.proof.mjs` now proves the counter, lockout state, edit/test-only branch, refusal trace, explicit STOP-invalid prompt, prevented-invalid-state increment, and reset after edit.
+- Verification after promotion: `python3 -m py_compile core/agent/atomic-full-ab/local-loop/local_atomic_agent.py` passed; `node gates/atomic-agent-green-minimize.proof.mjs --json` passed including `CLASS-NO-EDIT-STOP-FORBIDDEN`; `node gates/temp-artifact-hygiene.proof.mjs --json` passed; focused marker check passed; `git diff --check` over touched loop/proof/ledger/archive files passed.
+
+Verdict: **R054 IS AN OFFICIAL EMPTY-PATCH LOSS; NO DOMINANCE; NO COMPLEXITY ESCALATION.** The representation gap is now closed as sequence `565`.
+
+Next exact step: recreate a clean `/tmp/swe/round/R055/pylint8898/atomic` from `/tmp/swe/suite/pylint-dev__pylint-8898/pristine`, start a fresh `pylint8898_r055_atomic` container from the SWE-bench image, and rerun Atomic-only against frozen `Descartes` with sequence `565` active. Expected target: the agent may still fail, but it must not produce an official empty patch via no-edit STOP. No complexity escalation.
+
+R055 dispatch note: attempted to proceed immediately after sequence `565`, but Docker CLI is currently unresponsive (`docker ps --format '{{.Names}}'` hung after 15s even after stale read-only `docker system df` clients were terminated). No R055 workspace/container was created and no R055 metric exists yet. Next session must first restore Docker responsiveness, then run the R055 step above.
+
+## ROUND WFB+ (2026-06-22) — goal re-affirmed "continue autonomo sem parar"
+STATE: WFB round delivered edit-economy (atomic 2.17× tighter, 5 repos) + 5 demolitions (19-23) + WALL-1 ext, all
+committed (23 total). RESOLUTION metric Docker-BLOCKED (disk-full crashed Docker Desktop; needs manual reboot/Reset;
+auto-resume watcher armed). DOCTRINE: loop measures ALL dimensions, resolution is ONE — continuing on the Docker-
+independent axes (edit/tool-economy, reads, reasoning, walls). HONEST OPEN: quick_check overuse (WALL-3 side-effect)
+unmeasured-net pending resolution data — NOT capped blind. NEXT STEP: stability test running (sympy-18199 full run,
+mem now 64% vs 69%) — if completes, resume full A/B + wall-demolition at current level (do NOT escalate complexity
+until resolution-dominance provable, per §6/user); if dies, hold for reboot. When Docker back: auto-score 5 atomic +
+2 native WFB diffs → resolution numbers → tune quick_check → prove dominance → then escalate.
