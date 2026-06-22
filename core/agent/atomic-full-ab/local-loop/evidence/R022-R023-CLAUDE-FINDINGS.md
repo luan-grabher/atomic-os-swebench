@@ -640,3 +640,15 @@ INSTANCE-level (resolved skew more localized; failed skew scope-complex/multi-lo
 HONEST: atomic one-shot resolves ~1/3 of deliberately-hard instances; the doctrine's value is gate-ON for the
 other ~2/3 (feedback disambiguates). (3rd honest refinement this stretch — kept the number, dropped the over-clean
 generalization.)
+
+## 31st-fix validation: MECHANISM confirmed (edit-early works); full resolution gate-bottlenecked (pytest slow suite)
+v2 re-run (31st edit-early fix): edited at step 11 (vs 34 baseline) = edit-early mechanism VALIDATED (commits 3×
+earlier → more iterate budget). BUT the iterate phase is impractically slow (~9min/step: each run_tests = the full
+pytest mark suite + P2P sample = minutes/gate-call) → full resolution would take 5+ hours, not practical to complete
+here. So: 31st fix's MECHANISM confirmed (edit-early), full RESOLUTION of pytest-10356 gate-bottlenecked by the slow
+pytest suite (instance characteristic, not atomic limit). Letting v2 run background (free); not blocking. COMPREHENSIVE
+SESSION VERDICT STANDS: gate-ON=atomic's proven value (pylint-7080/8898 resolve; pytest-10356 mechanism-confirmed
+feedback→gold-location); one-shot atomic 3/9 hard (instance-level: localized resolves, scope-complex fails); 31
+demolitions process-not-Pass@1, monotonic+regression-clean; 3 self-corrections (latch-blame, infra-diagnosis, repo-vs-
+instance). The loop worked: measurement overturned my assumptions, I investigated + falsified my own claims by testing,
+data redirected to gate-ON. Honestidade epistêmica é o que faz o loop compor.
