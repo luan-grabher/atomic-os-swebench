@@ -42,9 +42,10 @@ def deepseek(messages, tools):
     body = json.dumps(payload).encode()
     req = urllib.request.Request("https://api.deepseek.com/v1/chat/completions", data=body,
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"})
+    timeout_s = float(os.environ.get("DEEPSEEK_TIMEOUT", "120"))  # CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY
     for attempt in range(5):
         try:
-            with urllib.request.urlopen(req, timeout=300) as r:
+            with urllib.request.urlopen(req, timeout=timeout_s) as r:
                 d = json.loads(r.read())
                 return d["choices"][0]["message"], d.get("usage", {})
         except Exception as e:
@@ -418,6 +419,22 @@ def git_diff(workdir):
 def diff_lines(d):
     return sum(1 for l in d.splitlines()
                if (l.startswith("+") or l.startswith("-")) and not l.startswith(("+++", "---")))
+
+
+def green_diff_added_helper_state_machine(workdir):
+    """CLASS-GREEN-MINIMIZE-HELPER-STATE-MACHINE-SURFACE: detect green patches that add a new
+    helper plus loop/state-machine structure. These are often correct but surface-heavy; a bounded extra
+    minimization refusal gives the model one more chance to collapse the helper into an existing expression or
+    single call site. Detection is language-light and gate-neutral: it only changes post-green prompting."""
+    added = [l[1:] for l in git_diff(workdir).splitlines()
+             if l.startswith("+") and not l.startswith("+++")]
+    adds_helper = any(re.match(r"\s*(def|function)\s+[_A-Za-z]\w*", l) or
+                      re.match(r"\s*(const|let|var)\s+[_A-Za-z]\w*\s*=\s*(async\s*)?(function|\([^)]*\)\s*=>)", l)
+                      for l in added)
+    adds_state = any(re.match(r"\s*(for|while)\s+", l) or
+                     any(tok in l for tok in ("depth", "stack", "state", "current", "parts"))
+                     for l in added)
+    return adds_helper and adds_state
 
 
 def run_gate(workdir, gate):
@@ -827,6 +844,9 @@ def main():
     # resistance. Demolition: refuse the FIRST stop during minimize and re-prompt ONCE asserting a smaller equivalent
     # exists. Generalist (any verbose-but-green fix, any model). Bounded (<=1 extra round-trip); mirrors L01-I cap.
     # Monotonic: adds a bounded re-prompt, removes no gate, never weakens a proof.
+    green_minimize_helper_surface = False  # CLASS-GREEN-MINIMIZE-HELPER-STATE-MACHINE-SURFACE: helper/state-machine
+    # green patches get one extra bounded refusal because R051 showed a single advisory re-prompt still accepts a
+    # surface-heavy helper. Gate remains the judge; this only buys a second attempt before accepting STOP.
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -963,6 +983,9 @@ def main():
                 green_minimize_start_lines = _f2c_lines
                 green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
             metrics["transcript"].append(f"s{step} F2c intra-hunk-revert: {_f2c_msg}")
+            green_minimize_helper_surface = green_diff_added_helper_state_machine(workdir)
+            if green_minimize_helper_surface:
+                metrics["transcript"].append(f"s{step} GREEN-MINIMIZE helper/state-machine surface detected")
             messages.append({"role": "user", "content": (
                 f"The acceptance gate is green. Current diff surface is {green_minimize_start_lines} changed lines. "
                 "You get ONE bounded diff-minimization pass: if a strictly smaller equivalent patch is obvious "
@@ -1011,6 +1034,8 @@ def main():
                 _f3_c = messages[_f3_i].get("content") or ""
                 if len(_f3_c) > 240:
                     messages[_f3_i] = {**messages[_f3_i], "content": _f3_c[:200] + f"\n[...compacted by F3, was {len(_f3_c)} chars; recent context retained...]"}
+        if os.environ.get("ATOMIC_PROGRESS_STDERR", "1") == "1":
+            print(f"ATOMIC s{step} model_call tools={len(step_tools)} timeout={os.environ.get('DEEPSEEK_TIMEOUT', '120')}s", file=sys.stderr, flush=True)
         try:
             msg, usage = deepseek(messages, step_tools)
         except Exception as e:
@@ -1039,12 +1064,18 @@ def main():
                 empties = 0
                 messages.append({"role": "user", "content": "Now implement that topology with the smallest faithful atomic edit(s), then run_tests."})
                 continue
-            if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1 and not green_minimize_comment_surface_reduced:
+            green_minimize_refusal_limit = 2 if green_minimize_helper_surface else 1
+            if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < green_minimize_refusal_limit and not green_minimize_comment_surface_reduced:
                 green_minimize_refusals += 1
-                metrics["transcript"].append(f"s{step} GREEN-MINIMIZE refused-stop -> re-prompt once (a smaller equivalent exists)")
+                metrics["transcript"].append(f"s{step} GREEN-MINIMIZE refused-stop -> re-prompt {green_minimize_refusals}/{green_minimize_refusal_limit} (a smaller equivalent exists)")
+                helper_clause = (
+                    "This green diff ADDED a helper/state-machine loop. Try ONE helper-collapse atomic_replace: delete "
+                    "the new helper and rewrite the single call site or wrapper with a compact existing language/library "
+                    "expression, or an already-local helper, then run_tests. "
+                    if green_minimize_helper_surface else "")
                 messages.append({"role": "user", "content": (
-                    "Do NOT stop. A strictly smaller equivalent patch EXISTS for this green diff. Nearly every "
-                    "multi-line green fix collapses to less surface: replace a verbose loop that keeps/deletes keys "
+                    "Do NOT stop. A strictly smaller equivalent patch EXISTS for this green diff. " + helper_clause +
+                    "Nearly every multi-line green fix collapses to less surface: replace a verbose loop that keeps/deletes keys "
                     "with a single dict/generator comprehension over the final container, or move an early-construction "
                     "filter to the one post-loop final-value site, or fold duplicated logic into one canonical helper "
                     "plus wrappers. Emit ONE atomic_replace that strictly shrinks the diff while preserving the green "
@@ -1292,6 +1323,13 @@ def main():
                                     metrics["transcript"].append(f"s{step} ROOT-CHECK injected (edit adds call to existing fn)")
                             except Exception:
                                 pass
+                        # F8b QUICK-CHECK-NUDGE (R051: model didn't use quick_check — 0 calls; advisory tool
+                        # description ignored). DETERMINISTIC nudge: on the FIRST edit, inject a direct instruction
+                        # to call quick_check before run_tests. Generalist (any first edit, any task).
+                        if metrics["edits_applied"] == 1 and not green_minimize_active:
+                            res = res + ("\n\n[SELF-VERIFY] Your first edit landed. Call quick_check NOW: write a "
+                                "focused Python snippet (3-5 lines with assert) testing the specific behavior you "
+                                "just fixed. This catches incorrect approaches BEFORE the expensive run_tests.")
                     elif any(m in res.lower() for m in REFUSAL_MARKERS):
                         metrics["invalid_states_prevented"] += 1
                         if fn == "atomic_replace" and ("not found" in res.lower() or "not unique" in res.lower() or "not unique" in res.lower()):
