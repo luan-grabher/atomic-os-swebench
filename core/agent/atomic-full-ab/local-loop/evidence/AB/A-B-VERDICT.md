@@ -223,3 +223,19 @@ a fundamentally-misdirected edit. The Claude-native is the STRONGER base: it fin
 pytest-5840 right where weight-substrate agents failed) and doesn't empty-flail. NET: the neuro-symbolic tools lift DeepSeek to
 NEAR-parity but DeepSeek's base reasoning (navigation, fix-finding) keeps the atomic slightly BELOW the stronger Claude. By number,
 across 11 rounds: NOT dominance, NOT never-loses — a weaker-base model with tools reaching near-parity, losing on hard navigation.
+
+## ★★★ R059 PROVES R6 empties were MY REPRESENTATION (not model-bound) — number corrects my premature guess
+R059 R6 sympy-13877 with temperature-bump: EMPTIES 18→1, EDITS 0→15 (still resolved=0). The temperature-bump DEMOLITION WORKED:
+it BROKE the deterministic empties (18→1) and the atomic ENGAGED (0→15 edits). I had GUESSED "R059 slowness = model-bound empties"
+— WRONG; the slowness was R059 WORKING (retries eventually breaking the temp-0 empties via bumps). The NUMBER corrects my guess:
+R6's empties were MY REPRESENTATION (the deterministic temperature-0 retry; R056 retry-same was futile, R059 retry-with-temp-bump
+fixed it). NOT model-bound. This VINDICATES the doctrine's representation-first rigor: I exhausted the best representation fix
+(R059) and it PROVED the empties were mine. HOWEVER R6 still resolved=0: with empties fixed, the atomic made 15 edits but still
+the WRONG sympy fix → the residual is FIX-FINDING (model-bound, like R3 — DeepSeek can't navigate sympy structures to the correct
+fix). So R6 DECOMPOSES: empties=MY representation (R059 fixed, measurable 18→1/0→15), fix-finding=model-bound. CORRECTED LAYERING
+of the sympy weakness: behavioral/representation layers (paralysis R058, empties R059) that MY demolitions DEMONSTRABLY fix
+(measurable behavior improvement), over a model-bound fix-finding CORE (DeepSeek < Claude on finding sympy fixes). The losses
+persist due to the model-bound core, but the demolitions WORK on what is mine. Honest: 2nd time I prematurely guessed model-bound
+(R6 empties) and the number (R059) proved it was my representation — the doctrine's "every loss = my representation until the best
+fix is tested" is correct, and I must TEST not guess. R10 (pylint flail) + R11 (wrong file) + R3/R4/R6 fix-finding = the model-bound
+core; paralysis/empties/scope-trigger = my representation (R058/R059 fix behavior, R055b trigger). atomic still 1 win/8 ties/2 losses.
