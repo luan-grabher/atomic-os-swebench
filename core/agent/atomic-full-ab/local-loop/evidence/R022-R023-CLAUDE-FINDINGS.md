@@ -414,3 +414,17 @@ bin/test -k is a substring filter, no "a or b" — whole-file is a valid stricte
 it DISCRIMINATES: gold patch → 96 passed/0 failed (PASS); no-fix → 94 passed/2 FAILED (FAIL). So sympy gate-ON now
 works (snapshot: evidence/swe_gate_iso_R051.sh). This unblocks the doctrine's core value test on the 5th repo:
 does atomic's proof-carrying loop RESOLVE sympy-20438 (both arms fail one-shot)? → R052 gate-ON.
+
+## ★ R052 — sympy-20438 gate-ON (keystone payoff): atomic 92/1 (CLOSE, not resolved) — honest synthesis-strategy ceiling
+With the native-runner gate (18th) unblocking sympy gate-ON, atomic iterated: 5 edits across relational.py+sets.py,
+run_tests 90/1 → 92/1, hit max-steps=80 at gate_pass=False. HUGE improvement over one-shot (0-edit) — the gate-ON
+loop drove a multi-file iterating fix to 92 passed/1 failed. But did NOT resolve. DIAGNOSIS (corrected, honest): NOT
+a navigation wall — the model READ the dispatch handlers (17 transcript mentions: grepped is_subset_sets, read
+issubset.py/intersection.py). It UNDERSTOOD the @dispatch area but chose to fix via sets.py methods instead of adding
+the @dispatch handlers in issubset.py+comparison.py (the gold's approach). That's a synthesis-STRATEGY ceiling on an
+unfamiliar multipledispatch architecture, not a discovery gap. Steering it toward "add @dispatch handlers" would be
+FORBIDDEN task-specific guidance. So the residual is bounded by model-synthesis/step-budget, recorded honestly per
+§7 — the gate-ON loop's VALUE is demonstrated (0-edit→92/1 multi-file), the non-resolution is an honest frontier
+limit, NOT a representation wall I can generically close without cheating. sympy-20438: one-shot both-fail; atomic
+gate-ON 92/1 close-but-unresolved (vs pylint-7080/8898 which gate-ON RESOLVED — those were single-file algorithms;
+sympy's is multi-file architectural, the harder class).
