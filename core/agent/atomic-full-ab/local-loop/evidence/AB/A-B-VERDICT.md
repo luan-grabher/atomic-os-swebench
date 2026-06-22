@@ -210,3 +210,16 @@ dominance is RARE + instance-specific (1 win in 10 rounds), gated by the model-b
 atomic = native-parity on pylint/sklearn + a SINGLE non-generalizing verification win (R1) + fix-finding/empties weaknesses that
 are model-bound. NOT overwhelming dominance; the R1 win is 1 datapoint that R10 shows does not repeat on demand. Note: pylint-7080
 is the weight-substrate instance where DeepSeek one-shot also failed (0 edits) — consistent: the atomic can't find this fix.
+
+## ★★★ R11 pytest-5840 = NATIVE-WIN (atomic 0 / native 1) — atomic is PARITY-TO-WEAKER, dominance STRONGLY falsified
+R11 atomic OFFICIAL=0 (edited WRONG file pathlib.py = unique_path's BODY; broken 3-line diff, edits_applied=0). Native OFFICIAL=1
+(edited RIGHT file config/__init__.py = removed unique_path USAGE, the gold approach). So R11 = NATIVE-WIN. UPDATED scoreboard
+(11 rounds): atomic 1 WIN(R1)/8 TIES/2 LOSSES(R6 sympy empties, R11 pytest wrong-file-navigation). The atomic now has MORE LOSSES
+THAN WINS (2 vs 1). HONEST CONCLUSION — the directive's hypothesis (atomic overwhelmingly dominates native) is STRONGLY FALSIFIED:
+the atomic (DeepSeek+full tools+gate) is PARITY-TO-WEAKER vs the native (Claude one-shot). It TIES on clean pylint/sklearn (the
+gate lifts DeepSeek to parity there), WINS 1 rare instance-specific verification-gap (R1, non-generalizing), but LOSES where
+NAVIGATION/FIX-FINDING matters (R11 wrong file, R6 empties) — DeepSeek's reasoning is the limiting factor and the gate can't fix
+a fundamentally-misdirected edit. The Claude-native is the STRONGER base: it finds the right file/approach (R11 config not pathlib;
+pytest-5840 right where weight-substrate agents failed) and doesn't empty-flail. NET: the neuro-symbolic tools lift DeepSeek to
+NEAR-parity but DeepSeek's base reasoning (navigation, fix-finding) keeps the atomic slightly BELOW the stronger Claude. By number,
+across 11 rounds: NOT dominance, NOT never-loses — a weaker-base model with tools reaching near-parity, losing on hard navigation.
