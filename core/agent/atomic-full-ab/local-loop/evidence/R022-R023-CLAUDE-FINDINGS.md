@@ -450,3 +450,19 @@ estimator) vs native's per-estimator patch — AND atomic's general fix is REGRE
 The minimal-faithful/root-cause principle: atomic found the deeper, more-general fix without over-reaching. (Note:
 not the hard-one-shot→gate-ON datapoint sought — both resolved one-shot — but a valuable breadth+quality datapoint.)
 Repos now: pylint, pytest, flask, requests, astropy, sympy, scikit-learn (7 repos).
+
+## ★ WFB ROUND (2026-06-22, ultracode workflow) — multi-repo A/B + 3 demolitions, by-number validated
+Verified Workflow (wf_a44b3ede): 5 hard new instances × 5 repos (astropy-14182, pytest-10356, sklearn-14496,
+pylint-4661, sympy-18199), atomic DeepSeek one-shot ∥ native-Claude, then ADVERSARIAL wall-mining (winners incl).
+EDIT-ECONOMY (one-shot, measured): atomic diffs 2.17× tighter aggregate (35 vs 76 lines), atomic tighter on 4/5
+(pytest 16v39, pylint 3v18, sklearn 4v6, sympy 4v6; astropy 8v7). HONEST: edit-economy ≠ resolution (astropy both
+arms UNRESOLVED officially — hard for both). 3 GENERALIST demolitions, adversarially confirmed + by-number validated:
+- 19th CLASS-OVERLAPPING-REREAD: exact-key gate missed overlapping rereads (astropy re-read 1 file ~15× / 327k tok
+  for 8-line diff). Per-file interval-coverage suppression. VALIDATED astropy re-run: reads 39→32 (10 suppressed),
+  tokens 327929→269182 (−18%), wall 377.9→217.2s (−42%).
+- 20th CLASS-NONEXISTENT-RUN-TESTS: scrubbed "then run_tests" from NO_GATE nudges (contradiction fed the reread loop).
+- 21st CLASS-EXEC-OPERATOR-UNREGISTERED: quick_check (real Python-exec) had a handler but was NEVER in the TOOLS
+  schema → model couldn't call it (always 0) → HAND-SIMULATED (sympy 225k tok). Registered for both modes. VALIDATED:
+  astropy re-run quick_check_calls 0→2 (the model now empirically checks instead of simulating).
+Workflow methodology = the doctrine's exhaustive form (multi-repo by-number + adversarial wall-mining). INFRA: a
+disk-full (ENOSPC) crashed Docker mid-scoring → pruned (3→15GB), restarting Docker; atomic resolution scoring pending.
