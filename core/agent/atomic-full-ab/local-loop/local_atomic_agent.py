@@ -664,6 +664,7 @@ def main():
     messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
 
     last_pass = False
+    last_green_diff = None   # CLASS-GREEN-THEN-BROKE: the best gate-green diff reached (restored at finalize if broken)
     reads_since_edit = 0
     # CLASS-FORCE-EDIT-TOO-RIGID (R030, generalist): the force-edit lockout fired on TOTAL reads_since_edit >= 12,
     # which on a genuinely hard multi-file task (pylint-7080: the model read _discover_files, _expand_files,
@@ -677,9 +678,10 @@ def main():
     force_refused = 0  # CLASS-FORCE-EDIT-DEADLOCK: consecutive refused reads under force-edit (deadlock-spin detector)
     green_minimize_prompted = False
     green_minimize_active = False
-    green_minimize_f1b_stripped = False  # CLASS-GREEN-MINIMIZE-DECLINE-COST (F1c): when F1b deterministically
-    # stripped comments, DECLINE's forced minimize re-prompt is redundant (the reduction already happened) and only
-    # burns a round-trip the model then fails (F1 rejects the non-shrink). Skip the forced re-prompt in that case.
+    green_minimize_comment_surface_reduced = False  # CLASS-GREEN-MINIMIZE-DECLINE-COST (F1c): when F1b/F1d
+    # deterministically reduce comment-only surface, DECLINE's forced minimize re-prompt is redundant because the
+    # non-behavioral reduction already happened. Structural/hunk reducers (F4/F2b) do not set this: they prove one
+    # local shrink, not global minimality, so the bounded re-prompt must still fire if the model tries to stop.
     green_minimize_start_lines = 0
     green_minimize_edits = 0
     green_minimize_pre_files = {}  # CLASS-GREEN-MINIMIZE-NOSHRINK (F1): capture the green fix's changed-file
@@ -766,7 +768,7 @@ def main():
                 _cstrip_after = diff_lines(git_diff(workdir))
                 if _cstrip_pass and _cstrip_after < green_minimize_start_lines:
                     green_minimize_start_lines = _cstrip_after
-                    green_minimize_f1b_stripped = True  # F1c: deterministic reduction happened -> DECLINE skips its forced re-prompt
+                    green_minimize_comment_surface_reduced = True  # F1c: comment-only deterministic reduction happened -> DECLINE skips its forced re-prompt
                     green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
                     metrics["transcript"].append(f"s{step} DETERMINISTIC comment-strip: removed {_cstrip} added comment line(s); gate green; diff_lines->{green_minimize_start_lines}")
                 else:
@@ -784,7 +786,7 @@ def main():
             if _f1d_kept:
                 green_minimize_start_lines = _f1d_lines
                 green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
-                green_minimize_f1b_stripped = True  # deterministic reduction happened -> DECLINE skips
+                green_minimize_comment_surface_reduced = True  # F1c: comment-only deterministic reduction happened -> DECLINE skips
             metrics["transcript"].append(f"s{step} F1d comment-restore: {_f1d_msg}")
             # CLASS-ADJACENT-LOOP-NONE-FILTER-FUSION (F4): deterministic consolidation (§1b) -- fuse two adjacent
             # None-filter loops over different sources into one list(D.items()) loop. Pre-tested h2 4->2 (gold).
@@ -795,7 +797,6 @@ def main():
             if _f4_kept:
                 green_minimize_start_lines = _f4_lines
                 green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
-                green_minimize_f1b_stripped = True
             metrics["transcript"].append(f"s{step} F4 loop-fusion: {_f4_msg}")
             # CLASS-OVERFIX-MULTIPATH-DETERMINISTIC (F2b): trial each diff hunk alone, keep the smallest one that
             # is green alone. atomic verbose multi-hunk fixes usually contain ONE hunk that alone suffices (the
@@ -808,7 +809,6 @@ def main():
             if _f2b_kept:
                 green_minimize_start_lines = _f2b_lines
                 green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
-                green_minimize_f1b_stripped = True  # deterministic reduction happened -> DECLINE skips its forced re-prompt
             metrics["transcript"].append(f"s{step} F2b hunk-minimize: {_f2b_msg}")
             messages.append({"role": "user", "content": (
                 f"The acceptance gate is green. Current diff surface is {green_minimize_start_lines} changed lines. "
@@ -883,7 +883,7 @@ def main():
                 empties = 0
                 messages.append({"role": "user", "content": "Now implement that topology with the smallest faithful atomic edit(s), then run_tests."})
                 continue
-            if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1 and not green_minimize_f1b_stripped:
+            if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1 and not green_minimize_comment_surface_reduced:
                 green_minimize_refusals += 1
                 metrics["transcript"].append(f"s{step} GREEN-MINIMIZE refused-stop -> re-prompt once (a smaller equivalent exists)")
                 messages.append({"role": "user", "content": (
@@ -1000,6 +1000,12 @@ def main():
                         res += "\n\n" + "\n\n".join(diagnostics)
                     reads_since_edit = 0; distinct_since_edit.clear()  # test feedback received (pass OR fail) → fresh read budget to diagnose & refine; without this a failed edit deadlocks against the force-edit read-lockout
                     if last_pass:
+                        # CLASS-GREEN-THEN-BROKE (R045, generalist): capture the WINNING diff every time the gate
+                        # goes green. Measured (pylint-8898 gate-ON s3): the model reached pass=15/0 at s24 then
+                        # kept editing → broke it to pass=0 and never recovered → final state RED though a green
+                        # was reached. Snapshot here; at finalize, if the final tree isn't green, RESTORE the
+                        # last-green diff so the answer is the best green reached (not a broken later edit).
+                        last_green_diff = git_diff(workdir)
                         if green_minimize_active:
                             minimized_lines = diff_lines(git_diff(workdir))
                             if minimized_lines < green_minimize_start_lines:
@@ -1123,6 +1129,24 @@ def main():
                     break
             else:
                 metrics["transcript"].append("F5 scoring-gate: stayed red after 2 retries (in-loop was green) -- recorded red honestly")
+        # CLASS-GREEN-THEN-BROKE (R045): if the final tree is RED but we captured a GREEN diff earlier (the model
+        # reached green then broke it editing past green), RESTORE the last-green diff and re-score. The answer is
+        # the best green reached, not a broken later edit. Anti-facade: we re-RUN the gate on the restored tree —
+        # only keep it if it genuinely re-greens; never assert green without re-verifying.
+        if not final_pass and last_green_diff and last_green_diff.strip():
+            try:
+                subprocess.run(["git", "checkout", "--", "."], cwd=workdir, capture_output=True)
+                subprocess.run(["git", "clean", "-fdq"], cwd=workdir, capture_output=True)
+                ap = subprocess.run(["git", "apply"], cwd=workdir, input=last_green_diff, capture_output=True, text=True)
+                if ap.returncode == 0:
+                    restored_pass, _, _ = run_gate(workdir, args.gate)
+                    if restored_pass:
+                        final_pass = True
+                        metrics["transcript"].append("GREEN-THEN-BROKE: restored last-green diff (model had broken it past green); re-scored GREEN")
+                    else:
+                        metrics["transcript"].append("GREEN-THEN-BROKE: restore did not re-green; recorded red honestly")
+            except Exception as _e:
+                metrics["transcript"].append(f"GREEN-THEN-BROKE restore error: {str(_e)[:120]}")
         metrics["gate_pass"] = final_pass
     d = git_diff(workdir)
     metrics["diff_lines"] = diff_lines(d)
