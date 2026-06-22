@@ -208,3 +208,14 @@ instances {flask-5014, requests-1921, pytest-5262, pytest-7982, pylint-7080} —
 one-shot baseline got 4/5 (failed pylint). The cognitive-prosthesis thesis, by number on CORRECTNESS: a faithful
 atomic representation lets a cheap model resolve what it couldn't and exceed a stronger model's native rate. The
 remaining honest scope: pylint needed the gate-ON iterate loop (atomic's proof-carrying core), not one-shot.
+
+## ★★ R035 — ESCALATION to astropy-12907 (harder: separability_matrix nested CompoundModel) — CORRECTNESS PARITY
+Loop step 7: pylint resolved → escalate. astropy-12907 (subtle logic bug in modeling/separable.py _cstack).
+Both arms ONE-SHOT, official SWE-bench-Verified harness:
+- DeepSeek-atomic: RESOLVED (run astropy_R035_atomic ✓=1) — 7 tool-calls, 226k tokens, gold fix
+  `_cstack: cright[...] = right` (was `= 1`).
+- native-Claude subagent: RESOLVED (run astropy_R035_native ✓=1) — 3 tool-uses, 35k tokens, IDENTICAL gold fix.
+**On the harder instance both solve it one-shot with the SAME minimal fix → correctness PARITY at the escalated
+level.** Residual gap = tool-economy (atomic 7 vs native 3 calls; 226k vs 35k tokens) = DeepSeek verbosity, the
+representation wall to hunt next (NOT a correctness/model-ceiling verdict). Regression guard same turn: R034
+re-scored the 4 one-shot winners on the official harness with the complete-chain driver = 4/4 (no regression).
