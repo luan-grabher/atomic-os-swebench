@@ -30,13 +30,18 @@ multi-sampled where asserted; single samples are labeled.
   unreliable for both models, but atomic GATE-ON (iterate on verified test feedback) resolves them — pylint-8898
   one-shot ~25% → gate-ON ~75% (→ higher with the green-preserve fix).
 
-## L5 (sympy-20438, 5th repo, sprawling multipledispatch) — hard for BOTH one-shot; walls demolished
-Native one-shot UNRESOLVED + atomic 0-edit deadlock → BOTH fail one-shot (not an atomic-specific loss). Exposed
-two walls: largefile-read-fragment (sets.py 2516 lines ≫ read cap) + deadlock-at-zero-edits (16th fix: atomic now
-commits a refinable edit instead of surrendering — validated 0→1 edit). Local gate-ON blocked by the pytest-only
-gate boundary (sympy uses its own runner) — recorded honestly; official scoring unaffected.
+## L5 (sympy-20438, 5th repo, sprawling multipledispatch) — hard for BOTH one-shot; walls demolished; gate-ON CLOSE
+Native one-shot UNRESOLVED + atomic 0-edit deadlock → BOTH fail one-shot (not an atomic-specific loss). Demolished
+walls: deadlock-at-zero-edits (16th: 0→1 edit), selector-not-found-deadend (17th: read overloaded methods),
+native-runner gate (18th: pytest→bin/test auto-detect, validated gold=0fail/no-fix=2fail — UNBLOCKED sympy gate-ON).
+With gate-ON the loop drove atomic from 0-edit one-shot to a **2-file/5-edit fix at 92 passed/1 failed** (close) —
+but did NOT resolve in 80 steps. HONEST residual (diagnosed): the model READ the @dispatch handlers but chose a
+sets.py fix strategy over the gold's @dispatch-handler approach — a synthesis-STRATEGY ceiling on unfamiliar
+multipledispatch, NOT a navigation gap and NOT cheatable (steering to "add @dispatch handlers" = forbidden
+task-specific guidance). sympy is the harder CLASS (multi-file architectural) than pylint (single-file algorithm,
+which gate-ON RESOLVED). The gate-ON loop's VALUE is shown (0-edit→92/1); the non-resolution is an honest limit.
 
-## 17 representation walls demolished this session (all generalist, all committed, every gap = mine not the model)
+## 18 representation walls demolished this session (all generalist, all committed, every gap = mine not the model)
 Agent/perception: (1) full-reasoning instrumentation; (2) arg-name rigidity; (3) topology-withhold DSML leak;
 (4) edit-receipt blindness; (5) batch-read-blind (results vs items); (6) batch-summary-blind; (7) whole-file
 read threshold; (8) nonsource-nav-wander; (9) guard-not-root steer; (10) guard-calls-existing unavoidable
@@ -45,8 +50,8 @@ auto-injection; (11) force-edit-too-rigid (redundant vs total reads); (12) hidde
 Engine: (13a) prose-import-false-RED (byte-floor supply-chain regex matched a docstring word); (13b)
 callgraph-blind-nonjs (perception node-set + lens SOURCE_RE + workspace-root keystone). Harness: (14)
 gate-paramtest-ids (parametrized node ids w/ commas/brackets + malformed dataset fragment); (+) gate-bare-test-names
-(sympy-style bare ids → run test_patch files with -k); honest boundary: local gate is pytest-only (sympy needs its
-native runner; official scoring unaffected).
+(sympy-style bare ids → run test_patch files whole); (18) gate-native-runner (auto-detect pytest→sympy bin/test;
+validated gold=0fail/no-fix=2fail — unblocked sympy gate-ON, which then drove atomic 0-edit→92/1 on sympy-20438).
 
 ## Honesty discipline (what makes the numbers credible)
 - RETRACTED a single-sample win (R041 "atomic beats native on pylint-8898") when N=3 showed it didn't replicate.
