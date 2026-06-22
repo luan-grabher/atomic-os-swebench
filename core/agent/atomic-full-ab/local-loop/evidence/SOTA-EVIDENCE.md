@@ -18,12 +18,17 @@ multi-sampled where asserted; single samples are labeled.
 | L2 | astropy__astropy-12907 | ✅ | ✅ | parity (3 vs 3 calls, N=3) | harder single-file; identical gold fix |
 | L3 | pytest-dev__pytest-8399 | ✅ | ✅ | **DOMINANCE: 1 vs 5 edits, 2 vs 10 diff (N=3)** | multi-file; native over-edits |
 | L4 | pylint-dev__pylint-8898 | ✅ (gate-ON ~3/4) | ✗ one-shot (single) | atomic smaller diff | hard algorithm; one-shot ~1/4 both, atomic gate-ON ~75% |
+| L1 | scikit-learn__scikit-learn-13328 | ✅ resolved | ✅ resolved | **ROOT-CAUSE: check_array (all estimators) vs native per-estimator patch; regression-free** | 7th repo; both one-shot; atomic found deeper root fix |
+| L5 | sympy__sympy-20438 | ✗ (gate-ON 95/1 close) | ✗ one-shot | atomic iterates 0-edit→95/1 multi-file | hard multi-file architectural; both fail one-shot; gate-ON close, honest non-resolution |
 
 ## Headline numbers
 - **Cross-model resolved-rate L1 = 5/5** (4/5 one-shot + pylint-7080 via the proof-carrying gate-ON loop) =
   native one-shot 4/5. A weaker model + atomic ≥ a stronger model native, on correctness.
 - **Edit-quality DOMINANCE on multi-file (L3, N=3, stable):** atomic 1 edit / 2-line diff vs native 5 edits /
   10-line diff — the minimal-faithful-transformation principle creates real margin where native text-patches over-reach.
+- **Root-cause depth (sklearn-13328, 7th repo):** both resolve one-shot, but atomic fixed the ROOT (check_array
+  bool-upcast, all estimators) vs native's per-estimator patch — same 1-line footprint, regression-free. A 2nd
+  quality dimension (besides edit-economy): atomic locates the deeper, more-general fix without over-reaching.
 - **Tool-economy:** parity-to-win (astropy median 3 = native 3; pytest-8399 median 4-5 vs native 10). Tokens
   track call-count (not model verbosity); on atomic's clean path it wins tokens too (38.7k < 42.6k).
 - **Proof-carrying loop value (the atomic core):** on TWO hard instances (pylint-7080, pylint-8898) one-shot is
