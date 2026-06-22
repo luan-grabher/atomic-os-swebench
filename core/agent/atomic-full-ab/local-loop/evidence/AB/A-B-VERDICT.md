@@ -129,3 +129,17 @@ R3 tie(0/0), R5 tie(1/1), R6 LOSS(0/1 model-bound), R7 tie(1/1); R4 pending. ato
 atomic = native on pylint/sklearn + rare verification WIN + genuine sympy weakness (part behavioral R058-targetable, part
 DeepSeek-base-bound R6). NOTE: a CONCURRENT agent is editing local_atomic_agent.py (added normalize_gate_command call) — my
 demolitions R052-R058 intact + committed; left their uncommitted change alone (no conflict, different lines).
+
+## ★★★ PREMATURE 'model-bound' CORRECTED — R6 empties are likely MY representation (deterministic-retry bug), not the model
+Doctrine ("every loss = my representation") forced exhausting the representation hypothesis for R6's 18 empties BEFORE blaming
+DeepSeek: (1) context-overflow FALSIFIED — empties occurred at TINY context (first at ~1k tokens, last at ~7.7k; limit ~128k);
+(2) ROOT CAUSE FOUND: temperature defaults to 0 (DETERMINISTIC) → R056's retry of the IDENTICAL request returns the IDENTICAL
+empty → 18 empties survived. So R6's loss was attributed to 'model-bound' PREMATURELY — it is more likely MY weak retry
+(representation gap): retrying a deterministic empty without varying the request. FIX R059 CLASS-EMPTY-DETERMINISTIC-BREAK: on
+empty, BUMP temperature (0.4/0.7/1.0) + rebuild request → sample a DIFFERENT (non-empty) completion. VALIDATING NOW: R6 sympy-
+13877 re-run with R059. If empties break (edits>0) → R6 was NOT model-bound, it was my representation (the doctrine vindicated:
+the loss was mine). If still empty after temperature variation → then genuinely model-bound. THREE sympy validations in flight:
+R4-v4 (last scoreboard datapoint), R058-val (R3 paralysis fix), R059-val (R6 empty-determinism fix). If R058+R059 both help, the
+sympy 'weakness' is largely MY representation (weak demolitions: no force-edit on quick_check, deterministic retry), NOT the
+atomic — which would shift the verdict toward the atomic being stronger than the broken-harness numbers showed. Honesty: I nearly
+shipped 'model-bound' as the loss's cause; the doctrine's rigor caught it as my representation gap. Pending the validation numbers.
