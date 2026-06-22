@@ -100,6 +100,47 @@ def self_improve(operator, new_strategy=None, new_trigger=None):
     return True, f"admitted: description −{old_len - new_len} chars, fidelity preserved over {operator['proof_n']} instance(s)"
 
 
+def compression_candidates(weights, min_shared=2):
+    """Detect operator clusters that SHARE ESSENCE (overlapping trigger tokens) — merge candidates (deterministic).
+    Returns list of index-lists. The substrate proposes a merge only for these; necessity (LAW 2) keeps the rest split."""
+    toks = [set(re.split(r"[|]", w.get("trigger", ""))) - {""} for w in weights]
+    clusters, used = [], set()
+    for i in range(len(weights)):
+        if i in used:
+            continue
+        grp = [i]
+        for j in range(i + 1, len(weights)):
+            if j in used:
+                continue
+            if len(toks[i] & toks[j]) >= min_shared:
+                grp.append(j); used.add(j)
+        if len(grp) > 1:
+            used.add(i); clusters.append(grp)
+    return clusters
+
+
+def admit_merge(members, meta_strategy, meta_trigger, meta_class, weights):
+    """LAW 1 at the META level (poucos operadores, cada um cobrindo muito): replace N essence-sharing operators with
+    ONE — ADMITTED ONLY UNDER PROOF OF GAIN: (a) the meta's description is SMALLER than the members' combined, AND
+    (b) the meta's trigger STILL recalls EVERY captured signal of EVERY member (monotonic fidelity). Atomic: verifies
+    on a candidate before mutating. Returns (admitted, proof_or_reason, new_weights)."""
+    old_desc = sum(len(m["strategy"]) + len(m.get("trigger", "")) for m in members)
+    new_desc = len(meta_strategy) + len(meta_trigger)
+    if new_desc >= old_desc:
+        return False, f"rejected: not smaller ({new_desc} >= {old_desc})", weights
+    all_sigs = [s for m in members for s in _signals(m)]
+    for s in all_sigs:
+        if not re.search(meta_trigger, s, re.I):
+            return False, f"rejected: fidelity regression — meta no longer recalls {s!r}", weights
+    insts = [i for m in members for i in m.get("instances", [])]
+    meta = {"class": meta_class, "trigger": meta_trigger, "strategy": meta_strategy,
+            "instances": insts, "proof_n": len(insts), "absorbed": [m["class"] for m in members]}
+    kept = [w for w in weights if w not in members]
+    kept.append(meta)
+    pct = 100 * (old_desc - new_desc) // old_desc
+    return True, f"admitted: {len(members)} operators -> 1, description -{old_desc - new_desc} chars ({pct}% smaller), fidelity preserved over {len(all_sigs)} signal(s)", kept
+
+
 # ----- deterministic self-test (no LLM) -----
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--selftest":
@@ -133,4 +174,26 @@ if __name__ == "__main__":
         print("LAW3 BATTERY (trigger dropping a signal REJECTED):", (not ok_break), "|", r3[:60])
         print("LAW3 BATTERY (faithful shorter trigger admitted): ", ok_keep, "|", r4[:55])
         print("monotonic fidelity intact (concrete per-signal):  ", fid_ok, "" if fid_ok else fails)
-        print("ALL LAWS HOLD:", absorbed and created and ok_short and (not ok_long) and (not ok_break) and ok_keep and fid_ok)
+
+        # ---- COMPRESSION LAW (meta-minimality): N essence-sharing operators -> 1, smaller, fidelity preserved ----
+        B = load(os.path.join(os.path.dirname(__file__), ".corpus", "weights.jsonl"))
+        upstream = {"CROSS-FILE-ROOT-CAUSE-VIA-DECISION-PREDICATE": "ignore-paths not excluded recursively by the filter predicate",
+                    "FIX-AT-WRITE-SITE-NOT-READ-SITE": "marks read are stale because stored wrong at the registration site",
+                    "DISPATCH-HANDLER-LIVES-IN-REGISTRY-FILE": "is_subset wrong for a type because its dispatch handler is missing"}
+        for w in B:
+            if w["class"] in upstream:
+                w["instances"] = [{"id": w["class"].lower(), "signal": upstream[w["class"]]}]; w["proof_n"] = 1
+        members = [w for w in B if w["class"] in upstream]
+        meta_trigger = ("ignore|filter|exclud|discover|path|recursiv|match|skip|mark|attribute|store|inherit|mro|"
+                        "registr|stale|propagat|dispatch|singledispatch|overload|generic|handler|visitor")
+        meta_strategy = ("The bug's ROOT is usually NOT where the wrong behavior is OBSERVED — it is UPSTREAM, at the "
+                         "site that DECIDES, STORES, or REGISTERS the behavior. Trace from symptom to that site and fix "
+                         "there: (a) wrong filter/discovery -> a DECISION PREDICATE (is_X/should_Y/_ignore), often in "
+                         "another file; (b) a value wrong at READ time -> the WRITE/STORE/REGISTER site, so it is right "
+                         "for ALL readers; (c) a type wrong in a dispatched generic -> the HANDLER that registers that "
+                         "type. Use atomic_callers/atomic_grep to reach the site; fix the small decision, not the symptom.")
+        cands = compression_candidates(B)
+        merged_ok, mproof, _ = admit_merge(members, meta_strategy, meta_trigger, "ROOT-IS-UPSTREAM-OF-SYMPTOM", B)
+        print("COMPRESSION detect (essence-sharing cluster found):", any(len(c) >= 3 for c in cands))
+        print("COMPRESSION admit (3 operators -> 1, proof-of-gain):", merged_ok, "|", mproof[:62])
+        print("ALL LAWS HOLD:", absorbed and created and ok_short and (not ok_long) and (not ok_break) and ok_keep and fid_ok and merged_ok)
