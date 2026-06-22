@@ -350,3 +350,10 @@ LOSS on a hard-comprehension instance. Walls (mine, diagnosed from the trace):
    whole-file reads) did. Honest: partly a sprawling-codebase comprehension gap, partly my too-aggressive deadlock
    + small wholefile cap. Next levers: (a) larger/zoomable reads for big files, (b) never deadlock-STOP at 0 edits —
    force a best-effort edit instead (a wrong edit can be iterated; 0 edits cannot). native sympy resolve = scoring.
+
+## R047 CORRECTION: native ALSO failed sympy-20438 one-shot (0/1) — BOTH fail one-shot, not atomic-specific
+Native's 3-file fix scored UNRESOLVED (official). So sympy-20438 one-shot fails for BOTH arms (hard instance,
+like pylint one-shot) — atomic's 0-edit is worse (native at least produced a wrong patch) but it's NOT a loss to
+a working native fix. The real differentiator is the gate-ON iterate loop. R048 = sympy-20438 GATE-ON with the
+16th fix (deadlock-at-zero-edits forces a commit) + the now-built sympy image: does atomic's proof-carrying loop
+resolve it where both one-shot fail? (Same value test as pylint-7080/8898.)
