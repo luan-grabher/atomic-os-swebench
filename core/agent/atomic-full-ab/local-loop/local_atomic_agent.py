@@ -834,6 +834,15 @@ def main():
                     ("" if NO_GATE else ", then run_tests; the test result will tell you if it's right and you can refine") + ".")})
                 metrics["transcript"].append(f"s{step} FORCE-EDIT engaged (redundant={_redundant_reads()} total={reads_since_edit}, 0 edits) — read tools withheld")
                 forced = True
+        # CLASS-FILETREE-RESEND-BLOAT (F6): the initial file-tree user turn ("# Repository files\n{tree}") is
+        # resent every step; for large repos (pylint: thousands of files) this is a big per-call input cost.
+        # After step 1 (the model has seen it once), compact the tree to a 1-line marker (atomic_survey remains).
+        # Generalist (any repo). Safe (model has the tree from step 1; survey navigation unaffected).
+        if step == 2 and len(messages) > 1 and isinstance(messages[1], dict) and messages[1].get("role") == "user":
+            _f6_u = messages[1].get("content", "")
+            _f6_ti = _f6_u.find("# Your task")
+            if _f6_ti > 0 and len(_f6_u) > 1200:
+                messages[1] = {**messages[1], "content": "# Repository files (compacted by F6 -- file tree from step 1 removed; use atomic_survey to navigate)\n\n" + _f6_u[_f6_ti:]}
         # CLASS-HISTORY-TOKEN-BLOAT (F3, deterministic): the resent message history grows unbounded (every
         # compacted tool result ~6k + assistant content + nudges) -- measured ~7-10k tokens/step, the token-
         # verbosity residual (R039). Keep the last 6 tool-result messages verbatim; for OLDER tool-result messages,

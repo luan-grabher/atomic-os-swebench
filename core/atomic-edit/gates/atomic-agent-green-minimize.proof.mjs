@@ -166,6 +166,13 @@ record('CLASS-SCORING-GATE-FLAKE (F5): final scoring gate retries on in-loop-gre
     guard: source.includes('if not final_pass and last_pass:'),
     trace: source.includes('F5 scoring-gate retry:'),
   });
+record('CLASS-FILETREE-RESEND-BLOAT (F6): the initial file-tree user turn is compacted after step 1 (avoid per-step resend on large repos)',
+  source.includes('CLASS-FILETREE-RESEND-BLOAT (F6)') &&
+  source.includes('step == 2 and len(messages) > 1'),
+  {
+    marker: source.includes('CLASS-FILETREE-RESEND-BLOAT (F6)'),
+    guard: source.includes('step == 2 and len(messages) > 1'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
