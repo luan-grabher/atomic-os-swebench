@@ -306,3 +306,15 @@ the atomic representation gives correct perception but does NOT make a subtle sp
 test feedback. NEXT (atomic's actual value): pylint-8898 GATE-ON (proof-carrying iterate loop) — does atomic
 reliably resolve it WITH test feedback (write splitter → test → fix edge case)? That is the honest atomic lever,
 same as pylint-7080. Lesson reaffirmed: never claim a single-sample win; multi-sample before asserting.
+
+## ★★★ R043/R044 — pylint-8898 gate-ON RESOLVED (official) — atomic's proof-carrying-loop value, AND a gate-bug caught
+R043 gate-ON "failed" — but the cause was MY gate (CLASS-GATE-PARAMTEST-IDS): the P2P list has parametrized ids
+with commas/brackets + a malformed truncated fragment ([foo,); the gate passed them unquoted/included the bad one
+→ pass=0 fail=1 forever → atomic iterated on GARBAGE feedback. Fixed (drop unbalanced-bracket ids + shlex.quote,
+merged w/ oh-my-pi; robust command-sub iso gate). Verified: gate+GOLD = 15/15 pass (was not-found/0).
+R044 gate-ON with the FIXED gate: **atomic RESOLVED pylint-8898 — OFFICIAL harness 1/1** — by iterating on real
+feedback (pass=14/1 → broke→0/1 → recovered 14/1 → 15/0 GREEN; 8 edits, 5 test cycles, diff 12).
+**So: pylint-8898 one-shot ~1/4 (hard algorithm, native one-shot also failed) → atomic GATE-ON RESOLVES it.**
+That is atomic's CORE proof-carrying-loop value, by number, on a 2nd hard instance (after pylint-7080): verification
+-in-the-loop turns an unreliable-one-shot algorithm into a resolved one. HONEST: 1 gate-ON sample (reliability N=3
+is the next confirmation); the R043 "atomic failed" was a harness wall (mine), not the model.
