@@ -244,3 +244,17 @@ demolitions failed OR worked from these — R4 was infra-broken (my re-run scrip
 base limit (empties). CORE VERDICT UNCHANGED + solid: atomic 1 win(R1)/5 ties/1 loss(R6), repo-dependent, sympy weakness partly
 model-bound. NEXT: clean R4 re-run (unique container), fix R055 trigger to handle the case, accept R6 model-bound. Honest
 process: caught my own re-run infra bug (shared container name) before mis-concluding the demolition failed.
+
+## R057 analysis — gate_pass=False is SECONDARY (doesn't change A/B outcome); efficiency wall is incremental-editing
+Investigated the finalize: it ALREADY re-runs the gate (line 1838 final_pass=run_gate). The F5 retry (line 1848) retries a
+finalize-red ONLY if in-loop was green (last_pass=True). In R5 the in-loop NEVER went green (run_tests hit incomplete diffs),
+so a finalize-flake-red wasn't retried → gate_pass=False. BUT this is SECONDARY: R5 RESOLVED officially (the SWE-bench harness
+overrides the internal gate_pass), so the A/B OUTCOME (R5 tie) is correct regardless. gate_pass=False only affects the internal
+metric + means the atomic didn't KNOW it won in-loop → kept editing to the step cap. The REAL wall is EFFICIENCY: the atomic
+edits INCREMENTALLY (20 small edits, R5) + runs tests on incomplete diffs → never sees green in-loop → thrashes to cap (70
+steps), vs native's 1 comprehensive edit. This is an edit-economy LOSS on the resolution-ties (R5: 20 vs native 1). R057 (final-
+verify/gate_pass accuracy) would NOT fix the efficiency (the thrash already happened) — it's cosmetic. The efficiency fix would
+need to steer COMPREHENSIVE edits (fewer, larger) vs incremental — a deeper representation change, LOW priority (doesn't change
+A/B win/tie/loss outcomes). DECISION: R057 deprioritized (secondary). Core verdict stands: atomic 1 win/5 ties/1 loss, repo-
+dependent; edit-economy is a secondary atomic disadvantage on ties (incremental editing). Honest: not every wall is worth
+demolishing — this one is cosmetic/secondary, recorded but deprioritized.
