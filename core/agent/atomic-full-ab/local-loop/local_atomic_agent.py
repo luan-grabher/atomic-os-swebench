@@ -677,6 +677,18 @@ def main():
                 else:
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
                     res = f"pass={np_} fail={nf_} all_green={last_pass}\n" + gate_out[-1500:]
+                    # CLASS-GUARD-NOT-ROOT (R028, generalist): when the test stays RED after an edit, the single
+                    # most common dead-end is "I added a new guard/filter by calling an existing function, but the
+                    # root is that FUNCTION'S OWN behavior (or an existing call site), not the absence of my guard"
+                    # (measured: pylint-7080 — the model added a 2nd _is_ignored_file call instead of fixing the
+                    # un-normalized path inside _is_ignored_file, already called at pylinter.py:600). Steer the
+                    # model to the call-graph + the function body. Pure advice on red — zero blocking, any task.
+                    if not last_pass and metrics["edits_applied"] >= 1:
+                        res += ("\n\n[diagnose] Still red. If your edit ADDED a call to an existing function as a "
+                                "new guard/filter, the bug is probably in that function's OWN body (e.g. a missing "
+                                "normalization/comparison) or in an EXISTING call site — not the absence of your "
+                                "guard. Call atomic_callers(<that function>) to see where it is ALREADY used, then "
+                                "read its body and fix the ROOT there instead of adding another guard.")
                     reads_since_edit = 0  # test feedback received (pass OR fail) → fresh read budget to diagnose & refine; without this a failed edit deadlocks against the force-edit read-lockout
                     if last_pass:
                         if green_minimize_active:
