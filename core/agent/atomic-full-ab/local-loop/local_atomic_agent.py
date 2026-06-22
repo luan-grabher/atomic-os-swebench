@@ -490,6 +490,13 @@ TOOLS = [
     {"type": "function", "function": {"name": "run_tests",
         "description": "Run the test suite (the binary acceptance gate). Call after edits to verify. Returns pass/fail counts and failing output. When all tests pass, STOP (reply without any tool call).",
         "parameters": {"type": "object", "properties": {}}}},
+    # CLASS-EXEC-OPERATOR-UNREGISTERED (WFB WALL-3): the handler for quick_check existed but the tool was NEVER in
+    # this schema, so the model could not call it (quick_check_calls always 0) and instead HAND-SIMULATED algorithms
+    # by reasoning (sympy: ~225k tokens re-tracing nthroot_mod(289,5,17) it could have just RUN). Register it as a
+    # first-class exec operator usable for EXPLORATION too — empirically check behavior in 1 call vs N speculative traces.
+    {"type": "function", "function": {"name": "quick_check",
+        "description": "Run a short Python snippet in the repo and return its stdout/stderr (30s timeout). Use it to EMPIRICALLY check behavior instead of simulating by hand: reproduce the bug (run the issue's snippet to SEE the actual error), confirm a function's output for given inputs, or verify your fix works — BEFORE and AFTER editing. One run beats many guesses. Imports from the repo work (cwd is the repo root).",
+        "parameters": {"type": "object", "properties": {"code": {"type": "string", "description": "Python source to execute (use print(...) to observe; assert to check)."}}, "required": ["code"]}}},
 ]
 
 DISPATCH = {
@@ -797,8 +804,10 @@ def main():
             "detail), so fix THAT; adding a second F guard usually duplicates the same latent bug and fails. ")
     if NO_GATE:
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
-                  "ONLY atomic tools. " + survey + lean + "You CANNOT run the project's tests — there is no "
-                  "run_tests tool. Implement the fix described in the issue carefully and completely, then "
+                  "ONLY atomic tools. " + survey + lean + "You CANNOT run the hidden acceptance test suite (no "
+                  "run_tests tool), BUT you CAN run short Python snippets with quick_check — USE IT to reproduce "
+                  "the bug empirically (run the issue's repro snippet to SEE the real error) and to confirm your "
+                  "fix, instead of simulating behavior by hand. Implement the fix carefully and completely, then "
                   "STOP by replying with a short summary and NO tool call. Paths are relative to the repo root.")
     else:
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
