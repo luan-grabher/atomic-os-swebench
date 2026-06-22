@@ -4,17 +4,26 @@
 native baseline = a Claude subagent, **one-shot** (native tools only, no MCP). Same SWE-bench-Verified task per round,
 official Docker harness (FAIL_TO_PASS + PASS_TO_PASS) scoring. Model **locked** to DeepSeek for the atomic arm.
 
-## Scoreboard (R1–R5 scored; R6/R7 atomic in flight)
+## Scoreboard (7 rounds scored, official; R8/R9 atomic pending)
 
-| Round | instance | atomic (DeepSeek) | native (Claude) | regime |
+| Round | instance | atomic (DeepSeek) | native (Claude) | outcome |
 |---|---|---|---|---|
-| R1 | pylint-8898 | **1** ✓ | 0 | **verification-gap → atomic WINS** |
-| R2 | pylint-4661 | 0 | 0 | lib-guess (appdirs) → tie |
-| R3 | sympy-20438 | 0 | 0 | exotic selector / high variance → tie |
-| R4 | sympy-16597 | 0 | 0 | 6-file hard → tie |
-| R5 | sklearn-12682 | **1** | 1 | clean → tie (atomic **kept pace**, 16 edits via gate) |
-| R6 | sympy-13877 | — | 1 | clean (atomic running) |
-| R7 | sklearn-25102 | — | 1 | clean (atomic running) |
+| R1 | pylint-8898 | **1** ✓ | 0 | **atomic WINS** (verification-gap; gate catches native's buggy splitter) |
+| R2 | pylint-4661 | 0 | 0 | tie (lib-guess appdirs) |
+| R3 | sympy-20438 | 0 | 0 | tie (sympy selector-flail, 0 edits) |
+| R4 | sympy-16597 | 0 | 0 | tie (sympy scope-fixation, 9 edits/1 file) |
+| R5 | sklearn-12682 | **1** | 1 | tie (atomic **kept pace**, 16 edits) |
+| R6 | sympy-13877 | **0** | **1** | **atomic LOSES** (sympy: 0 edits, 10/16 DeepSeek empty responses) |
+| R7 | sklearn-25102 | **1** | 1 | tie (atomic kept pace, 18 edits, 0 empties) |
+
+**Tally: atomic 1 win, 5 ties, 1 loss.** By repo: pylint → win+tie; **sklearn → ties (atomic keeps pace, resolves clean)**;
+**sympy → ties + 1 LOSS (atomic flails: selector-miss, scope-fixation, DeepSeek empty responses)**.
+
+## ⚠️ CORRECTION — "never loses" (claimed at R5) is FALSIFIED by R6
+
+I over-stated "atomic never loses" after R1–R5. **R6 (run later) is a clear atomic LOSS** (0 vs native 1) on a clean
+sympy instance: the DeepSeek model returned ~10/16 EMPTY responses → 0 edits. The honest verdict is repo-dependent:
+the atomic **wins-or-ties on pylint/sklearn but has a SYMPY WALL** (edit-flail + empty-response) where it loses.
 
 ## Verdict (what the numbers support — and what they do NOT)
 
