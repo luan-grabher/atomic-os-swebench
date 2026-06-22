@@ -779,3 +779,19 @@ Explored core/atomic-edit/corpus-accumulator.mjs: it accumulates GATE-PASS proof
 are correctly SEPARATE: invariant-proofs steer the ENGINE's self-modification; strategy-weights steer the MODEL. No
 integration (category mismatch). "Fortaleça o embrião" was satisfied at the right layer (agent corpus retrieval, which was
 shape-stats-only, now injects strategy weights). Architecture confirmed correct; no further core plumbing needed.
+
+## ★★★ FIRST CLEAN POSITIVE SIGNAL — weight lifts a VARIANCE-CONTROLLED weak model (0/7 → 2/7), confound resolved
+Controlled the exploration confound by CONSTRAINING native Claude to shallow (strict 8-tool-call budget) = a RELIABLE
+weak baseline. N=7 each, official: baseline-shallow-no-weight = 0/7 (every run makes the caller-only fix, NONE resolve —
+incl base_6's compiled-patterns variant); WITH-weight-shallow = 2/7 (wgt_2, wgt_6 applied the gold normpath fix → resolve).
+So the PATH-NORMALIZATION weight LIFTS pylint-7080 from 0/7 → 2/7 (~29%) in the weak regime. REAL but UNRELIABLE: the model
+APPLIES the weight ~29%, rationalizes it away ~71% (caller fix). The 2 resolves came via the weight's SPECIFIC mechanism
+(normpath) the baseline NEVER used = consistent gap, not noise. This RESOLVES the earlier confound: uncontrolled native
+runs were variance-dominated (deep exploration resolved regardless, masking the weight); CONTROLLING exploration UNMASKS
+a real weight effect (0→29%). HONEST BOUNDS: (1) N=7 modest — rate estimate ~29% ±; (2) native Claude, not the locked
+DeepSeek (the directive's actual config, still needs funds); (3) effect is modest+unreliable (advisory injection still
+overridden most of the time, consistent with the gate>advice synthesis — a GATE would enforce the weight the model here
+ignores 71% of the time). DIRECTIVE FIT: first by-number evidence that a corpus weight LIFTS a weak model's resolution
+rate (partial, not to frontier). The substrate-learns-and-lifts thesis has its first positive datapoint — earned by
+controlling the confound, not by ignoring it. Next: more N to firm the rate; weak-DeepSeek config (funds); weight+GATE
+(enforce the 71% the model ignores).
