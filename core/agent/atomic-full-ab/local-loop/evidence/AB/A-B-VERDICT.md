@@ -196,3 +196,17 @@ resolve = a 2nd attributable verification-gap WIN (the R1 class). This is the EX
 (native one-shot ships buggy, atomic's gate+quick_check verification catches it). Pending R10 atomic OFFICIAL. R059 (R6 empties)
 still running (~35st, slow). If R10-atomic=1 → 2nd verification-gap win (atomic 2 wins/7 ties/1 loss), strengthening the "atomic
 wins the verification-gap class" claim by a 2nd attributable datapoint.
+
+## ★ R10 pylint-7080 — atomic 0-edit FLAIL → TIE; the verification-gap WIN does NOT generalize (honest correction)
+R10 atomic OFFICIAL=0 (70 steps, 6 reads, 0 edits, gate_pass=False, 1.3M tokens — flailed: explored minimally, hit force-edit
+lockout, never committed the normpath fix). Native also 0 (caller-fix). So R10 = TIE (both fail pylint-7080). CRITICAL HONEST
+CORRECTION: pylint-7080 was a CONFIRMED verification-gap setup (native ships failing caller-fix) — the EXACT class where R1 showed
+the atomic dominating. But here the atomic FLAILED (0 edits) → did NOT win. So R1's verification-gap WIN does NOT GENERALIZE: the
+atomic wins a verification-gap ONLY when it can actually FIND the correct fix (R1: found the bar{1,3} splitter fix; R10: could
+NOT find the normpath-inside-_is_ignored_file fix → flailed). The verification EDGE (gate catches the one-shot's bug) is real but
+USELESS without fix-finding (model-bound) — the gate tells the atomic its edit is wrong, but if the atomic can't produce the
+RIGHT edit, it just flails to max-steps. UPDATED scoreboard: atomic 1 win(R1)/8 ties/1 loss(R6) — adding R10 tie. The atomic's
+dominance is RARE + instance-specific (1 win in 10 rounds), gated by the model-bound fix-finding. HONEST VERDICT firms further:
+atomic = native-parity on pylint/sklearn + a SINGLE non-generalizing verification win (R1) + fix-finding/empties weaknesses that
+are model-bound. NOT overwhelming dominance; the R1 win is 1 datapoint that R10 shows does not repeat on demand. Note: pylint-7080
+is the weight-substrate instance where DeepSeek one-shot also failed (0 edits) — consistent: the atomic can't find this fix.
