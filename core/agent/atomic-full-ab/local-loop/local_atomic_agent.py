@@ -121,6 +121,18 @@ def _compact_result(workdir, tool, raw):
                 loc = f + (f":{s}-{e}" if s and e else "") + (f" [{sel}]" if sel else "")
                 if not code and it.get("error"):
                     code = f"(read failed: {it.get('error')})"
+                # CLASS-BATCH-SUMMARY-BLIND (R024, generalist): a bare-path item on a file bigger than the
+                # engine's fullContentThreshold comes back in `mode:summary` with code="" but a full `symbols`
+                # outline. The old render showed an EMPTY block → the model thought the read failed and re-read
+                # the whole file 2-3× (measured: requests-1921 read sessions.py 3× — read_many summary, then
+                # maxFullChars, then a line range). Render the OUTLINE + a steer to drill in, so the model picks
+                # a selector/line-range directly instead of blind re-reads. Same intent as the single-file
+                # outline branch below; the batch path was missing it.
+                if not code and isinstance(it.get("symbols"), list) and it["symbols"]:
+                    syms = ", ".join(f"{sy.get('selector')}@L{sy.get('startLine')}-{sy.get('endLine')}"
+                                     for sy in it["symbols"] if isinstance(sy, dict))
+                    code = (f"(large file, {it.get('lineCount','?')} lines — outline only; call atomic_read "
+                            f"with selector=<name> or a startLine/endLine range to get a body)\n{syms}")
                 parts.append(f"## {loc}\n{code}".rstrip())
             if parts:
                 return "\n\n".join(parts)
@@ -468,6 +480,43 @@ def main():
                     green_minimize_pre_files[_cf] = open(os.path.join(workdir, _cf), encoding="utf-8").read()
                 except Exception:
                     pass
+            # CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b, deterministic): strip stand-alone '#' comment lines the
+            # agent ADDED (present in working file, absent in HEAD) -- non-behavioral bytes that inflate surface.
+            # Harness-side governance (not a model edit). If the strip keeps the gate green AND strictly shrinks
+            # surface, keep it and refresh the pre-files snapshot; else restore from the just-captured pre-files.
+            # Generalist (Python now; extensible per-lang). Never removes original/HEAD comment lines.
+            _cstrip = 0
+            for _cf in list(green_minimize_pre_files):
+                if not _cf.endswith(".py"):
+                    continue
+                _p = os.path.join(workdir, _cf)
+                try:
+                    _cur = open(_p, encoding="utf-8").read().split("\n")
+                    _head = subprocess.run(["git", "show", "HEAD:" + _cf], cwd=workdir,
+                            capture_output=True, text=True).stdout.split("\n")
+                except Exception:
+                    continue
+                _headset = set(_head); _kept = []; _r = 0
+                for _ln in _cur:
+                    _s = _ln.strip()
+                    if _s.startswith("#") and not _s.startswith("#!") and not _s.startswith("# -*-") and _ln not in _headset:
+                        _r += 1
+                    else:
+                        _kept.append(_ln)
+                if _r:
+                    open(_p, "w", encoding="utf-8").write("\n".join(_kept)); _cstrip += _r
+            if _cstrip > 0:
+                _cstrip_pass, _, (_cn, _cfl) = run_gate(workdir, args.gate)
+                _cstrip_after = diff_lines(git_diff(workdir))
+                if _cstrip_pass and _cstrip_after < green_minimize_start_lines:
+                    green_minimize_start_lines = _cstrip_after
+                    green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
+                    metrics["transcript"].append(f"s{step} DETERMINISTIC comment-strip: removed {_cstrip} added comment line(s); gate green; diff_lines->{green_minimize_start_lines}")
+                else:
+                    for _cf, _c in green_minimize_pre_files.items():
+                        try: open(os.path.join(workdir, _cf), "w", encoding="utf-8").write(_c)
+                        except Exception: pass
+                    metrics["transcript"].append(f"s{step} DETERMINISTIC comment-strip removed {_cstrip} but gate not green or no shrink; reverted")
             messages.append({"role": "user", "content": (
                 f"The acceptance gate is green. Current diff surface is {green_minimize_start_lines} changed lines. "
                 "You get ONE bounded diff-minimization pass: if a strictly smaller equivalent patch is obvious "
