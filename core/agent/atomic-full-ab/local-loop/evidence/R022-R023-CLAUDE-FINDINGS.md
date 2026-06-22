@@ -466,3 +466,16 @@ arms UNRESOLVED officially — hard for both). 3 GENERALIST demolitions, adversa
   astropy re-run quick_check_calls 0→2 (the model now empirically checks instead of simulating).
 Workflow methodology = the doctrine's exhaustive form (multi-repo by-number + adversarial wall-mining). INFRA: a
 disk-full (ENOSPC) crashed Docker mid-scoring → pruned (3→15GB), restarting Docker; atomic resolution scoring pending.
+
+## WFB validation R2 (pytest-10356) — honest nuance: WALL-3 partly SUBSUMES WALL-2; new watch-item
+Re-ran pytest-10356 (the WALL-2 100k-reasoning-thrash case) with all WFB fixes. RESULT: CONCLUSION-LATCH fired 0×
+— the run did NOT thrash. Instead the model called quick_check 12× (was 0/unregistered). LIKELY CAUSAL LINK: the
+original reasoning-thrash happened BECAUSE the model couldn't run code (re-deriving MRO logic by hand); now that
+quick_check works (WALL-3/21st), it RUNS code instead of re-deriving → WALL-3 partly subsumes WALL-2. The latch
+(23rd) remains a safety net for runs that still thrash (sound but unfired here; reasoning-thrash is run-variance-
+dependent, can't be force-reproduced single-sample — honest: implemented+sound, not validated-as-firing). COST: 12
+quick_checks / 505k tokens is HIGH → NEW WATCH-ITEM CLASS-QUICK-CHECK-OVERUSE (model may run many small snippets vs
+a few decisive ones; healthier than hand-simulation but unpriced). reads 37/10-suppressed (WALL-1 working), 1 edit,
+17-line diff. Honest: enabling the exec operator traded reasoning-tokens for execution-tokens+outputs; net token
+effect needs more samples. WFB round: 5 of 6 walls demolished (19-23); WALL-4 (speculative cross-file) left
+(risky/partially-covered); quick-check-overuse to watch.
