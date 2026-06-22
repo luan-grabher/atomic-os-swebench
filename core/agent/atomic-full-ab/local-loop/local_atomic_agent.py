@@ -768,6 +768,18 @@ def main():
                     ("" if NO_GATE else ", then run_tests; the test result will tell you if it's right and you can refine") + ".")})
                 metrics["transcript"].append(f"s{step} FORCE-EDIT engaged (redundant={_redundant_reads()} total={reads_since_edit}, 0 edits) — read tools withheld")
                 forced = True
+        # CLASS-HISTORY-TOKEN-BLOAT (F3, deterministic): the resent message history grows unbounded (every
+        # compacted tool result ~6k + assistant content + nudges) -- measured ~7-10k tokens/step, the token-
+        # verbosity residual (R039). Keep the last 6 tool-result messages verbatim; for OLDER tool-result messages,
+        # truncate content to a short prefix + marker (keep tool_call_id so the DeepSeek API tool_call chain stays
+        # consistent). Never truncates non-tool messages or the current step's results. Generalist (any model/API).
+        # Pre-tested: 36% input-token reduction on a 10-tool-result history, API chain intact.
+        _f3_tool_idxs = [i for i, mm in enumerate(messages) if isinstance(mm, dict) and mm.get("role") == "tool"]
+        if len(_f3_tool_idxs) > 6:
+            for _f3_i in _f3_tool_idxs[:-6]:
+                _f3_c = messages[_f3_i].get("content") or ""
+                if len(_f3_c) > 240:
+                    messages[_f3_i] = {**messages[_f3_i], "content": _f3_c[:200] + f"\n[...compacted by F3, was {len(_f3_c)} chars; recent context retained...]"}
         try:
             msg, usage = deepseek(messages, step_tools)
         except Exception as e:

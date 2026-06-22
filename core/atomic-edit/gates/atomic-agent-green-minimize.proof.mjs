@@ -139,6 +139,15 @@ record('CLASS-COMMENT-DELETION-REGRESSION (F1d): deterministic restore of ORIGIN
     docstring: source.includes('CLASS-COMMENT-DELETION-REGRESSION (F1d, deterministic): symmetric twin of F1b'),
     callTrace: source.includes('F1d comment-restore:'),
   });
+record('CLASS-HISTORY-TOKEN-BLOAT (F3): stale tool-result contents are compacted in the resent history (keep last 6 verbatim, summarize older; API-chain-safe)',
+  source.includes('CLASS-HISTORY-TOKEN-BLOAT (F3, deterministic)') &&
+  source.includes('_f3_tool_idxs[:-6]') &&
+  source.includes('compacted by F3'),
+  {
+    marker: source.includes('CLASS-HISTORY-TOKEN-BLOAT (F3, deterministic)'),
+    windowKeep: source.includes('_f3_tool_idxs[:-6]'),
+    compactMarker: source.includes('compacted by F3'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
