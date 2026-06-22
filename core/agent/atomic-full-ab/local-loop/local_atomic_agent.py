@@ -842,6 +842,8 @@ def main():
     last_pass = False
     last_green_diff = None   # CLASS-GREEN-THEN-BROKE: the best gate-green diff reached (restored at finalize if broken)
     read_coverage = {}       # CLASS-OVERLAPPING-REREAD (WFB WALL-1): file -> list of (start,end) line ranges already returned
+    reasoning_sigs = []      # CLASS-REASONING-THRASH (WFB WALL-2): per-step reasoning word-sets, to detect re-derivation
+    last_latch_step = 0      # last step a conclusion-latch nudge fired (rate-limit)
     reads_since_edit = 0
     # CLASS-FORCE-EDIT-TOO-RIGID (R030, generalist): the force-edit lockout fired on TOTAL reads_since_edit >= 12,
     # which on a genuinely hard multi-file task (pylint-7080: the model read _discover_files, _expand_files,
@@ -1101,6 +1103,22 @@ def main():
         metrics["reasoning_trace"].append({"step": step,
             "reasoning": (msg.get("reasoning_content") or "")[:24000],
             "say": (msg.get("content") or "")[:8000]})
+        # CLASS-REASONING-THRASH (WFB WALL-2, generalist): the model reaches the correct diagnosis early then
+        # RE-DERIVES the identical thesis many times in reasoning_content (pytest-10356: correct target at step 3,
+        # re-explained at steps 4,5,8,10,11,13,14,15,16 — 100k chars for a 16-line edit). Detect a near-duplicate
+        # reasoning step (word-set Jaccard ≥ 0.55 vs an earlier step) while still 0 edits, and inject a one-shot
+        # conclusion-latch: "you already concluded this — commit the edit". Any model/task. Rate-limited.
+        _thrash = False
+        _rtext = (msg.get("reasoning_content") or "")
+        if len(_rtext) > 800 and metrics["edits_applied"] == 0:
+            _sig = set(w for w in re.findall(r"[a-z_]{5,}", _rtext.lower()))
+            if len(_sig) >= 12:
+                for _ps in reasoning_sigs:
+                    _u = len(_sig | _ps)
+                    if _u and (len(_sig & _ps) / _u) >= 0.55:
+                        _thrash = True
+                        break
+                reasoning_sigs.append(_sig)
         calls = msg.get("tool_calls") or []
         clean = {"role": "assistant", "content": msg.get("content") or ""}
         if calls:
@@ -1456,6 +1474,15 @@ def main():
             metrics["transcript"].append(f"s{step} GREEN-MINIMIZE finalized; preserving retested green minimized state")
             break  # CLASS-GREEN-MINIMIZE-RETEST-GREEN-FINALIZE: no more model turns after proven post-minimize green
 
+        # CLASS-REASONING-THRASH (WFB WALL-2): the model re-derived a thesis it already reached. Inject a one-shot
+        # conclusion-latch nudge (rate-limited to once per 3 steps) telling it to commit instead of re-analyzing.
+        if _thrash and metrics["edits_applied"] == 0 and (step - last_latch_step) >= 3:
+            last_latch_step = step
+            messages.append({"role": "user", "content": (
+                "STOP re-analyzing — your reasoning is repeating a conclusion you ALREADY reached. You have enough "
+                "understanding. State your fix as ONE atomic_replace at the target site NOW (or quick_check it first "
+                "if unsure), and do NOT re-explain the issue again.")})
+            metrics["transcript"].append(f"s{step} CONCLUSION-LATCH (re-derivation detected, 0 edits)")
         # light read-loop steer (NO blind lockout — keep it honest; looping is a measured class)
         # CLASS-NONEXISTENT-RUN-TESTS (WFB WALL-6): in NO_GATE one-shot there is no run_tests tool; telling the
         # model to "then run_tests" is a contradiction it wastes attention reconciling (→ verify-by-reading loop).
