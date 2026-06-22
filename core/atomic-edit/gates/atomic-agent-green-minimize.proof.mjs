@@ -88,14 +88,18 @@ record('CLASS-GREEN-MINIMIZE-NOSHRINK (F1): a non-shrinking minimize edit is rej
     shrinkGuard: source.includes('minimized_lines < green_minimize_start_lines'),
     rejectMarker: source.includes('GREEN-MINIMIZE REJECTED (did not shrink'),
   });
-record('CLASS-GREEN-MINIMIZE-DECLINE-COST (F1c): DECLINE forced re-prompt is skipped when F1b already stripped comments (no redundant round-trip burn)',
-  source.includes('green_minimize_f1b_stripped = False') &&
-  source.includes('green_minimize_f1b_stripped = True') &&
-  source.includes('and not green_minimize_f1b_stripped'),
+record('CLASS-GREEN-MINIMIZE-DECLINE-COST (F1c): DECLINE forced re-prompt is skipped only after comment-only deterministic reduction',
+  source.includes('green_minimize_comment_surface_reduced = False') &&
+  source.includes('green_minimize_comment_surface_reduced = True  # F1c: comment-only deterministic reduction happened') &&
+  source.includes('and not green_minimize_comment_surface_reduced') &&
+  !/if _f2b_kept:[\s\S]{0,360}green_minimize_comment_surface_reduced = True/.test(source) &&
+  !/if _f4_kept:[\s\S]{0,300}green_minimize_comment_surface_reduced = True/.test(source),
   {
-    init: source.includes('green_minimize_f1b_stripped = False'),
-    setOnStrip: source.includes('green_minimize_f1b_stripped = True'),
-    guardSkip: source.includes('and not green_minimize_f1b_stripped'),
+    init: source.includes('green_minimize_comment_surface_reduced = False'),
+    setOnCommentReduction: source.includes('green_minimize_comment_surface_reduced = True  # F1c: comment-only deterministic reduction happened'),
+    guardSkip: source.includes('and not green_minimize_comment_surface_reduced'),
+    f2bDoesNotSkip: !/if _f2b_kept:[\s\S]{0,360}green_minimize_comment_surface_reduced = True/.test(source),
+    f4DoesNotSkip: !/if _f4_kept:[\s\S]{0,300}green_minimize_comment_surface_reduced = True/.test(source),
   });
 record('CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b): deterministic strip of agent-ADDED stand-alone comment lines at minimize-offer',
   source.includes('CLASS-DOCSTRING-SURFACE-MINIMALITY (F1b, deterministic)') &&
@@ -172,6 +176,15 @@ record('CLASS-FILETREE-RESEND-BLOAT (F6): the initial file-tree user turn is com
   {
     marker: source.includes('CLASS-FILETREE-RESEND-BLOAT (F6)'),
     guard: source.includes('step == 2 and len(messages) > 1'),
+  });
+record('CLASS-CORPUS-COLLECTION-FOUNDATION (§8): after each green run, a repair-triple is appended to the cross-session corpus (aprendizado entre sessões data layer)',
+  source.includes('CLASS-CORPUS-COLLECTION-FOUNDATION') &&
+  source.includes('repair-triples.jsonl') &&
+  source.includes('if metrics.get("gate_pass") and not NO_GATE'),
+  {
+    marker: source.includes('CLASS-CORPUS-COLLECTION-FOUNDATION'),
+    corpusFile: source.includes('repair-triples.jsonl'),
+    guard: source.includes('if metrics.get("gate_pass") and not NO_GATE'),
   });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
