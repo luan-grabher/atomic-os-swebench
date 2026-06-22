@@ -86,3 +86,18 @@ REAL walls in the win (gate-side, address when R3 not running on the gate): (1) 
 (stale verdict — agent didn't re-verify final diff → didn't know it succeeded); (2) ARM_PATCH_FAILED 2/8 (apply residual).
 These are minor + gate-side; the win was thorough (execution-verified), not merely thrashy. Honest: mining the win found
 its MECHANISM (quick_check verification) + corrected my own wall hypothesis — exactly the doctrine's rigor on wins too.
+
+## ★★★ ROUND 3 LOSS (sympy-20438) — 0-EDIT FLAIL = EDIT-SELECTOR wall (MY representation gap)
+R3 official: atomic 0 / native 0 = TIE; atomic made 0 atomic_replace calls (ZERO edits) in 70 steps (worse than native,
+which edited 2/3). Tool dist: atomic_read=36, quick_check=28, atomic_grep=15, run_tests=1, atomic_replace=0. Root cause:
+the atomic TRIED to edit but its EDIT SELECTOR FAILED on sympy structures — error results: 'Selector "class Equality" not
+found in sympy/core/relational.py', '_eval_simplify' ambiguous (3 definitions). The model LOCATED targets via grep (line
+numbers) but the selector-based edit (atomic_replace by symbol/anchor) couldn't resolve them → no edit committed → 0-edit
+flail. CLASS = EDIT-SELECTOR-FAILS-NO-LINE-FALLBACK: when the symbol/anchor selector misses (not-found or ambiguous-multi-
+def), the agent does NOT fall back to a LINE/RANGE-based edit (atomic_replace_range at the grep-located lines) — it keeps
+re-reading/grepping instead of committing. This is MY representation gap (perception/selector robustness + missing fallback),
+not the model: the model found the targets (grep) but the toolchain couldn't turn that into an edit. DEMOLITION PLAN: on
+selector-miss, steer/route to a line-based edit using the grep-located range (the agent already has atomic_replace_range/
+atomic_insert_at). Generalist — would let the atomic edit ANY repo's structures, not just clean-selector ones. A/B SCOREBOARD:
+R1 atomic 1/native 0 (DOMINANCE); R2 TIE (lib-guess); R3 atomic 0(0-edit flail)/native 0 (TIE, selector wall). 1 win, 2 ties
+— NOT 2-consecutive, DON'T escalate. The R3 selector wall is the next demolition (after R052 faithful-gate).
