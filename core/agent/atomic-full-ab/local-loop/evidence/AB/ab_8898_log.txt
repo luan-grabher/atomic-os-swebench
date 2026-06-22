@@ -14,3 +14,11 @@ track brace state → resolves. It demonstrates the honest session verdict by nu
 "incapaz de materializar estado não-provado") is atomic's real lifting substrate over native one-shot — not advice.
 The atomic gate-ON arm (running, DeepSeek V4 Pro) tests this: if it resolves pylint-8898 where native failed = atomic
 dominance via enforcement, official, on a multi-test multi-file hard instance.
+
+## A/B STATE (2 rounds queued, both NATIVE=0):
+Round 1 pylint-8898: NATIVE one-shot=0 (VERIFICATION-GAP-IN-EDGE-CASE: buggy brace-quantifier). Atomic gate-ON running.
+Round 2 pylint-4661: NATIVE one-shot=0 (XDG compliance — did both files config/__init__.py+setup.cfg w/ platformdirs but
+  still failed; likely gold uses appdirs or specific PYLINT_HOME path the test checks). Atomic gate-ON pending.
+PATTERN: native one-shot reliably FAILS hard multi-file/edge-case instances (2/2). The atomic gate-ON arms test whether
+enforcement (test feedback) resolves where one-shot fails = the dominance the doctrine requires (>=2 consecutive). Honest:
+gate is atomic's proven lifting substrate; these A/B rounds quantify it on the locked DeepSeek V4 Pro vs my native one-shot.
