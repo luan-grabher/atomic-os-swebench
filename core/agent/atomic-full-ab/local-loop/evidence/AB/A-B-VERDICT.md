@@ -175,3 +175,14 @@ but doesn't flip the OUTCOME because the underlying sympy fix-finding capability
 lock: representation gap (paralysis) closed; the remaining failure is model-bound (DeepSeek's sympy navigation), recorded straight.
 This is the RIGHT outcome to record honestly: a working demolition that improves BEHAVIOR (engages gate-ON) without flipping a
 model-bound RESOLUTION. R059 (empties) + R055b2 (scope) + R8/R9 (sklearn atomic, new datapoints) still pending.
+
+## R8/R9 (sklearn, atomic arm via generator) = ties — atomic keeps pace on ALL sklearn (4/4)
+R8 sklearn-15100 OFFICIAL=1, R9 sklearn-13135 OFFICIAL=1 (both resolve; native also resolved both → ties). The atomic now
+ties native on ALL 4 sklearn instances tested (R5/R7/R8/R9 = 1/1). Generator validated end-to-end on a 3rd repo type (produced
+valid resolving runs, correct grep, working gate). UPDATED re-validated scoreboard (9 rounds, working gates): R1 pylint WIN(1/0),
+R2 pylint tie(0/0), R3 sympy tie(0/0), R4 sympy tie(0/0), R5 sklearn tie(1/1), R6 sympy LOSS(0/1 under R059), R7 sklearn tie(1/1),
+R8 sklearn tie(1/1), R9 sklearn tie(1/1) = atomic 1 WIN / 7 TIES / 1 LOSS. HONEST VERDICT firms: the atomic (DeepSeek+tools)
+RELIABLY MATCHES Claude-native on pylint/sklearn (8 of 9 tie-or-win) + WINS the rare verification-gap (R1) + has a sympy weakness
+(R6 loss + R3/R4 ties). NOT overwhelming dominance; NOT never-loses; the tools lift DeepSeek to native-parity on pylint/sklearn
+but not past it (native is strong), and don't overcome the sympy weakness. R059 (R6 empties) pending — decides if R6 loss was
+my representation (temp-bump) or model-bound.
