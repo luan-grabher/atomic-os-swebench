@@ -284,3 +284,14 @@ changelog/.rst + issue-number wandering is GONE), edits 1/diff 2 all samples (ed
 resolve). So atomic on the multi-file instance is now median 4 calls vs native 10 — dominating tool-calls (2.5×)
 + edit-quality (5× fewer edits/diff) at correctness parity, tokens-win on the clean path. The residual variance
 (s2=6) is minor benign navigation, not non-source wandering.
+
+## ★★★ R041 — pylint-8898 (harder, 3-file gold) — atomic RESOLVED, native FAILED (correctness win, single-sample caveat)
+bad-names-rgxs comma-split mangles regexes. Both arms put a regex-aware comma-splitter in argument.py (1 file;
+gold uses 3). Official harness: **DeepSeek-atomic RESOLVED (34-line fix); native-Claude UNRESOLVED (54-line fix)**.
+Native's splitter was MORE elaborate (tracked paren+bracket+brace depth) but had an edge-case bug the hidden test
+caught; atomic's simpler brace+bracket splitter passed F2P+P2P. By number THIS round: atomic > native on
+CORRECTNESS at the escalated complexity — the weaker model + atomic beat the stronger model native.
+HONEST CAVEAT: native is a single sample (its specific impl was buggy; a re-run might pass) → this is
+implementation-variance, not yet a systematic claim. Atomic cost: 19 calls/825k tokens (heavy config-chain
+exploration — the read/token wall on a comprehension-heavy task, next lever). Confirming atomic's correctness is
+RELIABLE (N=3) next; native's single failure is one data point. Runs pylint8898_atomic ✓ / pylint8898_native ✗.
