@@ -153,3 +153,13 @@ the scope weakness (R4: edits 1-2 files of 6) is UNFIXED. Re-validated scoreboar
 paralysis), R4 tie(0/0, scope/R055-dead), R5 tie(1/1), R6 LOSS→under R059 re-test, R7 tie(1/1). The sympy weakness's 3 mechanisms:
 R3 paralysis (R058 under test), R6 empties (R059 under test), R4 scope (R055 DEAD — needs a better trigger or different approach).
 Harness improvement committed: gen_ab_atomic_script.sh (prevents the grep + path-collision bugs for clean future rounds).
+
+## Next-phase queue (forward plan for the perpetual loop) — 4 fresh instances, generator-ready
+Of 11 built SWE-bench images, 7 tested (R1-R7). FRESH candidates ready for the generator (gen_ab_atomic_script.sh, now fixed):
+ - sklearn-15100 (R8) + sklearn-13135 (R9): native already RESOLVED (R8/R9 native scores); need the ATOMIC arm to complete the
+   datapoint (sklearn → tie expected, like R5/R7).
+ - pylint-7080: fresh (the weight-substrate cross-file-root-cause instance; both arms untested in this A/B).
+ - pytest-5840: fresh (the path-norm generalization instance; both arms untested).
+PLAN: after the 3 demolition validations (R058/R059/R055b2) conclude, launch these 4 with the VALIDATED demolitions via the
+generator. Beyond 11 images, the perpetual loop needs to BUILD more images (swebench harness, ~10-30min each) for sustained
+operation. NOT launching now (avoid sprawl; the 3 validations are the priority + DeepSeek balance 14.10 with 3 arms running).
