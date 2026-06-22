@@ -163,3 +163,15 @@ Of 11 built SWE-bench images, 7 tested (R1-R7). FRESH candidates ready for the g
 PLAN: after the 3 demolition validations (R058/R059/R055b2) conclude, launch these 4 with the VALIDATED demolitions via the
 generator. Beyond 11 images, the perpetual loop needs to BUILD more images (swebench harness, ~10-30min each) for sustained
 operation. NOT launching now (avoid sprawl; the 3 validations are the priority + DeepSeek balance 14.10 with 3 arms running).
+
+## R058 validation — paralysis DEMOLISHED (measurable) but R3 still fails (deeper fix-finding limit, partly model-bound)
+R058-val R3 sympy-20438 OFFICIAL=0 (still fails). BUT R058 measurably BROKE the paralysis: quick_check 33→10, run_tests 0→1
+(the atomic now ENGAGES the gate-ON loop — commits + tests — instead of over-exploring). So R058 is a SUCCESSFUL demolition of
+the analysis-paralysis WALL (the over-exploration symptom is gone, by number). HOWEVER the atomic still makes only 1 edit + the
+WRONG fix → resolved 0. So R3's failure is now decomposed: (a) paralysis = MY representation (R058 fixed it, measurable); (b)
+FIX-FINDING on sympy structures = the deeper limit — even when forced to commit+test, the atomic can't find the correct sympy
+fix (navigation/uncertainty), partly DeepSeek-base-bound (locked model). Honest two-part truth: the demolition WORKS (wall gone)
+but doesn't flip the OUTCOME because the underlying sympy fix-finding capability is the residual limit. Per the falsifiability
+lock: representation gap (paralysis) closed; the remaining failure is model-bound (DeepSeek's sympy navigation), recorded straight.
+This is the RIGHT outcome to record honestly: a working demolition that improves BEHAVIOR (engages gate-ON) without flipping a
+model-bound RESOLUTION. R059 (empties) + R055b2 (scope) + R8/R9 (sklearn atomic, new datapoints) still pending.
