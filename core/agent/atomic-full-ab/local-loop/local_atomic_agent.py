@@ -296,6 +296,50 @@ def _post_edit_view(workdir, file, anchor):
     return f"\n[post-edit view] the file now reads (around your change) — no need to re-read to verify:\n{body}"
 
 
+# CLASS-GUARD-CALLS-EXISTING (R029, generalist): three TEXT steers (tool exposure, lean steer, red-test steer)
+# did NOT get the model to consult the call-graph before adding a redundant guard (measured: pylint-7080, the
+# model added a 2nd _is_ignored_file(...) call and never called atomic_callers). Optional perception is ignored;
+# make it UNAVOIDABLE. When an edit ADDS a call to a function F DEFINED in the workspace (existing mechanism, not
+# a new helper), AUTO-INJECT F's existing call sites + body into the edit receipt — the model cannot ignore what
+# is in the result it reads → routes it to fix the ROOT (F's own body) instead of duplicating a guard. Any lang.
+_CALL_RE = re.compile(r"(?:^|[^.\w])([a-zA-Z_][a-zA-Z0-9_]*)\s*\(")
+_CALL_SKIP = {"if", "for", "while", "return", "and", "or", "not", "in", "is", "print", "len", "range",
+              "str", "int", "list", "dict", "set", "tuple", "isinstance", "super", "getattr", "setattr",
+              "os", "self", "open", "format", "join", "append", "get", "split", "sorted", "any", "all",
+              "enumerate", "zip", "map", "filter", "type", "repr", "hasattr"}
+
+def _def_file_of(grep_res):
+    for l in grep_res.splitlines():
+        if ":" in l and ("def " in l or "function " in l):
+            return l.split(":", 1)[0].strip()
+    return ""
+
+def _existing_fn_perception(workdir, before, after):
+    added = [l[1:] for l in after.splitlines() if l.startswith("+") and not l.startswith("+++")]
+    seen = []
+    for line in added:
+        for m in _CALL_RE.finditer(line):
+            name = m.group(1)
+            if name in _CALL_SKIP or len(name) < 4 or name in seen:
+                continue
+            seen.append(name)
+    for name in seen[:3]:
+        defres, _ = atomic_call(workdir, "atomic_grep", {"pattern": rf"(def|function)\s+{re.escape(name)}\b"})
+        if not defres.strip() or name not in defres:
+            continue
+        callers, _ = atomic_call(workdir, "atomic_grep_calls", {"name": name})
+        df = _def_file_of(defres)
+        body, _ = atomic_call(workdir, "atomic_read", {"path": df, "selector": name}) if df else ("", False)
+        note = (f"\n[root-check] Your edit ADDS a call to `{name}`, which ALREADY EXISTS in this codebase. "
+                f"If you are adding it as a new guard/filter, the real bug is very likely in `{name}`'s OWN body "
+                f"(a missing normalization/comparison/edge-case) or in an EXISTING call site — adding a second "
+                f"call usually duplicates the same latent bug. Where `{name}` is already called:\n{callers[:600]}")
+        if body and len(body) > 10:
+            note += f"\n`{name}` body:\n{body[:1200]}"
+        return note
+    return ""
+
+
 def atomic_call(workdir, tool, args):
     args = _absolutize(workdir, args)
     if tool == "code_outline_batch" and not args.get("cwd"):  # glob is workdir-relative
@@ -764,6 +808,17 @@ def main():
                                        f"path; if a strictly smaller single-path / single-region fix keeps the gate "
                                        f"green, prefer it (the minimizer re-checks after run_tests).")
                                 metrics["transcript"].append(f"s{step} OVER-FIX signal: added_loops={_al} hunks={_hk}")
+                        # CLASS-GUARD-CALLS-EXISTING (R029): auto-inject the body+call-sites of any existing
+                        # function this edit ADDS a call to — unavoidable perception routes the model to fix the
+                        # root, not duplicate a guard (3 text steers failed to redirect it; this is in the result).
+                        if not green_minimize_active and os.environ.get("ATOMIC_ROOTCHECK", "1") == "1":
+                            try:
+                                _rc = _existing_fn_perception(workdir, before, after)
+                                if _rc:
+                                    res = res + _rc
+                                    metrics["transcript"].append(f"s{step} ROOT-CHECK injected (edit adds call to existing fn)")
+                            except Exception:
+                                pass
                     elif any(m in res.lower() for m in REFUSAL_MARKERS):
                         metrics["invalid_states_prevented"] += 1
                         if fn == "atomic_replace" and ("not found" in res.lower() or "not unique" in res.lower() or "not unique" in res.lower()):
