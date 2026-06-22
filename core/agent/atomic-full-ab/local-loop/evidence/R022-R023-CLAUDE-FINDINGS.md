@@ -692,3 +692,30 @@ was MY gate bug ("a culpa é sempre sua" literally). FIX (CLASS-GATE-ARM-APPLY-S
 (needs re-run with fixed gate, infra-permitting). REOPENS the gate-ON bound: the complex-multi-region "ceiling" may
 not exist — it may have been the gate failing to test valid edits. This is the loop law at its sharpest: I almost
 recorded a MODEL ceiling that was actually MY harness sabotaging the run; caught it by reading what the model saw.
+
+## ★ WEIGHT-LIFT test on native Claude (free proxy, DeepSeek blocked) — FALSIFIED current weight, learned true essence
+Ran the lift structure on native Claude (one-shot pylint-7080, with/without the cross-file-root-cause weight), scored
+official Docker. RESULT: BOTH arms 0 resolved, IDENTICAL fix (_discover_files in pylinter.py — added a CALL to
+_is_ignored_file at the discovery site). The weight did NOT lift: withweight identified _is_ignored_file as the
+predicate but still fixed the CALLER, not the predicate BODY. GOLD essence (revealed): the fix is INSIDE _is_ignored_file
+= `element = os.path.normpath(element)` before basename/match — the bug is a PATH NOT NORMALIZED before matching the
+ignore pattern (./src/gen vs src/gen). So pylint-7080's gap is NOT navigation alone — it is SYNTHESIS: normalize the
+path inside the predicate. The cross-file weight (locate the predicate) is necessary-but-insufficient. TRUE CLASS =
+PATH-NORMALIZATION-BEFORE-MATCH (distinct essence → new operator by necessity). Honest: the lift is NOT demonstrated by
+the current weight; refining the operator to carry the normalize-before-match essence + re-testing = the loop learning
+from a falsified lift. (Native Claude is a free proxy, not the locked DeepSeek; DeepSeek-config lift still pending funds.)
+
+## ★★★ KEY SYNTHESIS — weight (knowledge) is overridable as advice; LIFT = weight + gate (enforcement)
+Native-Claude lift, all 3 arms OFFICIAL 0 resolved (noweight, withweight, refined-both-weights). The PATH-NORMALIZATION
+weight named the EXACT bug (gold = `element = os.path.normpath(element)` inside _is_ignored_file; recursive walk yields
+`./src/gen/x.py`, `^src/gen/.*$` won't match the un-normalized `./` path). But native Claude (strong-priored) RATIONALIZED
+the hint away ("predicate already correct, no normalization needed") and shipped the _discover_files call-fix that FAILS
+for precisely the reason the weight warned. FINDING: the substrate's KNOWLEDGE was right; ADVISORY prompt-injection is
+OVERRIDABLE by a confident model. SYNTHESIS (unifies the session): LIFT = WEIGHT (knowledge: where/how) + GATE (proof:
+enforces the fix actually passes, so the model can't argue out of correctness). This is the directive's "incapaz de
+materializar um estado não-provado" — knowledge advises, PROOF enforces. Earlier proven: gate-ON resolves where one-shot
+fails (enforcement). Now: weight makes the gate CONVERGE FASTER (model knows where to look) while gate ENFORCES. HONEST
+BOUNDS: (1) native Claude is strong-priored — the WEAK DeepSeek one-shot (baseline 0 edits, NO prior fix) may ACCEPT the
+weight more readily; that target lift is still blocked on DeepSeek funds. (2) weight CONTENT validated correct vs gold.
+(3) the real next mechanism is weight+gate together (not weight-as-advice alone). The loop worked: tested free on native
+Claude, falsified weight-as-advice, learned the true mechanism = knowledge needs enforcement.

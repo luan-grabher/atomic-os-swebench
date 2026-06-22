@@ -45,8 +45,13 @@ def admit(resolution, weights):
     cls = resolution["class"]
     signal = resolution.get("signal", resolution.get("instance", ""))
     rec = {"id": resolution.get("instance", ""), "signal": signal}
+    # LAW 1 essence-match is by CLASS LABEL (the semantic identity the model assigns) — NOT trigger overlap. The
+    # trigger is a RETRIEVAL index (recall), not an essence identity: two distinct-essence operators (e.g. navigation
+    # vs path-normalization) can share trigger tokens, and absorbing on overlap would wrongly merge them. Absorb only
+    # on same class; a new class label = a new operator (necessity, LAW 2). Semantic same-essence-different-class
+    # merging is the MODEL's job (it re-tags or proposes a compression), verified by admit_merge under proof-of-gain.
     for w in weights:
-        if w["class"] == cls or _covers(w, signal):
+        if w["class"] == cls:
             insts = w.setdefault("instances", [])
             if rec["id"] and rec["id"] not in [i.get("id") if isinstance(i, dict) else i for i in insts]:
                 insts.append(rec)
