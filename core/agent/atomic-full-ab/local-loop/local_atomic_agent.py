@@ -1341,6 +1341,15 @@ def main():
                     os.unlink(_tp); _tp = None
                     res = (_r.stdout + ("\n--- stderr ---\n" + _r.stderr if _r.stderr.strip() else ""))[-2000:]
                     res = ("PASS (exit 0)\n" if _r.returncode == 0 else f"FAIL (exit {_r.returncode})\n") + res
+                    # CLASS-UNBUILT-ENV-VERIFICATION-LOOP (WFB+2): some repos are unbuilt C-extension packages — the
+                    # repo's own modules can't be imported and there's no pip/build in this env. quick_check that
+                    # imports the repo package then fails with ModuleNotFound/ImportError/no-pip must NOT trigger a
+                    # build/install attempt (sklearn-10297 burned 2 calls on `pip install -e .` → FileNotFoundError).
+                    if _r.returncode != 0 and re.search(r"(ModuleNotFoundError|ImportError|cannot import|No module named|__check_build|No such file or directory: 'pip')", res):
+                        res += ("\n[ENV NOTE] This repo's package is NOT installed/built in this env (and there is no "
+                                "pip/build). quick_check can only run STANDALONE Python (pure logic), not import the "
+                                "repo's modules. Do NOT attempt to build/install — verify your fix by reading the "
+                                "source and reasoning about the specific code path instead.")
                 except subprocess.TimeoutExpired:
                     res = "TIMEOUT (30s) -- snippet took too long; simplify."
                 except Exception as _e:
@@ -1412,6 +1421,13 @@ def main():
                     metrics["transcript"].append(f"s{step} atomic_read SUPPRESSED (overlapping re-read of {_sf}:{_ss}-{_se})")
                 else:
                     res, ok = atomic_call(workdir, tool, call_args)
+                    # CLASS-BLIND-LINE-RANGE-REJECTED (WFB+2): a range read that overshoots EOF ("endLine N exceeds
+                    # file line count M") is never a real error — the model just guessed the file is longer. Auto-retry
+                    # clamped to M instead of burning a round-trip re-issuing one line shorter (sklearn-10297 s2→s3).
+                    _mll = re.search(r"exceeds file line count (\d+)", res)
+                    if fn == "atomic_read" and _mll and a.get("startLine"):
+                        call_args["endLine"] = int(_mll.group(1))
+                        res, ok = atomic_call(workdir, tool, call_args)
                     # CLASS-SELECTOR-NOT-FOUND-DEADEND (R049): a selector read that the resolver can't find (ambiguous/
                     # overloaded class methods) must not dead-end into fragmented re-reads — grep the def(s) and return
                     # the bodies so the model gets what it asked for in one shot.
