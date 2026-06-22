@@ -1,0 +1,26 @@
+{
+  "round": "R061",
+  "action": "absorbed",
+  "class": "PATH-NORMALIZATION-BEFORE-MATCH",
+  "instance": "pylint-7080-R061-atomic",
+  "fidelity_ok": true,
+  "failures": [],
+  "weights_before": 7,
+  "weights_after": 7,
+  "operator": {
+    "class": "PATH-NORMALIZATION-BEFORE-MATCH",
+    "trigger": "ignore|exclud|path|match|pattern|regex|normpath|normaliz|recursiv|glob|relativ|separator|slash",
+    "strategy": "When a PATH or string fails to match an ignore/include/filter PATTERN that itself looks correct, the bug is usually that the path is not NORMALIZED to the canonical form the pattern expects (./x vs x, trailing slash, os.sep vs /, absolute vs relative). Fix INSIDE the predicate that does the comparison: normalize the path FIRST (os.path.normpath/realpath/strip) on the line before basename/match, so the existing pattern compares the canonical form. Do NOT add new call sites to route more inputs through a buggy predicate \u2014 fix the predicate's own comparison.",
+    "instances": [
+      {
+        "id": "pylint-7080",
+        "signal": "recursive ignore-paths pattern not matching un-normalized ./ path"
+      },
+      {
+        "id": "pylint-7080-R061-atomic",
+        "signal": "recursive ignore-paths pattern does not match current-dir recursive paths until path separators and ./ prefixes are normalized before regex match"
+      }
+    ],
+    "proof_n": 2
+  }
+}

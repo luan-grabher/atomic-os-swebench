@@ -49,3 +49,14 @@ by them (false-negatives → flail to wrong file). The gate-fidelity walls are M
 The next demolition = a FAITHFUL gate: install the fix's new deps before testing (handle ModuleNotFoundError), confirm
 green on the final diff before giving up at the step cap, robust apply. Score is honest by official number; don't escalate
 until a CLEAN 2nd dominance with a faithful gate.
+
+## ★★★ DEMOLITION (R052 CLASS-GATE-DEP-INSTALL) — faithful gate, VALIDATED by number
+The round-2 loss wall (gate false-failed appdirs-using fixes because appdirs not installed in the gate container) is
+DEMOLISHED: the gate now, on 'No module named X' in the test output, pip-installs X once and retries (the official eval
+installs a fix's new deps; this replicates it). VALIDATED by number, no regression:
+ - pylint-8898 round-1 final diff (regression check): gate STILL pass 9/0 (no break).
+ - pylint-4661 GOLD (the wall): gate was pass=0 (false-fail, appdirs missing) → NOW pass 1/0 (dep-install fires, faithful).
+This is the doctrine's loop closing: round-2 loss → MY gate-fidelity wall identified → demolished generalist → validated.
+A faithful gate gives the atomic a TRUE green signal when it finds the right fix, instead of false-negatives that made it
+flail to the wrong file. NEXT: re-run round 2 (pylint-4661 atomic gate-ON) with the faithful gate — if atomic now resolves
+where it failed = the demolition lifts the atomic, and round 2 becomes a real dominance test.

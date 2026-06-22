@@ -1,0 +1,22 @@
+{
+  "round": "R060",
+  "action": "created",
+  "class": "REGEX-CSV-DELIMITER-SCOPE",
+  "instance": "pylint-8898-R060",
+  "fidelity_ok": true,
+  "failures": [],
+  "weights_before": 6,
+  "weights_after": 7,
+  "operator": {
+    "class": "REGEX-CSV-DELIMITER-SCOPE",
+    "trigger": "regex|regexp|csv|comma|delimiter|split|quantifier|brace|bracket|char.?class",
+    "strategy": "When a comma-separated option contains regex patterns, do not split on every comma. Split only at top-level CSV separators while preserving commas that are syntactic inside regex constructs such as quantifiers `{m,n}` and character classes `[...]`. Do not protect all parentheses blindly: commas between distinct regex patterns inside grouping syntax may still be top-level CSV separators and invalid regex entries must continue to raise. Prove with both accept-cases for quantifier/class commas and reject-cases for malformed comma-separated regex fragments.",
+    "instances": [
+      {
+        "id": "pylint-8898-R060",
+        "signal": "comma-separated regex configuration split incorrectly around regex quantifier or bracket commas while invalid comma-split regex fragments must still raise"
+      }
+    ],
+    "proof_n": 1
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "worker": "Hegel",
+  "agent_id": "019ef0a2-dc07-7670-9a94-e237e1fd3cd0",
+  "gate_fail": 0,
+  "gate_pass": 16,
+  "files_edited": [
+    "pylint/lint/pylinter.py"
+  ],
+  "edit_tool_calls_approx": 2,
+  "gate_runs": 2,
+  "notes": "Recursive discovery only ignored directory roots, not loose .py files yielded from walked non-package directories; added recursive discovery filtering and normalized ./ paths."
+}
