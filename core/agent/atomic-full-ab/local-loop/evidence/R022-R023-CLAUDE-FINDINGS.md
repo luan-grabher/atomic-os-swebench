@@ -495,3 +495,14 @@ hurt correctness); record the process-cost tradeoff, tune only after resolution 
 OVERUSE is a CONFIRMED process-cost regression on easy cases but UNKNOWN net value. The demolition set is NOT
 uniformly positive on process-economy — honest. Reread suppression = clean win; exec-operator = correctness-vs-cost
 tradeoff pending measurement. (Loop law: mine walls even in wins — my own WALL-3 fix opened a new wall.)
+
+## ★ INFRA FIX + sympy aggregate win (foreground): demolitions reduce process cost ~48%
+ROOT CAUSE of the "silent run deaths" found: the harness KILLS long background tasks (run_in_background) — NOT
+memory/DeepSeek/code. FOREGROUND runs (long timeout) complete fine. So all atomic runs now go foreground.
+VALIDATED (foreground, all fixes incl WALL-1 selector-ext): sympy-18199 base 24 calls/225k tok → all-fixes 14
+calls/116k tok (−42% calls, −48% tokens), reads 24→7, quick_check 6× (empirical exploration), 1 edit/4-line diff.
+The demolition set (19-23 + ext) collectively makes the agent much leaner on this hard case. (Reread-suppression
+didn't fire this run — model didn't repeat; the leaner prompts + latch kept it focused; suppression is the safety
+net.) NOTE on quick_check: 6 calls here is moderate (vs 12 on pytest) — the overuse is task-dependent; net
+correctness value still pending Docker resolution. Docker still down (resolution blocked, manual fix needed);
+foreground atomic loop now fully operational on Docker-independent axes.
