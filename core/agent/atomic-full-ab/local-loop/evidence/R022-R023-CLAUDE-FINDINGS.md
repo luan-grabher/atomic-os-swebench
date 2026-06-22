@@ -770,3 +770,12 @@ ready, self-gated on funds). What is NOT honest to claim: "the weight lifts" (un
 GATE (enforcement — "incapaz de materializar estado não-provado"), which is the substrate's proven power; the corpus-
 retrieval weight is a candidate CONVERGENCE-ACCELERATOR whose value is the open, clean, fundable number. Three+ self-
 corrections this arc (weight-zero-value, exploration-confound, gate-mechanism-entanglement) — the loop composed on honesty.
+
+## architecture closure — weight bank is correctly AGENT-layer; core disproof-corpus is a different (engine-invariant) layer
+Explored core/atomic-edit/corpus-accumulator.mjs: it accumulates GATE-PASS proof-WITNESSES for the engine's invariants
+(the lattice/monotonic ratchet over .atomic/disproof-corpus.jsonl) — NOT resolution strategies. So the directive's "corpus
+é o banco de pesos" spans TWO distinct layers: (1) engine-invariant proof-witnesses (disproof-corpus, the lattice) and
+(2) resolution-strategy weights (agent-layer, what I built: .corpus/weights.jsonl + injection + weights_admit.py). They
+are correctly SEPARATE: invariant-proofs steer the ENGINE's self-modification; strategy-weights steer the MODEL. No
+integration (category mismatch). "Fortaleça o embrião" was satisfied at the right layer (agent corpus retrieval, which was
+shape-stats-only, now injects strategy weights). Architecture confirmed correct; no further core plumbing needed.
