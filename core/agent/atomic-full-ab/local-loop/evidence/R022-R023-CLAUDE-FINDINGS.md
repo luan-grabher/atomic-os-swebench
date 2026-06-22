@@ -479,3 +479,19 @@ a few decisive ones; healthier than hand-simulation but unpriced). reads 37/10-s
 17-line diff. Honest: enabling the exec operator traded reasoning-tokens for execution-tokens+outputs; net token
 effect needs more samples. WFB round: 5 of 6 walls demolished (19-23); WALL-4 (speculative cross-file) left
 (risky/partially-covered); quick-check-overuse to watch.
+
+## ★ WFB aggregate revalidation (all 5 instances, all fixes) — HONEST nuanced result, not a clean win
+Re-ran all 5 WFB instances with the 5 demolitions active. Tool-calls now/baseline: astropy 36/41↓, sympy 16/24↓,
+pytest 50/20↑, sklearn 21/8↑, pylint 11/6↑. SPLIT VERDICT:
+- WALL-1 (overlapping-reread suppression) clearly HELPS: astropy & sympy (the heavy-reread cases) dropped; 10 reads
+  suppressed each on astropy/pytest. tokens astropy 327k→269k.
+- WALL-3 (register quick_check) is DOUBLE-EDGED: cured the hard hand-simulation case (sympy) BUT the model now
+  OVER-USES the newly-available exec tool on EASY cases (sklearn 8→21, pylint 6→11, pytest 20→50 calls; quick_check
+  1-12×). My WALL-3 fix also ACTIVATED a pre-existing forced "call quick_check NOW" first-edit nudge (was a no-op
+  when quick_check was unregistered).
+CRITICAL HONEST BOUND: whether the extra quick_checks improve CORRECTNESS (catch wrong fixes → more resolves) is
+UNMEASURED — Docker is down, no resolution data. So per §7 falsifiability I will NOT cap quick_check blind (could
+hurt correctness); record the process-cost tradeoff, tune only after resolution scores exist. CLASS-QUICK-CHECK-
+OVERUSE is a CONFIRMED process-cost regression on easy cases but UNKNOWN net value. The demolition set is NOT
+uniformly positive on process-economy — honest. Reread suppression = clean win; exec-operator = correctness-vs-cost
+tradeoff pending measurement. (Loop law: mine walls even in wins — my own WALL-3 fix opened a new wall.)
