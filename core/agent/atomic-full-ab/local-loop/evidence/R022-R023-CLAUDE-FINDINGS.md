@@ -225,3 +225,11 @@ After CLASS-WHOLEFILE-READ-THRESHOLD, re-ran astropy-12907 atomic one-shot: 4 ca
 survey + 1 whole-file read instead of 5 escalating reads), tokens 226k→183k, SAME correct gold fix. Atomic (4)
 ≈ native (3) on the harder instance — correctness parity + near tool-economy parity, by number. The residual
 1-call gap is the initial survey (reasonable first-step). 12th generalist demolition this session.
+
+## R037 — astropy tool-economy PARITY confirmed (N=3): atomic median 3 = native 3
+Multi-sample (the measurement-fidelity discipline): astropy atomic calls = {4,3,3}, MEDIAN 3 = native 3.
+s2/s3 are clean survey+read+replace=3; s1=4 (grep+read_many+read+replace). All resolve one-shot, gold fix.
+→ On the harder instance, DeepSeek-atomic reaches CORRECTNESS + TOOL-ECONOMY PARITY with native, by number.
+HONEST: astropy is a 1-line fix — too small for DOMINANCE (both arms tie at the locate+edit floor). To show
+atomic's proof-carrying MARGIN, the next rung needs a harder MULTI-FILE instance where native's text-patching
+incurs cost/errors atomic's verified ops avoid. Model stays DeepSeek V4 Pro.
