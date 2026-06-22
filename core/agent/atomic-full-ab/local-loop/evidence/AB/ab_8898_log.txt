@@ -131,3 +131,17 @@ R1); (c) too-hard/exotic → both fail (tie: R2 lib-guess, R4 6-file). So atomic
 CORRECTION to my instance-selection: 'clean-completeness' found native-wins (regime a), not dominance ops. Verification-gap
 instances are hard to pre-identify (you must know native's plausible fix is subtly buggy). R1 remains the clean dominance
 proof; the honest claim is REGIME-SCOPED: atomic's verification edge dominates where a one-shot would ship an unverified bug.
+
+## ★★★★ SOBER HONEST TRUTH — atomic does NOT overwhelmingly dominate; edge is NARROW (verification-gap), native(Claude) strong
+R5 native (sklearn-12682) RESOLVED=1 (Claude one-shot, transform_max_iter fix). Combined with R6/R7 native clever 1-line
+fixes: the NATIVE one-shot (native Claude, a strong frontier base model) RESOLVES clean instances. The A/B is CROSS-MODEL
+(DeepSeek-atomic vs Claude-native, model locked per doctrine). By number, three regimes: (a) clean-easy → Claude-native
+RESOLVES (R5=1; R6/R7 likely) — DeepSeek-atomic must at least TIE or it loses to Claude's base strength; (b) verification-gap
+→ ATOMIC DOMINATES (R1: Claude-native ships buggy splitter, DeepSeek-atomic's gate+quick_check verifies → atomic 1/native 0);
+(c) too-hard → both fail (ties R2/R4). HONEST VERDICT: the atomic's verification edge LIFTS DeepSeek ABOVE Claude-native ONLY
+on regime (b); on regime (a) Claude's base strength competes and DeepSeek-atomic must keep pace (R5 atomic pending — if it
+fails where Claude-native resolved, that's an atomic LOSS = my representation gap OR the cross-model base gap, recorded
+honestly per the falsifiability lock). So "atomic beats native in EVERYTHING with overwhelming margin" is NOT achieved —
+it's verification-gap-scoped. This is the doctrine's epistemic honesty: I do NOT claim dominance the numbers don't support.
+The real open question: can the atomic's tools lift DeepSeek above Claude-native BROADLY (not just verification-gap)? = the
+next representation frontier. NEXT: run R5/R6/R7 atomic (does DeepSeek-atomic resolve the clean instances Claude-native won?).
