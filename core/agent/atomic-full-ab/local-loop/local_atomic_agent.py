@@ -881,6 +881,10 @@ def main():
     green_minimize_helper_surface = False  # CLASS-GREEN-MINIMIZE-HELPER-STATE-MACHINE-SURFACE: helper/state-machine
     # green patches get one extra bounded refusal because R051 showed a single advisory re-prompt still accepts a
     # surface-heavy helper. Gate remains the judge; this only buys a second attempt before accepting STOP.
+    red_gate_fix_required = False  # CLASS-RED-GATE-REEDIT-LOCKOUT: after run_tests returns red for a non-empty
+    # diff, the next turn must refine the patch instead of spending the remaining budget reading/retesting the same
+    # failed state. The lockout is released only by a new atomic edit, then the gate can be run again.
+    red_gate_fix_reason = ""
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -890,6 +894,7 @@ def main():
     FORCE_EDIT_AFTER = 12          # absolute backstop: this many REDUNDANT (repeat-target) reads since last edit
     READ_HARD_CAP = 40             # absolute breadth cap (even pure new-target reads stop here — runaway guard)
     EDIT_TEST_NAMES = {"atomic_replace", "atomic_create", "run_tests"}
+    RED_FIX_NAMES = {"atomic_replace", "atomic_create", "quick_check", "run_tests"}
     MINIMIZE_NAMES = {"atomic_replace", "run_tests"}
     GREEN_MINIMIZE_MAXSTEP_RESERVE = 3  # CLASS-GREEN-AT-MAXSTEP-NO-MINIMIZE: first green at max_steps still gets
     # a tiny post-green-only budget for GREEN-MINIMIZE. The reserve is inaccessible unless green minimization is
@@ -1057,6 +1062,9 @@ def main():
         elif green_minimize_active:
             allowed = {"run_tests"} if green_minimize_edits >= 1 else MINIMIZE_NAMES
             step_tools = [t for t in active_tools if t["function"]["name"] in allowed]
+        elif red_gate_fix_required:
+            step_tools = [t for t in active_tools if t["function"]["name"] in RED_FIX_NAMES]
+            metrics["transcript"].append(f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/quick-check/test-only)")
         elif force_no_edit_commit:
             step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
             metrics["transcript"].append(f"s{step} NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)")
@@ -1261,6 +1269,14 @@ def main():
                     metrics["transcript"].append(f"s{step} run_tests BLOCKED (F8c: no quick_check yet)")
                     messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                     continue
+                if red_gate_fix_required:
+                    res = ("BLOCKED: the previous run_tests was red for the current diff "
+                           f"({red_gate_fix_reason}). Do not retest the same failed patch. Make a focused "
+                           "atomic_replace/atomic_create refinement first, then quick_check and run_tests.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} run_tests BLOCKED (red gate requires new edit)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
                 d_before = git_diff(workdir)
                 if not d_before.strip():
                     res = ("Working tree is unmodified (empty diff). run_tests only verifies; the target "
@@ -1275,7 +1291,13 @@ def main():
                     # un-normalized path inside _is_ignored_file, already called at pylinter.py:600). Steer the
                     # model to the call-graph + the function body. Pure advice on red — zero blocking, any task.
                     if not last_pass and metrics["edits_applied"] >= 1:
-                        diagnostics = []
+                        red_gate_fix_required = True
+                        red_gate_fix_reason = f"pass={np_} fail={nf_}"
+                        diagnostics = [
+                            "[diagnose] The gate is red for your current non-empty diff. Do not read broadly or "
+                            "rerun the same test. Preserve any passing cases and make exactly one focused "
+                            "atomic edit that addresses the failing assertion/error, then quick_check and run_tests."
+                        ]
                         # CLASS-DID-NOT-RAISE-RED-FEEDBACK (R043, generalist): this red-test symptom means the
                         # candidate became too permissive and erased a required error path. Surface that topology.
                         if "DID NOT RAISE" in gate_out:
@@ -1450,6 +1472,8 @@ def main():
                         forced = False
                         force_refused = 0  # an edit landed → spin broken
                         force_no_edit_commit = False
+                        red_gate_fix_required = False
+                        red_gate_fix_reason = ""
                         if green_minimize_active and fn == "atomic_replace":
                             green_minimize_edits += 1
                         # CLASS-EDIT-RECEIPT-BLIND: show the post-edit region so the model confirms by
@@ -1522,6 +1546,16 @@ def main():
                 "understanding. State your fix as ONE atomic_replace at the target site NOW (or quick_check it first "
                 "if unsure), and do NOT re-explain the issue again.")})
             metrics["transcript"].append(f"s{step} CONCLUSION-LATCH (re-derivation detected, 0 edits)")
+        # CLASS-PERCEPTION-NO-CONVERGENCE-TRIGGER (WFB+2): the model articulates the root cause early but keeps
+        # RE-reading until the force-edit backstop at redundant=12 (pytest-5840: correct diagnosis at step 4, 27 of
+        # 37 steps were AFTER it). Force-edit at 12 is too late. Fire an EARLY soft nudge once REDUNDANT reads (NOT
+        # breadth) reach 4 — gated on redundant so genuine cross-file investigation is never penalized. Rate-limited.
+        if _redundant_reads() >= 4 and metrics["edits_applied"] == 0 and (step - last_latch_step) >= 3:
+            last_latch_step = step
+            messages.append({"role": "user", "content": (
+                "You are RE-reading material you already fetched (not new files). That means you have the diagnosis. "
+                "Commit your fix NOW with one atomic_replace at the target site; stop re-reading the same regions.")})
+            metrics["transcript"].append(f"s{step} EARLY-CONVERGENCE nudge (redundant={_redundant_reads()}, 0 edits)")
         # light read-loop steer (NO blind lockout — keep it honest; looping is a measured class)
         # CLASS-NONEXISTENT-RUN-TESTS (WFB WALL-6): in NO_GATE one-shot there is no run_tests tool; telling the
         # model to "then run_tests" is a contradiction it wastes attention reconciling (→ verify-by-reading loop).
