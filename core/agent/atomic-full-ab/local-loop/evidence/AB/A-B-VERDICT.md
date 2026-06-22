@@ -143,3 +143,13 @@ R4-v4 (last scoreboard datapoint), R058-val (R3 paralysis fix), R059-val (R6 emp
 sympy 'weakness' is largely MY representation (weak demolitions: no force-edit on quick_check, deterministic retry), NOT the
 atomic — which would shift the verdict toward the atomic being stronger than the broken-harness numbers showed. Honesty: I nearly
 shipped 'model-bound' as the loss's cause; the doctrine's rigor caught it as my representation gap. Pending the validation numbers.
+
+## R4-v4 (sympy-16597, clean working gate) = tie confirmed; R055 scope-demolition NEVER FIRES (honest failure)
+R4-v4 OFFICIAL=0 (working gate INFRA=0, 6 edits, 3 run_tests, R055-scope-steer fired 0×). So sympy-16597 fails even with a
+working gate, AND R055 (CLASS-SCOPE-FIXATION) NEVER fires — it didn't trigger on the original R4, the clean R4, OR R4-v4. R055's
+trigger (3 CONSECUTIVE red run_tests + ≤2 files) is too strict / mis-placed: the atomic makes few run_tests (3 here), rarely 3-
+consecutive-red, so R055 never accumulates → a DEAD demolition. Honest: R055 is a FAILED demolition (never fires in practice) —
+the scope weakness (R4: edits 1-2 files of 6) is UNFIXED. Re-validated scoreboard (working gates): R1 WIN(1/0), R3 tie(0/0,
+paralysis), R4 tie(0/0, scope/R055-dead), R5 tie(1/1), R6 LOSS→under R059 re-test, R7 tie(1/1). The sympy weakness's 3 mechanisms:
+R3 paralysis (R058 under test), R6 empties (R059 under test), R4 scope (R055 DEAD — needs a better trigger or different approach).
+Harness improvement committed: gen_ab_atomic_script.sh (prevents the grep + path-collision bugs for clean future rounds).
