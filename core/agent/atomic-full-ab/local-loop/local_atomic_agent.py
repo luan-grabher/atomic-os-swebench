@@ -21,12 +21,13 @@ The result JSON records EVERYTHING (loop manual step 3): gate pass, steps, per-t
 call counts, edits applied, invalid-states-prevented (governed refusals = a GOOD
 atomic property), reads, diff surface (lines), tokens, wall time, and a transcript.
 """
-import json, os, re, sys, time, signal, argparse, subprocess, urllib.request
+import json, os, re, sys, time, signal, argparse, subprocess, urllib.request, shlex
 from pathlib import Path
 
 API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
 MODEL = os.environ.get("DEEPSEEK_MODEL", "deepseek-v4-pro")
 NODE = os.environ.get("ATOMIC_NODE_BIN", "node")
+REPO_ROOT = Path(__file__).resolve().parents[4]
 ATOMIC_CALL = os.environ.get(
     "ATOMIC_CALL",
     str(Path(__file__).resolve().parents[3] / "atomic-edit" / "atomic-call.mjs"),
@@ -494,20 +495,70 @@ def green_diff_added_helper_state_machine(workdir):
     return adds_helper and adds_state
 
 
-def run_gate(workdir, gate):
+def run_gate(workdir, gate, full_file=False):
+    # CLASS-GATE-ZERO-ZERO-RETRY: a timeout or malformed infra response can surface as pass=0/fail=0 and
+    # falsely push the model into over-fixing a patch that was already correct. Retry that zero-information
+    # result once with the same gate; never convert a real red with failures into green.
+    env = dict(os.environ)
+    if full_file:
+        env["SWE_GATE_FULL_FILE"] = "1"
+    timeout_s = 300 if full_file else 180
+    last_out = ""
+    for _gate_attempt in range(2):
+        try:
+            p = subprocess.run(gate, cwd=workdir, shell=True, capture_output=True, text=True,
+                               timeout=timeout_s, env=env)
+        except subprocess.TimeoutExpired:
+            last_out = "(gate timed out)"
+            if _gate_attempt == 0:
+                time.sleep(2)
+                continue
+            return False, last_out, (0, 0)
+        out = (p.stdout or "") + "\n" + (p.stderr or "")
+        m_pass = re.search(r"#\s*pass\s+(\d+)", out)
+        m_fail = re.search(r"#\s*fail\s+(\d+)", out)
+        m_tests = re.search(r"#\s*tests\s+(\d+)", out)
+        npass = int(m_pass.group(1)) if m_pass else 0
+        nfail = int(m_fail.group(1)) if m_fail else 0
+        ntests = int(m_tests.group(1)) if m_tests else 0
+        if p.returncode != 0 and npass == 0 and nfail == 0 and _gate_attempt == 0:
+            last_out = out
+            time.sleep(2)
+            continue
+        allpass = (p.returncode == 0) and ntests > 0 and nfail == 0
+        return allpass, out, (npass, nfail)
+    return False, last_out or "(gate produced no result)", (0, 0)
+
+
+def overfix_full_file_required(workdir):
+    """CLASS-OVERFIX-FULL-FILE-GATE: sample P2P gates can miss regressions from broad/multi-file fixes.
+    Escalate apparently-green over-fix diffs to an official-like full-file gate before accepting them."""
+    d = git_diff(workdir)
+    if not d.strip():
+        return False
+    files = subprocess.run(["git", "diff", "--name-only", "HEAD"], cwd=workdir,
+                           capture_output=True, text=True).stdout.splitlines()
+    hunks = d.count("\n@@") + (1 if d.startswith("@@") else 0)
+    return len([f for f in files if f.strip()]) > 1 or hunks >= 2
+
+
+def normalize_gate_command(gate):
+    # CLASS-GATE-COMMAND-CWD-RELATIVE: run_gate executes with cwd=<SWE workdir>, so repo-relative gate
+    # scripts like core/agent/.../swe_docker_gate.sh vanish and return pass=0/fail=0. Absolutize only the
+    # command token when it resolves under this repo; leave arbitrary shell commands untouched.
     try:
-        p = subprocess.run(gate, cwd=workdir, shell=True, capture_output=True, text=True, timeout=180)
-    except subprocess.TimeoutExpired:
-        return False, "(gate timed out)", (0, 0)
-    out = (p.stdout or "") + "\n" + (p.stderr or "")
-    m_pass = re.search(r"#\s*pass\s+(\d+)", out)
-    m_fail = re.search(r"#\s*fail\s+(\d+)", out)
-    m_tests = re.search(r"#\s*tests\s+(\d+)", out)
-    npass = int(m_pass.group(1)) if m_pass else 0
-    nfail = int(m_fail.group(1)) if m_fail else 0
-    ntests = int(m_tests.group(1)) if m_tests else 0
-    allpass = (p.returncode == 0) and ntests > 0 and nfail == 0
-    return allpass, out, (npass, nfail)
+        parts = shlex.split(gate)
+    except Exception:
+        return gate
+    if not parts:
+        return gate
+    first = parts[0]
+    if not os.path.isabs(first):
+        candidate = REPO_ROOT / first
+        if candidate.exists():
+            parts[0] = str(candidate)
+            return " ".join(shlex.quote(p) for p in parts)
+    return gate
 
 
 TOOLS = [
@@ -1157,6 +1208,11 @@ def main():
                     reads_since_edit = 0; distinct_since_edit.clear()
                     metrics["run_tests_calls"] += 1
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
+                    if last_pass and overfix_full_file_required(workdir):
+                        metrics["run_tests_calls"] += 1
+                        last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate, full_file=True)
+                        metrics["transcript"].append(
+                            f"s{step} WEIGHT-MACRO FULL-FILE-OVERFIX gate -> pass={np_} fail={nf_} all_green={last_pass}")
                     metrics["transcript"].append(f"s{step} WEIGHT-MACRO run_tests -> pass={np_} fail={nf_} all_green={last_pass}")
                     if last_pass:
                         last_green_diff = git_diff(workdir)
@@ -1434,6 +1490,11 @@ def main():
                            "still fails. Make your atomic edit FIRST, then run_tests.")
                 else:
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
+                    if last_pass and overfix_full_file_required(workdir):
+                        metrics["run_tests_calls"] += 1
+                        last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate, full_file=True)
+                        metrics["transcript"].append(
+                            f"s{step} FULL-FILE-OVERFIX gate -> pass={np_} fail={nf_} all_green={last_pass}")
                     res = f"pass={np_} fail={nf_} all_green={last_pass}\n" + gate_out[-1500:]
                     # CLASS-GUARD-NOT-ROOT (R028, generalist): when the test stays RED after an edit, the single
                     # most common dead-end is "I added a new guard/filter by calling an existing function, but the
@@ -1523,6 +1584,12 @@ def main():
                 metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
             elif fn == "quick_check":
                 metrics["quick_check_calls"] += 1
+                # CLASS-QUICKCHECK-PARALYSIS (R058, generalist): quick_check is read-like EXPLORATION (run-Python to verify
+                # logic) but did NOT count toward reads_since_edit, so the model could quick_check UNBOUNDED without ever
+                # triggering force-edit → analysis paralysis (sympy-20438 re-run w/ WORKING gate: 33 quick_check + 30 read,
+                # only 1 edit + 0 run_tests → over-explore/under-commit/never-test → failed). Count it so excessive
+                # verify-without-commit forces an edit + run_tests (engage the gate-ON loop) like any other read.
+                reads_since_edit += 1
                 # F8 SELF-VERIFY (R050 CLASS-INCORRECT-FIX-APPROACH): the model had no way to write+run a
                 # focused test before the expensive gate. The native worker won R050 by writing its own unit
                 # tests. This gives the atomic agent the same capability -- generalist (any repo, any fix).
@@ -1795,6 +1862,9 @@ def main():
         metrics["gate_pass"] = None  # scored externally by the official SWE-bench Docker harness
     else:
         final_pass, _, _ = run_gate(workdir, args.gate)
+        if final_pass and overfix_full_file_required(workdir):
+            final_pass, _, _ = run_gate(workdir, args.gate, full_file=True)
+            metrics["transcript"].append(f"FULL-FILE-OVERFIX final gate -> all_green={final_pass}")
         # CLASS-SCORING-GATE-FLAKE (F5, anti-fachada §9): a single end-of-main scoring gate can spuriously
         # return False (container timing/timeout) when the fix is actually green (measured q4: in-loop run_tests
         # passed 21/21 but final scoring returned False; a fresh rerun was green). When the in-loop state was GREEN
