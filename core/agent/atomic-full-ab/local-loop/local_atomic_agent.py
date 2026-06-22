@@ -1177,12 +1177,12 @@ def main():
                     force_no_edit_commit = True
                     empties = 0
                     metrics["invalid_states_prevented"] += 1
-                    metrics["transcript"].append(f"s{step} STOP refused (no edit yet) -> edit-only mode {no_edit_stop_refusals}")
+                    metrics["transcript"].append(f"s{step} STOP refused (no edit yet) -> edit/test-only mode {no_edit_stop_refusals}")
                     _tail = "Make the smallest atomic_replace/atomic_create based on the context already read, then STOP." \
                         if NO_GATE else "Make the smallest atomic_replace/atomic_create based on the context already read, then run_tests."
                     messages.append({"role": "user", "content": (
-                        "STOP is invalid: NO bytes changed — a submission with no edit is an automatic failure. "
-                        "Read tools are now disabled. " + _tail)})
+                        "STOP is invalid: no bytes changed and the acceptance gate is not green. "
+                        "A submission with no edit is an automatic failure. Read tools are now disabled. " + _tail)})
                     continue
                 metrics["transcript"].append(f"s{step} STOP (gave up)")
                 break
@@ -1257,6 +1257,15 @@ def main():
             if green_minimize_active and fn == "atomic_create":
                 res = "FILE CREATION DISABLED — post-green minimization may only shrink an accepted diff with atomic_replace."
                 metrics["transcript"].append(f"s{step} {fn} REFUSED (green-minimize create disabled)")
+                messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                continue
+
+            if red_gate_fix_required and fn not in RED_FIX_NAMES:
+                res = ("TOOL DISABLED — the acceptance gate is red for the current diff "
+                       f"({red_gate_fix_reason}). Do not read/search/retest stale bytes. "
+                       "Make one focused atomic_replace/atomic_create refinement first; then quick_check and run_tests.")
+                metrics["invalid_states_prevented"] += 1
+                metrics["transcript"].append(f"s{step} {fn} REFUSED (red-gate reedit lockout)")
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                 continue
 
@@ -1582,6 +1591,22 @@ def main():
                 "You are RE-reading material you already fetched (not new files). That means you have the diagnosis. "
                 "Commit your fix NOW with one atomic_replace at the target site; stop re-reading the same regions.")})
             metrics["transcript"].append(f"s{step} EARLY-CONVERGENCE nudge (redundant={_redundant_reads()}, 0 edits)")
+        # CLASS-GATEON-READ-FIRST-UNDERUSE (pytest-10356, evidence-backed, GATE-ON ONLY): in gate-ON the model has
+        # test feedback but UNDER-USES the iterate loop — it read ~34 steps before its first edit then made 5 edits
+        # with only 2 run_tests (edits broke collection, no budget to recover → did NOT resolve a steerable instance).
+        # Fire an EARLY gate-ON-specific steer (once, by step ~8 of body-reading with 0 edits): commit a first
+        # hypothesis + run_tests EARLY and iterate on the result — the loop is for iterating, not reading-everything-
+        # first. TEXT steer only (can't deadlock — learned from the WALL-1 suppression burn). NO_GATE excluded
+        # (no feedback there; one-shot should verify scope, the OPPOSITE — the mode-specific insight). UNVALIDATED
+        # (runs too slow to A/B now) but evidence-motivated + low-risk in gate-ON (feedback corrects an early edit).
+        if not NO_GATE and metrics["edits_applied"] == 0 and reads_since_edit == 8 and (step - last_latch_step) >= 3:
+            last_latch_step = step
+            messages.append({"role": "user", "content": (
+                "You are in test-feedback mode (run_tests works). DON'T read everything first — commit your BEST "
+                "first-hypothesis atomic_replace at the most likely site NOW, then run_tests. Iterate edit→run_tests→"
+                "refine on the actual failure. After EVERY edit, run_tests before editing again — that's how the loop "
+                "converges; batching edits without testing wastes the budget.")})
+            metrics["transcript"].append(f"s{step} GATEON-EDIT-EARLY steer (8 reads, 0 edits)")
         # light read-loop steer (NO blind lockout — keep it honest; looping is a measured class)
         # CLASS-NONEXISTENT-RUN-TESTS (WFB WALL-6): in NO_GATE one-shot there is no run_tests tool; telling the
         # model to "then run_tests" is a contradiction it wastes attention reconciling (→ verify-by-reading loop).
