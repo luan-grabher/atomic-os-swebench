@@ -394,3 +394,15 @@ sympy-20438 is hard for BOTH arms — but a committed edit is refinable by gate-
 sympy gate-ON itself is blocked by the pytest-only gate boundary, recorded honestly.) Net: a 0-edit guaranteed
 loss is demolished as a failure mode. (Note: nohup launches R049/R049b died transiently — infra, not model;
 re-ran harness-tracked as R049c. DeepSeek API verified healthy, no resource leaks.)
+
+## R050 — 17th fix end-to-end + honest sympy frontier limit
+R050 (sympy one-shot, 16th+17th fixes): atomic committed 1 edit (7-line, sets.py), NO deadlock (16th fix holds),
+78 reads. Selector-fallback fired 0× this run (model navigated via line-ranges; the fallback is deterministically
+validated but wasn't exercised here). Atomic does NOT resolve sympy-20438 one-shot (incomplete 1-file edit; gold
+needs 3 files) — consistent with "hard for BOTH arms one-shot" (native's one-shot also failed). HONEST FRONTIER
+LIMIT: sympy-20438 needs the gate-ON iterate loop to resolve (like pylint-7080/8898), but sympy gate-ON is blocked
+by the pytest-only local gate (sympy uses its native runner — recorded boundary). Per the §7 falsifiability lock:
+the representation gaps I could find are closed (deadlock-at-0 [16th], selector-not-found [17th], large-file reads,
+nav-wander); the residual one-shot incompleteness on a hard multi-file synthesis task — where BOTH models fail
+one-shot — is bounded by the iterate loop (harness-blocked for sympy) and/or the model, recorded honestly, not
+chased infinitely. Sympy frontier is thoroughly characterized: 2 new demolitions + 2 honest boundaries.
