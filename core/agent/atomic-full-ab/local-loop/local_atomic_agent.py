@@ -1168,16 +1168,21 @@ def main():
                 metrics["transcript"].append(f"s{step} DONE (no tool call{'; one-shot fix submitted' if NO_GATE else '; gate green'})")
                 break
             if empties >= 3:
-                if not NO_GATE and metrics["edits_applied"] == 0:
+                # CLASS-NO-GATE-ZERO-EDIT-GIVEUP (WFB+2): a 0-edit stop is a GUARANTEED loss — but the force-edit
+                # guard was gated on `not NO_GATE`, so in one-shot (NO_GATE) a model that stopped with 0 edits just
+                # "gave up" (pylint-6528 with the convergence nudge: stopped at step 33, 0 edits). Force a best-
+                # effort edit in BOTH modes (bounded to 2 refusals so a model that truly won't commit still ends).
+                if metrics["edits_applied"] == 0 and no_edit_stop_refusals < 2:
                     no_edit_stop_refusals += 1
                     force_no_edit_commit = True
                     empties = 0
                     metrics["invalid_states_prevented"] += 1
-                    metrics["transcript"].append(f"s{step} STOP refused (no edit yet) -> edit/test-only mode {no_edit_stop_refusals}")
+                    metrics["transcript"].append(f"s{step} STOP refused (no edit yet) -> edit-only mode {no_edit_stop_refusals}")
+                    _tail = "Make the smallest atomic_replace/atomic_create based on the context already read, then STOP." \
+                        if NO_GATE else "Make the smallest atomic_replace/atomic_create based on the context already read, then run_tests."
                     messages.append({"role": "user", "content": (
-                        "STOP is invalid: no bytes changed and the acceptance gate is not green. "
-                        "Read tools are now disabled. Make the smallest atomic_replace/atomic_create based on "
-                        "the context already read, then run_tests.")})
+                        "STOP is invalid: NO bytes changed — a submission with no edit is an automatic failure. "
+                        "Read tools are now disabled. " + _tail)})
                     continue
                 metrics["transcript"].append(f"s{step} STOP (gave up)")
                 break
