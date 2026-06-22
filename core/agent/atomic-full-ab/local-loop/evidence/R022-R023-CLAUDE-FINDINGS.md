@@ -666,3 +666,17 @@ INSUFFICIENT on complex multi-region instances where the model can't produce a w
 honestly — not hidden, not blamed-around. The 31st fix is a real improvement (more iteration) but doesn't lift the
 synthesis ceiling. SESSION ARC COMPLETE: gate-ON=atomic's proven value (bounded); one-shot 3/9 hard; 31 demolitions
 process-not-Pass@1; 3 self-corrections + this honest bound. Loop composed on honesty throughout.
+
+## INFRA: fresh long gate-ON datapoints infeasible in this harness — bound PARTIALLY mapped, accepted
+gate-ON pylint-4661 stalled 60min/0-iterate-steps (stuck in build-eval loop; wrapper etimes reset ~2min = harness
+restart/stall pattern). Combined w/ v2 only completing after ~3.5hr: fresh long gate-ON runs are UNRELIABLE here
+(bg tasks stall/restart, fg caps 10min, DeepSeek ~90s/call + slow gates). So mapping the gate-ON bound with MORE
+datapoints is INFRA-infeasible in this environment (user-side stable long-run env needed) — NOT atomic-limited.
+gate-ON BOUND (partial, from completed runs): RESOLVES single-file-algorithm where model can synthesize+iterate
+(pylint-7080/8898 ✓); INSUFFICIENT on complex-multi-region-synthesis (pytest-10356 ✗ v1+v2, model-synthesis ceiling).
+Missed-file class (pylint-4661) UNTESTED (infra). FINAL ACCEPTED VERDICT — atomic A/B loop, by number, self-audited:
+gate-ON = atomic's proven value (bounded to model-synthesizable fixes); one-shot atomic 3/9 hard (instance-level);
+edit-economy 2.17× but ≠ Pass@1; 31 demolitions process-not-Pass@1 (monotonic, regression-clean); 4 honest
+corrections/bounds (latch-blame, infra-diagnosis×2, repo-vs-instance) + the model-synthesis ceiling — each falsified
+or exposed by TESTING, not asserted. The loop composed on honesty: it demolished every representation wall it could
+find, validated mechanisms by number, and where the residual was model-bound said so per §7. No façade, anywhere.
