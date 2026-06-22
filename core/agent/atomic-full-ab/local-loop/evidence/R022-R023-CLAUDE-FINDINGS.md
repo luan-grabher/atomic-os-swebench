@@ -811,3 +811,17 @@ force the 70% the model ignores → weight+gate should exceed 30%. HONEST BOUNDS
 weight-substrate "lifts a weak model" claim is now OUTCOME-TRUE by number (partial), not confounded — a real milestone,
 honestly bounded. The whole arc: built substrate (proven) → tested → exposed confound (self-corrected) → CONTROLLED it →
 isolated a real modest lift. Loop composed on honesty start to finish.
+
+## ★ CIRCULARITY CAVEAT (self-check) — N=10 lift is on the DERIVATION instance; GENERALIZATION (the real thesis) UNTESTED
+Honest downgrade: the PATH-NORMALIZATION weight was DERIVED from pylint-7080's gold (I wrote "normalize before match" AFTER
+seeing pylint-7080's normpath fix). So the N=10 lift (0/10→3/10) on pylint-7080 shows "the model resolves MORE when it
+applies the weight's guidance" — but it does NOT prove the weight GENERALIZES to the CLASS (different instances), which is
+the directive's actual claim ("captura a CLASSE, não a ocorrência"). Testing a weight on its own derivation instance is
+partly CIRCULAR. What the N=10 robustly shows: (1) baseline shallow reliably fails (0/10); (2) when the model APPLIES the
+weight (~30%) it resolves via the weight's mechanism → so injected strategy CAN steer a weak model to the fix. What it does
+NOT show: generalization. GENERALIZATION TEST (the real one) needs a DIFFERENT path-normalization instance — NOT readily
+available (pylint-6528 is a DIFFERENT class = caller-fix the baseline already does; scikit-10297 unbuilt+uncertain; cross-
+repo path-normalize instance would need dataset search + image build). So the honest status: weight-steers-weak-model = real
+(0/10→3/10, modest+unreliable); weight-GENERALIZES-across-class = UNTESTED. The directive's thesis is PARTIALLY supported
+(advice steers a weak model on the derivation instance) but NOT yet validated for generalization. Don't overclaim. Next
+rigorous step: a fresh path-normalization instance the weight did NOT see, or the locked-DeepSeek config (funds).
