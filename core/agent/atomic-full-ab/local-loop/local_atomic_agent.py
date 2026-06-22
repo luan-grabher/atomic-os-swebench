@@ -61,6 +61,14 @@ def deepseek(messages, tools):
             # a transient failure and RETRY (within the attempt budget) instead of returning the dead turn.
             if attempt < 4 and not (_m.get("tool_calls") or (_m.get("content") or "").strip()
                                     or (_m.get("reasoning_content") or "").strip()):
+                # CLASS-EMPTY-DETERMINISTIC-BREAK (R059, generalist): temperature defaults to 0 (DETERMINISTIC) →
+                # R056's retry of the IDENTICAL request returns the IDENTICAL empty (sympy-13877: 18 empties survived
+                # R056). BREAK the determinism — rebuild the request with a BUMPED temperature so the retry samples a
+                # DIFFERENT (likely non-empty) completion. Only on empty (reversible), no oracle, any deterministic stall.
+                payload["temperature"] = min(1.0, 0.4 + 0.3 * attempt)
+                body = json.dumps(payload).encode()
+                req = urllib.request.Request("https://api.deepseek.com/v1/chat/completions", data=body,
+                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"})
                 time.sleep(2 * (attempt + 1)); continue
             return _m, d.get("usage", {})
         except Exception as e:
@@ -864,6 +872,7 @@ def main():
     ap.add_argument("--out", required=True)
     ap.add_argument("--max-steps", type=int, default=60)
     args = ap.parse_args()
+    args.gate = normalize_gate_command(args.gate)
 
     if not API_KEY:
         raise SystemExit(
