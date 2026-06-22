@@ -337,3 +337,16 @@ hard algorithm, NOT a guarantee. s3 DIAGNOSIS (a real generalist wall): at s24 t
 green state.** Fix direction: snapshot the diff each time the gate goes green; at finalize (or when a later edit
 breaks green), RESTORE the last-green diff so the final answer is the best green reached. This would flip s3 to a
 win (gate-ON → 4/4). Generalist (any over-editing past green). Next demolition.
+
+## R047 — sympy-20438 (5th repo, hard sprawling multipledispatch) — atomic LOSS one-shot (0 edits), walls diagnosed
+New repo/domain (symbolic math: is_subset/ProductSet bug, gold = 3 files). Native produced a 3-file fix (16 tools,
+44k tok). **Atomic produced 0 EDITS** (49 calls, 44 reads, hit max-steps, deadlocked) → unresolved. Honest atomic
+LOSS on a hard-comprehension instance. Walls (mine, diagnosed from the trace):
+1. CLASS-LARGEFILE-READ-FRAGMENT: sympy sets.py is 2516 lines (>>24k-char wholefile cap) → reads return
+   truncated/fragments → the model RE-READ regions to piece together the sprawling multipledispatch flow.
+2. CLASS-DEADLOCK-AT-ZERO-EDITS: the redundant-read deadlock (R030) then fired (5 redundant refusals → STOP) and
+   stopped the model at 0 EDITS = guaranteed loss. Stopping at 0 edits is worse than a wrong edit (which could be
+   refined). The model, after 40 reads of sympy's dispatch, still wouldn't commit; native (stronger synthesis +
+   whole-file reads) did. Honest: partly a sprawling-codebase comprehension gap, partly my too-aggressive deadlock
+   + small wholefile cap. Next levers: (a) larger/zoomable reads for big files, (b) never deadlock-STOP at 0 edits —
+   force a best-effort edit instead (a wrong edit can be iterated; 0 edits cannot). native sympy resolve = scoring.
