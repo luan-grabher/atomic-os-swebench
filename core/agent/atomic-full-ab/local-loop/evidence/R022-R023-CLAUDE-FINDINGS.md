@@ -295,3 +295,14 @@ HONEST CAVEAT: native is a single sample (its specific impl was buggy; a re-run 
 implementation-variance, not yet a systematic claim. Atomic cost: 19 calls/825k tokens (heavy config-chain
 exploration — the read/token wall on a comprehension-heavy task, next lever). Confirming atomic's correctness is
 RELIABLE (N=3) next; native's single failure is one data point. Runs pylint8898_atomic ✓ / pylint8898_native ✗.
+
+## ★ R042 — RETRACTION (anti-facade): R041 atomic "correctness win" on pylint-8898 does NOT replicate
+Multi-sampled the R041 claim (the measurement-fidelity discipline). atomic N=3 one-shot on pylint-8898:
+s1 (diff 27) UNRESOLVED, s2 (diff 33) UNRESOLVED, s3 empty-diff/gave-up UNRESOLVED → **0/3**. Plus R041 = 1
+resolved → atomic resolves pylint-8898 only ~1/4 one-shot. So R041's "atomic RESOLVED, native FAILED =
+correctness win" was a LUCKY single sample, NOT robust. RETRACTED. Honest finding: pylint-8898 (regex-aware CSV
+splitter handling {m,n}/[...]/(...)/escaping) is a hard ALGORITHM both models get right only sometimes one-shot;
+the atomic representation gives correct perception but does NOT make a subtle splitter algorithm correct without
+test feedback. NEXT (atomic's actual value): pylint-8898 GATE-ON (proof-carrying iterate loop) — does atomic
+reliably resolve it WITH test feedback (write splitter → test → fix edge case)? That is the honest atomic lever,
+same as pylint-7080. Lesson reaffirmed: never claim a single-sample win; multi-sample before asserting.
