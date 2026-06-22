@@ -35,6 +35,20 @@ double-edged (cured hard hand-simulation BUT over-used on easy cases: sklearn 8�
 impact UNMEASURED (Docker down) so NOT capped blind (falsifiability). My own WALL-3 fix opened a new watch-item
 (quick-check-overuse). Total demolitions this session: 23 + extensions.
 
+## WFB+ round (2026-06-22, 2nd wall-mining workflow) — 4 new hard 2-file instances, 7 demolitions
+Instances: pytest-5840, pylint-6528, sklearn-10297, astropy-14508. EDIT-ECONOMY: atomic tighter 3/4 (pytest 2v17,
+sklearn 5v11, astropy 9v22); pylint-6528 atomic 0-edit (a DEADLOCK my own WALL-1 fix caused — see below). The
+adversarial mining caught a CRITICAL self-inflicted regression: F3 compactor (keeps last 6 tool-results, compacts
+older) × my reread-suppression → suppression refused to re-serve content F3 evicted → "you have it above" when the
+model did NOT → deadlock (pylint-6528: 60 steps/727k tok/0 edits total failure). 7 DEMOLITIONS (24-30): 24
+compaction-suppress-deadlock (escape hatch, VALIDATED 0→1 edit); 25 blind-line-range-rejected (clamp endLine>EOF);
+26 unbuilt-env-verification-loop (steer quick_check off pip/build); 27 perception-no-convergence-trigger (early
+redundant-read nudge, VALIDATED reads 52→33 / tokens −59%); 28 no-gate-zero-edit-giveup (force edit on 0-edit stop);
+29 selector-linerange-double-read (selector reads feed the interval cache); 30 callers-blind-to-inheritance (grep
+subclass edges on 0 callers). REGRESSION SMOKE: all 30 demolitions compose monotonically (sympy reads 24→5, 1 edit,
+no regression). LESSON: mining walls in my OWN fixes = the loop law at its sharpest. Resolution scores: in progress
+(Docker recovered) — astropy-14182 both arms UNRESOLVED (hard); rest scoring. 30 demolitions total this session.
+
 ## Headline numbers
 - **Cross-model resolved-rate L1 = 5/5** (4/5 one-shot + pylint-7080 via the proof-carrying gate-ON loop) =
   native one-shot 4/5. A weaker model + atomic ≥ a stronger model native, on correctness.
