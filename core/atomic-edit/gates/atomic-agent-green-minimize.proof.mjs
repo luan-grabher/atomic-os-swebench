@@ -157,6 +157,15 @@ record('CLASS-ADJACENT-LOOP-NONE-FILTER-FUSION (F4): deterministic fusion of two
     callTrace: source.includes('F4 loop-fusion:'),
     fusedForm: source.includes('list({m.group'),
   });
+record('CLASS-SCORING-GATE-FLAKE (F5): final scoring gate retries on in-loop-green/final-red discrepancy (anti-false-red §9)',
+  source.includes('CLASS-SCORING-GATE-FLAKE (F5, anti-fachada') &&
+  source.includes('if not final_pass and last_pass:') &&
+  source.includes('F5 scoring-gate retry:'),
+  {
+    marker: source.includes('CLASS-SCORING-GATE-FLAKE (F5, anti-fachada'),
+    guard: source.includes('if not final_pass and last_pass:'),
+    trace: source.includes('F5 scoring-gate retry:'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
