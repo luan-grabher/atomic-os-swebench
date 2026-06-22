@@ -398,9 +398,8 @@ def main():
             "call graph where possible; avoid rewriting unrelated helpers; when two touched functions "
             "need the same logic, implement one canonical helper and have wrappers delegate instead of "
             "duplicating state machines or parsers. For merge/default-composition/update helpers, "
-            "reason over the final merged representation unless source identity is explicitly part "
-            "of the contract; preserve override precedence and filter by final value, not by "
-            "independently scanning input sources. ")
+            "reason over the final merged representation unless source identity is explicitly part of the contract; "
+            "preserve override precedence and filter by final value, not by independently scanning input sources. ")
     if NO_GATE:
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
                   "ONLY atomic tools. " + survey + lean + "You CANNOT run the project's tests — there is no "
@@ -422,6 +421,14 @@ def main():
     green_minimize_active = False
     green_minimize_start_lines = 0
     green_minimize_edits = 0
+    green_minimize_pre_files = {}  # CLASS-GREEN-MINIMIZE-NOSHRINK (F1): capture the green fix's changed-file
+    # contents at minimize-offer time so a non-shrinking minimize edit can be REJECTED and the pre-minimize green
+    # state restored byte-exact. The minimize pass must never ACCEPT an edit that did not strictly reduce surface.
+    green_minimize_refusals = 0  # CLASS-GREEN-MINIMIZE-DECLINE (ohmpi R-variance): the model declined the optional
+    # free-text minimize 2/3 ('not obvious' -> STOP -> verbose diff kept). The wall was making STOP the path of least
+    # resistance. Demolition: refuse the FIRST stop during minimize and re-prompt ONCE asserting a smaller equivalent
+    # exists. Generalist (any verbose-but-green fix, any model). Bounded (<=1 extra round-trip); mirrors L01-I cap.
+    # Monotonic: adds a bounded re-prompt, removes no gate, never weakens a proof.
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -454,6 +461,13 @@ def main():
         if last_pass and not green_minimize_prompted and not NO_GATE:
             current_diff = git_diff(workdir)
             green_minimize_start_lines = diff_lines(current_diff)
+            green_minimize_pre_files = {}  # F1: snapshot the green-fix file contents for non-shrink rollback
+            for _cf in subprocess.run(["git", "diff", "HEAD", "--name-only"], cwd=workdir,
+                    capture_output=True, text=True).stdout.split():
+                try:
+                    green_minimize_pre_files[_cf] = open(os.path.join(workdir, _cf), encoding="utf-8").read()
+                except Exception:
+                    pass
             messages.append({"role": "user", "content": (
                 f"The acceptance gate is green. Current diff surface is {green_minimize_start_lines} changed lines. "
                 "You get ONE bounded diff-minimization pass: if a strictly smaller equivalent patch is obvious "
@@ -505,6 +519,18 @@ def main():
                 pre_edit_topology_active = False
                 empties = 0
                 messages.append({"role": "user", "content": "Now implement that topology with the smallest faithful atomic edit(s), then run_tests."})
+                continue
+            if green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1:
+                green_minimize_refusals += 1
+                metrics["transcript"].append(f"s{step} GREEN-MINIMIZE refused-stop -> re-prompt once (a smaller equivalent exists)")
+                messages.append({"role": "user", "content": (
+                    "Do NOT stop. A strictly smaller equivalent patch EXISTS for this green diff. Nearly every "
+                    "multi-line green fix collapses to less surface: replace a verbose loop that keeps/deletes keys "
+                    "with a single dict/generator comprehension over the final container, or move an early-construction "
+                    "filter to the one post-loop final-value site, or fold duplicated logic into one canonical helper "
+                    "plus wrappers. Emit ONE atomic_replace that strictly shrinks the diff while preserving the green "
+                    "behavior, then run_tests. You may STOP only after you have attempted at least one minimizing "
+                    "atomic_replace.")})
                 continue
             empties += 1
             if last_pass or (NO_GATE and metrics["edits_applied"] > 0):
@@ -585,8 +611,21 @@ def main():
                     if last_pass:
                         if green_minimize_active:
                             minimized_lines = diff_lines(git_diff(workdir))
-                            metrics["transcript"].append(
-                                f"s{step} GREEN-MINIMIZE result diff_lines={minimized_lines} start={green_minimize_start_lines}")
+                            if minimized_lines < green_minimize_start_lines:
+                                metrics["transcript"].append(
+                                    f"s{step} GREEN-MINIMIZE result diff_lines={minimized_lines} start={green_minimize_start_lines} (SHRUNK, accepted)")
+                            else:
+                                # F1 CLASS-GREEN-MINIMIZE-NOSHRINK: a minimize edit that did NOT strictly reduce
+                                # surface is byte-negative (it claimed to shrink but didn't). REJECT it: restore the
+                                # pre-minimize green state byte-exact, count the prevented non-shrink, record honestly.
+                                for _cf, _c in green_minimize_pre_files.items():
+                                    try:
+                                        open(os.path.join(workdir, _cf), "w", encoding="utf-8").write(_c)
+                                    except Exception:
+                                        pass
+                                metrics["invalid_states_prevented"] += 1
+                                metrics["transcript"].append(
+                                    f"s{step} GREEN-MINIMIZE REJECTED (did not shrink: {green_minimize_start_lines}->{minimized_lines}); reverted to pre-minimize green state")
                             green_minimize_active = False
                 metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
             elif fn in DISPATCH:

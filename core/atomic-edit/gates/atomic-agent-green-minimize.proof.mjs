@@ -66,6 +66,28 @@ record('successful retest records post-green minimization result and deactivates
     resultTrace: source.includes('GREEN-MINIMIZE result diff_lines='),
     deactivates: source.includes('green_minimize_active = False'),
   });
+record('CLASS-GREEN-MINIMIZE-DECLINE: first minimize-stop refused once, re-prompt asserts a smaller equivalent exists (bounded)',
+  source.includes('green_minimize_refusals = 0') &&
+  source.includes('green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1') &&
+  source.includes('GREEN-MINIMIZE refused-stop -> re-prompt once (a smaller equivalent exists)') &&
+  source.includes('Do NOT stop. A strictly smaller equivalent patch EXISTS') &&
+  source.includes('green_minimize_refusals += 1'),
+  {
+    counter: source.includes('green_minimize_refusals = 0'),
+    guard: source.includes('green_minimize_active and green_minimize_edits == 0 and green_minimize_refusals < 1'),
+    marker: source.includes('GREEN-MINIMIZE refused-stop -> re-prompt once (a smaller equivalent exists)'),
+    assertsExists: source.includes('Do NOT stop. A strictly smaller equivalent patch EXISTS'),
+    bounded: source.includes('green_minimize_refusals += 1'),
+  });
+record('CLASS-GREEN-MINIMIZE-NOSHRINK (F1): a non-shrinking minimize edit is rejected and the pre-minimize green state is restored',
+  source.includes('green_minimize_pre_files = {}') &&
+  source.includes('minimized_lines < green_minimize_start_lines') &&
+  source.includes('GREEN-MINIMIZE REJECTED (did not shrink'),
+  {
+    preFilesCapture: source.includes('green_minimize_pre_files = {}'),
+    shrinkGuard: source.includes('minimized_lines < green_minimize_start_lines'),
+    rejectMarker: source.includes('GREEN-MINIMIZE REJECTED (did not shrink'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
