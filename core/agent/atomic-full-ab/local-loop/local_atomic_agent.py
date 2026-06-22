@@ -936,14 +936,27 @@ def main():
             if fn in READ_FNS and (_redundant_reads() >= FORCE_EDIT_AFTER or reads_since_edit >= READ_HARD_CAP) \
                     and _read_target_key(fn, a) in distinct_since_edit:
                 force_refused += 1
-                res = ("READING DISABLED — you are RE-READING things you already saw (a loop), with no edit. "
-                       "You have enough context. Emit atomic_replace (or atomic_create) with your best fix NOW" +
-                       ("." if NO_GATE else "; then run_tests will show if it's right and you can refine."))
-                metrics["transcript"].append(f"s{step} {fn} REFUSED (redundant-read loop, {force_refused})")
+                # CLASS-DEADLOCK-AT-ZERO-EDITS (R047, generalist): a run that ENDS with 0 edits is a GUARANTEED
+                # loss (nothing to submit; a wrong edit could at least be refined by the gate-ON loop). Measured:
+                # sympy-20438 the model re-read sprawling multipledispatch code, hit the deadlock, and STOPPED at
+                # 0 edits → certain loss. So at 0 edits we NEVER stop — we escalate to an ULTIMATUM (commit any
+                # plausible edit; imperfect beats nothing) and keep the force-edit pressure to max-steps. The
+                # deadlock-STOP is reserved for the safe case (edits already applied → a diff exists to submit).
+                if metrics["edits_applied"] == 0:
+                    res = ("READING DISABLED — you have read MORE than enough. A submission with NO edit is an "
+                           "automatic FAILURE; an imperfect edit you can refine is INFINITELY better. Emit ONE "
+                           "atomic_replace (or atomic_create) NOW with your single best fix at the most likely "
+                           "site — do not read, do not explain, just edit" +
+                           ("." if NO_GATE else "; run_tests will then tell you if it's right and you can refine."))
+                else:
+                    res = ("READING DISABLED — you are RE-READING things you already saw (a loop). You have a "
+                           "working edit; either refine it with atomic_replace or run_tests / stop.")
+                metrics["transcript"].append(f"s{step} {fn} REFUSED (redundant-read loop, {force_refused}, edits={metrics['edits_applied']})")
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
-                # CLASS-FORCE-EDIT-DEADLOCK: only on REPEATED redundant refusals (true spin), never on breadth.
-                if force_refused >= 5 and metrics["edits_applied"] == 0:
-                    metrics["transcript"].append(f"s{step} FORCE-EDIT DEADLOCK — {force_refused} redundant refused reads, 0 edits; stopping (model would not commit)")
+                # Deadlock-STOP ONLY when an edit already exists (safe to stop — there is a diff). Never stop at
+                # 0 edits (that guarantees a loss); let force-edit pressure run to max-steps for a chance to commit.
+                if force_refused >= 5 and metrics["edits_applied"] >= 1:
+                    metrics["transcript"].append(f"s{step} FORCE-EDIT DEADLOCK — {force_refused} redundant refused reads (edit exists); stopping")
                     deadlock_break = True
                 continue
             if green_minimize_active and fn in {"atomic_survey", "atomic_read_many", "atomic_outline", "atomic_read", "atomic_grep", "atomic_callers"}:
@@ -1156,6 +1169,27 @@ def main():
     # verbatim, as the model saw it). Skip the giant initial file-tree user turn to keep it auditable.
     metrics["messages"] = [m for i, m in enumerate(messages) if not (i == 1 and m.get("role") == "user")]
     Path(args.out).write_text(json.dumps(metrics, indent=2))
+    # §8 CORPUS DATA-COLLECTION (CLASS-CORPUS-COLLECTION-FOUNDATION): after each green run, append a repair-triple
+    # to the cross-session corpus. This is the "aprendizado entre sessões" data layer (doctrine §8) -- the foundation
+    # for future retrieval+injection that steers the model toward known-good fix patterns. Generalist: records the
+    # structural shape (file count, diff_lines, approach) not the task-specific content. Safe (append-only, try/except).
+    if metrics.get("gate_pass") and not NO_GATE:
+        try:
+            import hashlib
+            _corpus_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".corpus")
+            os.makedirs(_corpus_dir, exist_ok=True)
+            _corpus_file = os.path.join(_corpus_dir, "repair-triples.jsonl")
+            _triple = {"ts": int(time.time()),
+                "task": os.path.basename(args.task).replace("PROBLEM.md", "").replace("TASK.md", ""),
+                "diff_lines": metrics["diff_lines"],
+                "files_changed": len([l for l in d.splitlines() if l.startswith("diff --git ")]),
+                "diff_sha256": hashlib.sha256(d.encode()).hexdigest()[:16],
+                "steps": metrics["steps"], "edits": metrics["edits_applied"],
+                "tokens": metrics["tokens"], "wall_s": metrics["wall_s"]}
+            with open(_corpus_file, "a") as _cf:
+                _cf.write(json.dumps(_triple) + "\n")
+        except Exception:
+            pass
     print(f"ATOMIC DONE gate_pass={metrics['gate_pass']} steps={metrics['steps']} edits={metrics['edits_applied']} "
           f"reads={metrics['reads']} body_reads={metrics['body_context_reads']} invalid_prevented={metrics['invalid_states_prevented']} "
           f"diff_lines={metrics['diff_lines']} tokens={metrics['tokens']} wall={metrics['wall_s']}s")
