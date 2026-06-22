@@ -575,7 +575,12 @@ def main():
     survey = ("Be efficient with calls: to understand the code, FIRST call atomic_survey(glob) once to "
               "outline the region, then atomic_read_many(items) to read the relevant files in ONE call — "
               "do NOT read files one at a time. Then make minimal faithful edits with atomic_replace / "
-              "atomic_create (supply proofOfIncorrectness when you remove code). ")
+              "atomic_create (supply proofOfIncorrectness when you remove code). "
+              # CLASS-NONSOURCE-NAV-WANDER (R039, generalist): a source-only fix does not need changelog/news/
+              # release-notes/.rst/docs — measured: pytest-8399 a run wasted 4 calls reading changelog/*.bugfix.rst
+              # + grepping the issue number before the edit (vs the clean survey+read+edit=3). Stay in source.
+              "Spend your reads on SOURCE files only; do NOT read changelog/news/release-notes/.rst/docs files or "
+              "grep for the issue number — the fix lives in source, and adding changelog/doc files is out of scope. ")
     lean = ("Prefer the smallest correct behavioral delta: preserve existing exports, comments, and "
             "call graph where possible; avoid rewriting unrelated helpers; when two touched functions "
             "need the same logic, implement one canonical helper and have wrappers delegate instead of "
