@@ -2042,3 +2042,28 @@ The gate returns FALSE regardless of fix correctness (13 failed, 8 passed — al
 
 ### Domínio consecutivo: 1/2 (atomic won round 1)
 ### PRÓXIMO PASSO EXATO: re-fire atomic ONLY (R2) against frozen native baseline to confirm ≥2 consecutive rounds of dominance (§6.6)
+
+## ROUND pytest-5262-R2 — NÍVEL 1 — confirmation round (atomic-only, native baseline frozen)
+- **ATOMIC R2**: gate=**TRUE** ✓ diff=**5 lines** steps=63 edits=2 tokens=667,239 wall=**417.2s** quick_check=**2**
+- Native baseline (frozen from R1): correct, 17 lines, 477s
+
+### Dominance table (2 rounds)
+| Metric | R1 Atomic | R2 Atomic | Native | Atomic wins? |
+|--------|-----------|-----------|--------|-------------|
+| Correctness | ✓ | ✓ | ✓ | TIE (2/2) |
+| Diff lines | **2** | **5** | 17 | **YES** (8.5×, 3.4×) |
+| Speed | **109.8s** | **417.2s** | 477s | **YES** (4.3×, 1.14×) |
+
+### DOMINANCE: 2/2 consecutive rounds ✓
+- **Minimality**: undeniable margin both rounds (8.5× and 3.4× smaller diff)
+- **Speed**: wins both rounds, but R2 margin is thin (1.14×) — high variance (12 vs 63 steps)
+- **Correctness**: tie both rounds
+
+### R2 variance analysis
+R2 used 63 steps (vs R1's 12) and 667k tokens (vs R1's 81k) but STILL produced a correct, more-minimal fix and STILL finished faster than native. The variance suggests the model sometimes thrashes — a representation gap to close (the normalizers should reduce thrash more consistently).
+
+### Conclusion
+**Atomic DOMINATES pytest-5262**: 2/2 consecutive wins on correctness + minimality + speed. The doctrine's thesis is validated: DeepSeek V4 Pro (weaker model) + atomic representation beats Claude (stronger model) without atomic. F8c quick_check forced self-verification in both rounds (1 and 2 calls). The comprehension wall is task-dependent (absent on local-only-test tasks, present on network-dependent-test tasks).
+
+**Domínio consecutivo: 2/2 → DOMINANCE CONFIRMED on pytest-5262**
+**PRÓXIMO PASSO EXATO**: Per §6.7, escalate complexity — move to a harder task (pylint-7080: multi-file, local-only test, warm container). Fire native baseline once, then atomic loop.
