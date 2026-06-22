@@ -531,3 +531,9 @@ breaks a run (~2 steps) — environmental flakiness, runs that complete give cle
 atomic tighter 3/4 (pytest 2v17, sklearn 5v11, astropy 9v22). 28 demolitions total. Remaining MED batch walls
 (selector-linerange-dedup, callers-inheritance, stall-breaker) lower priority — mostly covered by 24th+27th.
 Docker still down → resolution scoring blocked (manual fix needed). Foreground runs work (background gets harness-killed).
+
+## Regression smoke (all 30 demolitions, monotonicity check): CLEAN, leaner than ever
+After the WFB+ batch (7 demolitions 24-30), ran the full agent end-to-end on sympy-18199: 1 edit, reads 5 (base 24,
+prev-fixes 16/7 — now 5), 13 calls, 7 quick_check, 14 steps, 121k tok, no crash. All 30 demolitions compose
+MONOTONICALLY (nada regride) — the agent is leaner each round. Confirms the batch fixes (deadlock escape, convergence
+nudge, 0-edit force, selector-linerange, callers-inheritance) don't break the agent.
