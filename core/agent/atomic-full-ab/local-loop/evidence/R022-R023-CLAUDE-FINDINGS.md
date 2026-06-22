@@ -506,3 +506,16 @@ didn't fire this run — model didn't repeat; the leaner prompts + latch kept it
 net.) NOTE on quick_check: 6 calls here is moderate (vs 12 on pytest) — the overuse is task-dependent; net
 correctness value still pending Docker resolution. Docker still down (resolution blocked, manual fix needed);
 foreground atomic loop now fully operational on Docker-independent axes.
+
+## ★ WFB+ batch (4 new hard 2-file instances) — 3 demolitions incl a CRITICAL self-inflicted regression
+Fresh wall-mining workflow (pytest-5840, pylint-6528, sklearn-10297, astropy-14508). EDIT-ECONOMY: atomic tighter
+3/4 (pytest 2v17, sklearn 5v11, astropy 9v22); pylint-6528 atomic 0-edit TOTAL FAILURE (deadlock) vs native 33.
+CRITICAL: the 0-edit failure was a REGRESSION MY OWN WALL-1 created — F3 compactor (keeps last 6 tool-results,
+compacts older to 200ch) × my reread-suppression: suppression refused to re-serve a range F3 EVICTED → "you have
+it above" when the model did NOT → deadlock (pylint-6528 60 steps/727k tok/0 edits; model: "it won't show it to
+me"). DEMOLITIONS: 24th CLASS-COMPACTION-SUPPRESS-DEADLOCK (escape hatch: re-serve full on 2nd ask). VALIDATED:
+pylint-6528 re-run 0→1 edit (expand_modules.py, a gold file), re-serve fired 6× — deadlock BROKEN. 25th CLASS-BLIND-
+LINE-RANGE-REJECTED (clamp endLine>EOF). 26th CLASS-UNBUILT-ENV-VERIFICATION-LOOP (steer quick_check off build on
+unbuilt repos). RESIDUAL: pylint-6528 still read-heavy (52 reads even post-fix) → the HIGH convergence-trigger wall
+(model has diagnosis early but keeps re-reading; force-edit at 12 redundant is too late) — fixing next. Mining walls
+in my OWN fixes = the loop law at its sharpest. 26 demolitions total. Docker still down (resolution blocked).
