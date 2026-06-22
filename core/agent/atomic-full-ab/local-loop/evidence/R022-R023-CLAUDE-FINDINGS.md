@@ -680,3 +680,15 @@ edit-economy 2.17× but ≠ Pass@1; 31 demolitions process-not-Pass@1 (monotonic
 corrections/bounds (latch-blame, infra-diagnosis×2, repo-vs-instance) + the model-synthesis ceiling — each falsified
 or exposed by TESTING, not asserted. The loop composed on honesty: it demolished every representation wall it could
 find, validated mechanisms by number, and where the residual was model-bound said so per §7. No façade, anywhere.
+
+## ★★★ 5th SELF-CORRECTION (CRITICAL) — pytest-10356 "model-synthesis ceiling" was a GATE BUG, not the model
+Examined what the model SAW on pass=0 in v2: NOT a collection error from its edit — "ARM_PATCH_FAILED: patch does
+not apply at structures.py:360". The GATE's strict 'git apply' (swe_gate_iso.sh line 63, NO fallback unlike the test
+diff's --3way on line 64) FALSE-FAILED the arm's multi-edit diff on context shift → false pass=0 → the model
+thrashed/reverted thinking its (possibly VALID) edit was wrong. 6 of 11 run_tests in v2 were ARM_PATCH_FAILED — OVER
+HALF the run sabotaged by the harness. So my "model-synthesis ceiling on pytest-10356" conclusion is FALSIFIED — it
+was MY gate bug ("a culpa é sempre sua" literally). FIX (CLASS-GATE-ARM-APPLY-STRICT): robust apply — try git apply
+--3way → plain → -C1 → patch -p1 --fuzz=3; only fail if ALL miss. The pytest-10356 gate-ON result is INVALIDATED
+(needs re-run with fixed gate, infra-permitting). REOPENS the gate-ON bound: the complex-multi-region "ceiling" may
+not exist — it may have been the gate failing to test valid edits. This is the loop law at its sharpest: I almost
+recorded a MODEL ceiling that was actually MY harness sabotaging the run; caught it by reading what the model saw.
