@@ -186,3 +186,13 @@ RELIABLY MATCHES Claude-native on pylint/sklearn (8 of 9 tie-or-win) + WINS the 
 (R6 loss + R3/R4 ties). NOT overwhelming dominance; NOT never-loses; the tools lift DeepSeek to native-parity on pylint/sklearn
 but not past it (native is strong), and don't overcome the sympy weakness. R059 (R6 empties) pending — decides if R6 loss was
 my representation (temp-bump) or model-bound.
+
+## R10 pylint-7080 — VERIFICATION-GAP setup CONFIRMED (native caller-fix fails); atomic gate-ON pending (the dominance test)
+Native one-shot OFFICIAL=0: the native Claude shipped a CALLER-FIX (added _is_ignored_file call in _discover_files, 6 lines) —
+plausible but WRONG; the gold needs normpath INSIDE _is_ignored_file (the ./src/gen/x.py vs ^src/gen/.*$ path-mismatch). So
+pylint-7080 is a CONFIRMED verification-gap setup: the one-shot ships an unverified plausible fix that FAILS. R10 atomic (gate-ON,
+running) now tests THE dominance hypothesis: does the gate catch the failing caller-fix + iterate to the correct normpath fix →
+resolve = a 2nd attributable verification-gap WIN (the R1 class). This is the EXACT regime where the atomic should dominate
+(native one-shot ships buggy, atomic's gate+quick_check verification catches it). Pending R10 atomic OFFICIAL. R059 (R6 empties)
+still running (~35st, slow). If R10-atomic=1 → 2nd verification-gap win (atomic 2 wins/7 ties/1 loss), strengthening the "atomic
+wins the verification-gap class" claim by a 2nd attributable datapoint.
