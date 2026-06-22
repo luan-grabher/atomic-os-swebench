@@ -101,3 +101,19 @@ empties. Two true things at once: (1) the gate WAS broken (my harness bug, caugh
 real (survives the fix). Pending: R5/R6/R7 fixed (working gates) — R5/R7 sklearn expected to resolve (confirms working gate +
 atomic's sklearn capability), R6 sympy-13877 likely fails (empties + over-explore). R4 sympy-16597 paths collided (needs clean
 re-run with unique json/run_id). Honesty: the gate-bug correction did NOT rescue the atomic on sympy — recorded straight.
+
+## ★★★ FINAL RE-VALIDATED VERDICT (working gates confirmed) — core verdict STANDS
+With FIXED greps (WORKING gates, INFRA_FAIL=0):
+ - R5 sklearn-12682: OFFICIAL=1 (atomic resolves; tie with native 1) ✓ working gate confirmed
+ - R7 sklearn-25102: OFFICIAL=1 (atomic resolves; tie with native 1) ✓ working gate confirmed
+ - R3 sympy-20438: OFFICIAL=0 (atomic fails even with working gate — genuine sympy weakness)
+ - R6 sympy-13877: pending (running); R4 sympy-16597: paths collided, needs clean re-run
+KEY RECONCILIATION: the gate-broken bug was REAL (caught + fixed) but did NOT change the A/B OUTCOMES — R5/R7 resolve with OR
+without a working gate (blind editing happened to work on sklearn); R3 fails with OR without. So the prior verdict's OUTCOMES
+were correct; the gate bug affected the 'gate-ON was active' INTERPRETATION, not the resolved/unresolved numbers. RE-VALIDATED
+HONEST VERDICT: atomic = native-Claude capability on pylint/sklearn (R1 WIN via verification-gap with a VALID gate; R5/R7 TIES,
+working gates confirmed) + a GENUINE sympy weakness (R3 fails with a working gate — over-explores/under-commits/doesn't test on
+sympy structures). NOT overwhelming dominance; NOT never-loses; repo-dependent. The atomic's neuro-symbolic tools lift DeepSeek
+to MATCH Claude on pylint/sklearn and WIN the rare verification-gap, but do NOT overcome a genuine sympy navigation/commitment
+weakness. Honesty held end-to-end: caught 3 of my own harness bugs (shared-container, pylint-grep, json-collision), re-validated
+with working gates, and did NOT let the bug-fix falsely rescue the atomic — the sympy weakness is real, recorded straight.
