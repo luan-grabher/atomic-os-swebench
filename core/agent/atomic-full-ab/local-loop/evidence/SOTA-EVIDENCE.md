@@ -30,14 +30,23 @@ multi-sampled where asserted; single samples are labeled.
   unreliable for both models, but atomic GATE-ON (iterate on verified test feedback) resolves them — pylint-8898
   one-shot ~25% → gate-ON ~75% (→ higher with the green-preserve fix).
 
-## 15 representation walls demolished this session (all generalist, all committed, every gap = mine not the model)
+## L5 (sympy-20438, 5th repo, sprawling multipledispatch) — hard for BOTH one-shot; walls demolished
+Native one-shot UNRESOLVED + atomic 0-edit deadlock → BOTH fail one-shot (not an atomic-specific loss). Exposed
+two walls: largefile-read-fragment (sets.py 2516 lines ≫ read cap) + deadlock-at-zero-edits (16th fix: atomic now
+commits a refinable edit instead of surrendering — validated 0→1 edit). Local gate-ON blocked by the pytest-only
+gate boundary (sympy uses its own runner) — recorded honestly; official scoring unaffected.
+
+## 16 representation walls demolished this session (all generalist, all committed, every gap = mine not the model)
 Agent/perception: (1) full-reasoning instrumentation; (2) arg-name rigidity; (3) topology-withhold DSML leak;
 (4) edit-receipt blindness; (5) batch-read-blind (results vs items); (6) batch-summary-blind; (7) whole-file
 read threshold; (8) nonsource-nav-wander; (9) guard-not-root steer; (10) guard-calls-existing unavoidable
 auto-injection; (11) force-edit-too-rigid (redundant vs total reads); (12) hidden-test-hunt; (15) green-then-broke
-(preserve/restore last-green diff). Engine: (13a) prose-import-false-RED (byte-floor supply-chain regex matched a
-docstring word); (13b) callgraph-blind-nonjs (perception node-set + lens SOURCE_RE + workspace-root keystone).
-Harness: (14) gate-paramtest-ids (parametrized node ids w/ commas/brackets + malformed dataset fragment).
+(preserve/restore last-green diff); (16) deadlock-at-zero-edits (never surrender at 0 edits — commit a refinable edit).
+Engine: (13a) prose-import-false-RED (byte-floor supply-chain regex matched a docstring word); (13b)
+callgraph-blind-nonjs (perception node-set + lens SOURCE_RE + workspace-root keystone). Harness: (14)
+gate-paramtest-ids (parametrized node ids w/ commas/brackets + malformed dataset fragment); (+) gate-bare-test-names
+(sympy-style bare ids → run test_patch files with -k); honest boundary: local gate is pytest-only (sympy needs its
+native runner; official scoring unaffected).
 
 ## Honesty discipline (what makes the numbers credible)
 - RETRACTED a single-sample win (R041 "atomic beats native on pylint-8898") when N=3 showed it didn't replicate.
