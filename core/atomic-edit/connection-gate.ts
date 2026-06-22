@@ -142,8 +142,16 @@ export function extractImportSpecifiers(content: string): string[] {
   const javaRe = /^\s*import\s+(?:static\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)+)(?:\.\*)?\s*;/gm;
   while ((m = javaRe.exec(code)) !== null) pushSpec(m[1]);
 
-  // Go/C/Generic: import "..." or #include "..."
-  const genRe = /\b(?:import|include)\s+['"]([^'"]+)['"]/gm;
+  // Go/C/Generic: import "..." or #include "..." — ANCHORED to statement position (^\s*#?\s*).
+  // CLASS-PROSE-IMPORT-FALSE-RED (R023): the old un-anchored /\b(?:import|include)\s+['"]/ matched the
+  // ENGLISH WORD "include" inside a Python docstring (`"""... does not include 'b' (binary)."""`) and
+  // extracted `b` as a bare dependency → the byte-floor convergence gate refused a CORRECT edit 8× with a
+  // nonsensical "dangling dependency — b / install the package" message (measured: pytest-5262 atomic_replace
+  // thrashed 9 calls / 8 refusals, swinging the round 3→17). A real Go/C import/include sits at statement
+  // position (line start, optionally `#` for C); prose sits mid-line. Anchoring kills the false red while
+  // keeping every real bare import (which is always line-start) → strictly monotonic, never a false GREEN
+  // (the authoritative async AST gate is unaffected). Generalist: any language, any docstring/prose.
+  const genRe = /^\s*#?\s*(?:import|include)\s+['"]([^'"]+)['"]/gm;
   while ((m = genRe.exec(code)) !== null) pushSpec(m[1]);
 
   return specs;
@@ -184,10 +192,27 @@ function candidatesFor(baseAbs: string): string[] {
 
 export const candidatesForSpecifier = candidatesFor;
 
-/** Resolve a RELATIVE specifier against dirname(fromAbs), consulting pending+disk. */
+/** Resolve a RELATIVE specifier against dirname(fromAbs), consulting pending+disk.
+ *  JS/TS use './x' or '../x' (path.resolve handles those). Python uses leading dots
+ *  WITHOUT a slash — '.errors' (same package), '..pkg.mod' (parent) — where
+ *  path.resolve(dir, '.errors') would WRONGLY yield a dotfile (dir/.errors) and never
+ *  match dir/errors.py, false-reddening every NEW Python sibling relative import. Strip
+ *  the leading dots, ascend (dots-1) dirs, and map the dotted module tail to path segments. */
 function relativeImportResolvesAbs(fromAbs: string, spec: string): boolean {
   if (!spec.startsWith('.')) return true; // bare specifier → package/builtin → not judged
-  const baseAbs = path.resolve(path.dirname(fromAbs), spec);
+  if (spec.startsWith('./') || spec.startsWith('../')) {
+    const baseAbs = path.resolve(path.dirname(fromAbs), spec);
+    return candidatesFor(baseAbs).some((cand) => {
+      const r = path.resolve(cand);
+      return pending.has(r) || fs.existsSync(cand);
+    });
+  }
+  const m = /^(\.+)(.*)$/.exec(spec);
+  const dots = m ? m[1].length : 1;
+  const rest = m ? m[2] : spec;
+  let dir = path.dirname(fromAbs);
+  for (let k = 1; k < dots; k += 1) dir = path.dirname(dir);
+  const baseAbs = rest ? path.resolve(dir, rest.replace(/\./g, '/')) : dir;
   return candidatesFor(baseAbs).some((cand) => {
     const r = path.resolve(cand);
     return pending.has(r) || fs.existsSync(cand);
