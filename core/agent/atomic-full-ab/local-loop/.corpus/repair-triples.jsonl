@@ -11,3 +11,4 @@
 {"ts": 1782168313, "task": "SWE-pylint-dev__pylint-7080", "diff_lines": 3, "files_changed": 1, "diff_sha256": "00d8387df114c163", "steps": 8, "edits": 1, "tokens": 141436, "wall_s": 213.9}
 {"ts": 1782171019, "task": "SWE-pytest-dev__pytest-8399", "diff_lines": 2, "files_changed": 1, "diff_sha256": "36f6ec3d7cc5e546", "steps": 7, "edits": 1, "tokens": 36412, "wall_s": 40.4, "official_resolved": true, "local_gate_invalid_reason": "gate_infra_failure"}
 {"ts": 1782171316, "task": "SWE-pytest-dev__pytest-8399", "diff_lines": 2, "files_changed": 1, "diff_sha256": "36f6ec3d7cc5e546", "steps": 6, "edits": 1, "tokens": 31674, "wall_s": 36.5, "official_resolved": true, "local_gate_invalid_reason": "gate_infra_failure"}
+{"ts": 1782180728, "task": "SWE-scikit-learn__scikit-learn-15100", "diff_lines": 5, "files_changed": 1, "diff_sha256": "a0216b6df358db48", "steps": 10, "edits": 2, "tokens": 68091, "wall_s": 98.0}
