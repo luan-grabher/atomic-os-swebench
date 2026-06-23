@@ -932,6 +932,115 @@ def trial_revert_intra_hunk_line_pairs(workdir, gate):
     return False, start_lines, "no intra-hunk line-pair revert stayed green+smaller"
 
 
+def trial_delete_added_blocks(workdir, gate):
+    """CLASS-GREEN-MINIMIZE-ADDED-BLOCK-DELETE (F2d): deterministic green minimizer for
+    redundant added-only blocks inside unified hunks. Model-side minimization can know a block is redundant but fail
+    to express a unique atomic_replace oldText. Trial-delete contiguous added line blocks, run the same gate, and keep
+    only strictly smaller green states. Bounded and language-agnostic; restores byte-exact pre-trial state on any
+    red/non-shrinking trial."""
+    start_lines = diff_lines(git_diff(workdir))
+    if start_lines <= 0:
+        return False, start_lines, "no diff"
+
+    def _changed_files():
+        return subprocess.run(["git", "diff", "HEAD", "--name-only"], cwd=workdir,
+                              capture_output=True, text=True).stdout.split()
+
+    def _state(files):
+        out = {}
+        for f in files:
+            p = os.path.join(workdir, f)
+            try:
+                out[f] = open(p, encoding="utf-8").read()
+            except Exception:
+                pass
+        return out
+
+    def _restore(state):
+        for f, c in state.items():
+            try:
+                open(os.path.join(workdir, f), "w", encoding="utf-8").write(c)
+            except Exception:
+                pass
+
+    def _blocks():
+        out = []
+        for cf in _changed_files():
+            p = os.path.join(workdir, cf)
+            if not os.path.exists(p):
+                continue
+            try:
+                open(p, encoding="utf-8").read(1)
+            except Exception:
+                continue
+            d0 = subprocess.run(["git", "diff", "-U0", "HEAD", "--", cf], cwd=workdir,
+                                capture_output=True, text=True).stdout.splitlines()
+            cur = []
+
+            def flush():
+                nonlocal cur
+                if len(cur) >= 2 and any(x.strip() for x in cur):
+                    size = sum(1 for x in cur if x.strip())
+                    out.append((size, cf, cur[:]))
+                cur = []
+
+            for line in d0:
+                if line.startswith(("diff --git ", "index ", "--- ", "+++ ")):
+                    continue
+                if line.startswith("@@"):
+                    flush()
+                    continue
+                if line.startswith("+"):
+                    cur.append(line[1:])
+                else:
+                    flush()
+            flush()
+        out.sort(key=lambda item: (-item[0], item[1], len(item[2])))
+        return out
+
+    kept = 0
+    for _ in range(3):
+        current_lines = diff_lines(git_diff(workdir))
+        files = _changed_files()
+        base = _state(files)
+        accepted = None
+        for _size, cf, lines in _blocks()[:8]:
+            _restore(base)
+            p = os.path.join(workdir, cf)
+            try:
+                txt = open(p, encoding="utf-8").read()
+            except Exception:
+                continue
+            block = "\n".join(lines)
+            needle = None
+            for cand in (block + "\n", block):
+                if cand and txt.count(cand) == 1:
+                    needle = cand
+                    break
+            if not needle:
+                continue
+            open(p, "w", encoding="utf-8").write(txt.replace(needle, "", 1))
+            after_lines = diff_lines(git_diff(workdir))
+            if after_lines >= current_lines:
+                continue
+            gate_pass, _, _ = run_gate(workdir, gate)
+            if gate_pass:
+                accepted = (after_lines, _state(files))
+                break
+        _restore(base)
+        if not accepted:
+            break
+        after_lines, state = accepted
+        _restore(state)
+        kept += 1
+        if after_lines >= current_lines:
+            break
+    final_lines = diff_lines(git_diff(workdir))
+    if kept and final_lines < start_lines:
+        return True, final_lines, f"deleted {kept} green added block(s): {start_lines}->{final_lines}"
+    return False, start_lines, "no added-block deletion stayed green+smaller"
+
+
 def restore_deleted_comments(workdir, gate):
     """CLASS-COMMENT-DELETION-REGRESSION (F1d, deterministic): symmetric twin of F1b. When the agent\'s
     atomic_replace oldText spanned an ORIGINAL (HEAD) stand-alone comment line and DELETED it (the
@@ -1490,6 +1599,17 @@ def main():
                 green_minimize_start_lines = _f2c_lines
                 green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
             metrics["transcript"].append(f"s{step} F2c intra-hunk-revert: {_f2c_msg}")
+            # CLASS-GREEN-MINIMIZE-ADDED-BLOCK-DELETE (F2d): after line-pair reduction, trial-delete whole
+            # contiguous added-only blocks. This catches redundant helper/guard blocks that cannot be represented
+            # as a -old/+new sibling revert and that model-side atomic_replace may fail to target uniquely.
+            try:
+                _f2d_kept, _f2d_lines, _f2d_msg = trial_delete_added_blocks(workdir, args.gate)
+            except Exception as _f2d_e:
+                _f2d_kept, _f2d_lines, _f2d_msg = False, green_minimize_start_lines, f"F2d error: {str(_f2d_e)[:80]}"
+            if _f2d_kept:
+                green_minimize_start_lines = _f2d_lines
+                green_minimize_pre_files = {cf: open(os.path.join(workdir, cf), encoding="utf-8").read() for cf in green_minimize_pre_files}
+            metrics["transcript"].append(f"s{step} F2d added-block-delete: {_f2d_msg}")
             green_minimize_helper_surface = green_diff_added_helper_state_machine(workdir)
             if green_minimize_helper_surface:
                 metrics["transcript"].append(f"s{step} GREEN-MINIMIZE helper/state-machine surface detected")

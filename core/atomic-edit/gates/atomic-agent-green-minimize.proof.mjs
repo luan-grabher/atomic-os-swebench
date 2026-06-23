@@ -289,6 +289,21 @@ record('CLASS-GREEN-MINIMIZE-INTRA-HUNK-SIBLING-REVERT (F2c): trial-revert line 
     callTrace: source.includes('F2c intra-hunk-revert:'),
     updatesStart: source.includes('green_minimize_start_lines = _f2c_lines'),
   });
+record('CLASS-GREEN-MINIMIZE-ADDED-BLOCK-DELETE (F2d): trial-delete contiguous added-only blocks and keep only smaller gate-green states',
+  source.includes('def trial_delete_added_blocks(workdir, gate):') &&
+  source.includes('CLASS-GREEN-MINIMIZE-ADDED-BLOCK-DELETE (F2d)') &&
+  source.includes('["git", "diff", "-U0", "HEAD", "--", cf]') &&
+  source.includes('txt.count(cand) == 1') &&
+  source.includes('F2d added-block-delete:') &&
+  source.includes('green_minimize_start_lines = _f2d_lines'),
+  {
+    helper: source.includes('def trial_delete_added_blocks(workdir, gate):'),
+    marker: source.includes('CLASS-GREEN-MINIMIZE-ADDED-BLOCK-DELETE (F2d)'),
+    zeroContextDiff: source.includes('["git", "diff", "-U0", "HEAD", "--", cf]'),
+    uniqueNeedle: source.includes('txt.count(cand) == 1'),
+    callTrace: source.includes('F2d added-block-delete:'),
+    updatesStart: source.includes('green_minimize_start_lines = _f2d_lines'),
+  });
 record('CLASS-COMMENT-DELETION-REGRESSION (F1d): deterministic restore of ORIGINAL comment lines the edit needlessly deleted (line_rewrite_regression twin of F1b)',
   source.includes('def restore_deleted_comments(workdir, gate):') &&
   source.includes('CLASS-COMMENT-DELETION-REGRESSION (F1d, deterministic): symmetric twin of F1b') &&
