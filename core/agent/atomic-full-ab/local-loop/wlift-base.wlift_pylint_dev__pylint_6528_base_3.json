@@ -1,14 +1,12 @@
 {
     "total_instances": 500,
     "submitted_instances": 1,
-    "completed_instances": 1,
+    "completed_instances": 0,
     "resolved_instances": 0,
-    "unresolved_instances": 1,
-    "empty_patch_instances": 0,
+    "unresolved_instances": 0,
+    "empty_patch_instances": 1,
     "error_instances": 0,
-    "completed_ids": [
-        "pylint-dev__pylint-6528"
-    ],
+    "completed_ids": [],
     "incomplete_ids": [
         "astropy__astropy-12907",
         "astropy__astropy-13033",
@@ -510,14 +508,14 @@
         "sympy__sympy-24562",
         "sympy__sympy-24661"
     ],
-    "empty_patch_ids": [],
+    "empty_patch_ids": [
+        "pylint-dev__pylint-6528"
+    ],
     "submitted_ids": [
         "pylint-dev__pylint-6528"
     ],
     "resolved_ids": [],
-    "unresolved_ids": [
-        "pylint-dev__pylint-6528"
-    ],
+    "unresolved_ids": [],
     "error_ids": [],
     "schema_version": 2
 }

@@ -1,0 +1,44 @@
+diff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py
+index b20cd873c..d3ea4bdda 100644
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -61,10 +61,19 @@ def expand_modules(
+ 
+     for something in files_or_modules:
+         basename = os.path.basename(something)
+-        if (
+-            basename in ignore_list
+-            or _is_in_ignore_list_re(os.path.basename(something), ignore_list_re)
+-            or _is_in_ignore_list_re(something, ignore_list_paths_re)
++        if basename in ignore_list or _is_in_ignore_list_re(
++            os.path.basename(something), ignore_list_re
++        ):
++            continue
++        if _is_in_ignore_list_re(
++            os.path.normpath(something), ignore_list_paths_re
++        ):
++            continue
++        # Also check if any parent directory component matches ignore_list
++        # (relevant when files are discovered recursively via _discover_files)
++        if any(
++            dirname in ignore_list
++            for dirname in os.path.normpath(something).split(os.sep)[:-1]
+         ):
+             continue
+         module_path = get_python_path(something)
+@@ -128,9 +137,13 @@ def expand_modules(
+             ):
+                 if filepath == subfilepath:
+                     continue
+-                if _is_in_ignore_list_re(
++                if os.path.basename(subfilepath) in ignore_list or _is_in_ignore_list_re(
+                     os.path.basename(subfilepath), ignore_list_re
+-                ) or _is_in_ignore_list_re(subfilepath, ignore_list_paths_re):
++                ):
++                    continue
++                if _is_in_ignore_list_re(
++                    os.path.normpath(subfilepath), ignore_list_paths_re
++                ):
+                     continue
+ 
+                 modpath = _modpath_from_file(

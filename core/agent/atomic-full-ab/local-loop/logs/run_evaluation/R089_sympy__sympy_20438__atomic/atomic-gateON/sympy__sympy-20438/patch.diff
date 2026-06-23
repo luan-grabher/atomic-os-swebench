@@ -1,0 +1,57 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index e2e0b7fbcc..0a6d37a4df 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -311,7 +311,7 @@ def _eval_simplify(self, **kwargs):
+             v = None
+             if dif.is_comparable:
+                 v = dif.n(2)
+-            elif dif.equals(0):  # XXX this is expensive
++            elif not isinstance(dif, Basic) or (hasattr(dif, 'equals') and dif.equals(0)):  # XXX this is expensive
+                 v = S.Zero
+             if v is not None:
+                 r = r.func._eval_relation(v, S.Zero)
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..2055587992 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -403,6 +403,19 @@ def _eval_is_superset(self, other):
+         '''Returns a fuzzy bool for whether self is a subset of other.'''
+         return None
+ 
++    def _eval_Eq(self, other):
++        if not isinstance(other, Set):
++            return None
++        is_subset = self.is_subset(other)
++        if is_subset is False:
++            return S.false
++        is_superset = other.is_subset(self)
++        if is_superset is False:
++            return S.false
++        if is_subset is True and is_superset is True:
++            return S.true
++        return None
++
+     # This should be deprecated:
+     def issubset(self, other):
+         """
+@@ -793,6 +806,7 @@ def _contains(self, element):
+ 
+         Passes operation on to constituent sets
+         """
++        element = _sympify(element)
+         if element.is_Symbol:
+             return None
+ 
+@@ -852,6 +866,11 @@ def is_finite_set(self):
+         all_finite = fuzzy_and(s.is_finite_set for s in self.sets)
+         return fuzzy_or([self.is_empty, all_finite])
+ 
++    def _eval_is_subset(self, other):
++        if self.is_finite_set:
++            return fuzzy_and(other._contains(e) for e in self)
++        return None
++
+     @property
+     def _measure(self):
+         measure = 1

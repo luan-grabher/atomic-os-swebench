@@ -1,0 +1,59 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index e2e0b7fbcc..43e879bfe9 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -302,10 +302,13 @@ def equals(self, other, failing_expression=False):
+ 
+     def _eval_simplify(self, **kwargs):
+         from .add import Add
++        from .expr import Expr
+         r = self
+         r = r.func(*[i.simplify(**kwargs) for i in r.args])
+         if r.is_Relational:
+             dif = r.lhs - r.rhs
++            if not isinstance(dif, Expr):
++                return r
+             # replace dif with a valid Number that will
+             # allow a definitive comparison with 0
+             v = None
+@@ -557,11 +560,14 @@ def binary_symbols(self):
+ 
+     def _eval_simplify(self, **kwargs):
+         from .add import Add
++        from .expr import Expr
+         from sympy.solvers.solveset import linear_coeffs
+         # standard simplify
+         e = super()._eval_simplify(**kwargs)
+         if not isinstance(e, Equality):
+             return e
++        if not isinstance(e.lhs, Expr) or not isinstance(e.rhs, Expr):
++            return e.canonical
+         free = self.free_symbols
+         if len(free) == 1:
+             try:
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..ca4bf3ff0a 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -801,6 +801,21 @@ def _contains(self, element):
+ 
+         return fuzzy_and(s._contains(e) for s, e in zip(self.sets, element))
+ 
++    def _eval_is_subset(self, other):
++        if self.is_iterable:
++            from sympy.core.containers import Tuple
++            return fuzzy_and(other._contains(Tuple(*e)) for e in self)
++        return None
++
++    def _eval_Eq(self, other):
++        if not isinstance(other, Set):
++            return None
++        lhs = self.is_subset(other)
++        rhs = other.is_subset(self)
++        if lhs is None or rhs is None:
++            return None
++        return fuzzy_and([lhs, rhs])
++
+     def as_relational(self, *symbols):
+         symbols = [_sympify(s) for s in symbols]
+         if len(symbols) != len(self.sets) or not all(

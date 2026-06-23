@@ -1,0 +1,77 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index e2e0b7fbcc..786be0c5d3 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -559,6 +559,14 @@ def _eval_simplify(self, **kwargs):
+         from .add import Add
+         from sympy.solvers.solveset import linear_coeffs
+         # standard simplify
++        from sympy.sets.sets import Set
++        if isinstance(self.lhs, Set) or isinstance(self.rhs, Set):
++            # Handle set equality via subset checks
++            if self.lhs == self.rhs:
++                return S.true
++            if self.lhs.is_subset(self.rhs) and self.rhs.is_subset(self.lhs):
++                return S.true
++            return self
+         e = super()._eval_simplify(**kwargs)
+         if not isinstance(e, Equality):
+             return e
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..6ff1ba18e9 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -809,6 +809,12 @@ def as_relational(self, *symbols):
+                 'number of symbols must match the number of sets')
+         return And(*[s.as_relational(i) for s, i in zip(self.sets, symbols)])
+ 
++    def _eval_Eq(self, other):
++        from sympy.sets.sets import FiniteSet
++        if isinstance(other, Set) and not isinstance(other, (ProductSet, FiniteSet)):
++            return S.false
++        return None
++
+     @property
+     def _boundary(self):
+         return Union(*(ProductSet(*(b + b.boundary if i != j else b.boundary
+@@ -852,6 +858,12 @@ def is_finite_set(self):
+         all_finite = fuzzy_and(s.is_finite_set for s in self.sets)
+         return fuzzy_or([self.is_empty, all_finite])
+ 
++    def _eval_is_subset(self, other):
++        from sympy.sets.sets import FiniteSet
++        if isinstance(other, FiniteSet) and self.is_finite_set:
++            return fuzzy_and(tuple(other.contains(e) for e in self))
++        return None
++
+     @property
+     def _measure(self):
+         measure = 1
+@@ -1592,6 +1604,13 @@ def as_relational(self, symbol):
+ 
+         return And(A_rel, B_rel)
+ 
++    def equals(self, other):
++        if other is S.EmptySet or other == 0:
++            return self.is_empty
++        if not isinstance(other, Basic):
++            return False
++        return self == other
++
+     @property
+     def is_iterable(self):
+         if self.args[0].is_iterable:
+@@ -1660,6 +1679,13 @@ def _contains(self, other):
+     def as_relational(self, symbol):
+         return false
+ 
++    def equals(self, other):
++        if other == 0 or other is S.EmptySet:
++            return True
++        if not isinstance(other, Basic):
++            return False
++        return self == other
++
+     def __len__(self):
+         return 0
+ 

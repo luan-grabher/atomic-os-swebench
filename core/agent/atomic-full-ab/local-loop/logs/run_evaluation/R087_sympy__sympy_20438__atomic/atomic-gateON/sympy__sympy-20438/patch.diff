@@ -1,0 +1,17 @@
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..e4cebfb2fc 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -843,6 +843,12 @@ def __iter__(self):
+         """
+         return iproduct(*self.sets)
+ 
++    def _eval_is_subset(self, other):
++        from sympy.sets.sets import FiniteSet
++        if isinstance(other, FiniteSet) and self.is_iterable:
++            return fuzzy_and(other._contains(e) for e in self)
++        return None
++
+     @property
+     def is_empty(self):
+         return fuzzy_or(s.is_empty for s in self.sets)

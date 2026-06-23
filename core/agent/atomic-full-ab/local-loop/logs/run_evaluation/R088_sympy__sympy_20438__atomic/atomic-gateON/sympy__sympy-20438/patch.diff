@@ -1,0 +1,21 @@
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..ec2baf5a99 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -791,10 +791,13 @@ def _contains(self, element):
+         >>> (10, 10) in Interval(0, 5) * Interval(0, 5)
+         False
+ 
+-        Passes operation on to constituent sets
++        Passes operation on constituent sets
+         """
+-        if element.is_Symbol:
+-            return None
++        try:
++            if element.is_Symbol:
++                return None
++        except AttributeError:
++            pass
+ 
+         if not isinstance(element, Tuple) or len(element) != len(self.sets):
+             return False

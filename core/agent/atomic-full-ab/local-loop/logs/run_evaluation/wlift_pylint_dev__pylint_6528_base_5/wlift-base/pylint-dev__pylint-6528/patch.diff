@@ -1,0 +1,21 @@
+diff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py
+index b20cd873c..d765cbad8 100644
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -67,6 +67,16 @@ def expand_modules(
+             or _is_in_ignore_list_re(something, ignore_list_paths_re)
+         ):
+             continue
++        # Also check directory components against ignore_list and ignore_list_re
++        # (needed for --recursive=y when paths like .a/foo.py are discovered)
++        dirname = os.path.dirname(something)
++        if any(
++            component in ignore_list
++            or _is_in_ignore_list_re(component, ignore_list_re)
++            for component in dirname.split(os.sep)
++            if component
++        ):
++            continue
+         module_path = get_python_path(something)
+         additional_search_path = [".", module_path] + path
+         if os.path.exists(something):

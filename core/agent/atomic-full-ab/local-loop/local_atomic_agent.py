@@ -21,7 +21,7 @@ The result JSON records EVERYTHING (loop manual step 3): gate pass, steps, per-t
 call counts, edits applied, invalid-states-prevented (governed refusals = a GOOD
 atomic property), reads, diff surface (lines), tokens, wall time, and a transcript.
 """
-import json, os, re, sys, time, signal, argparse, subprocess, urllib.request, shlex
+import json, os, re, sys, time, signal, argparse, subprocess, urllib.request, shlex, fnmatch
 from pathlib import Path
 
 API_KEY = os.environ.get("DEEPSEEK_API_KEY", "")
@@ -34,50 +34,89 @@ ATOMIC_CALL = os.environ.get(
 )
 
 # ── DeepSeek client (reasoning model: content may be empty when tool_calls present) ──
+def _deepseek_http_once(payload):
+    body = json.dumps(payload).encode()
+    req = urllib.request.Request(os.environ.get("DEEPSEEK_API_URL", "https://api.deepseek.com/v1/chat/completions"), data=body,
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"})
+    timeout_s = float(os.environ.get("DEEPSEEK_TIMEOUT", "120"))  # CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY
+    with urllib.request.urlopen(req, timeout=timeout_s) as r:
+        return json.loads(r.read())
+
+
+def _deepseek_worker_main():
+    try:
+        sys.stdout.write(json.dumps(_deepseek_http_once(json.loads(sys.stdin.read()))))
+    except Exception as e:
+        sys.stdout.write(json.dumps({"__worker_error__": {
+            "type": type(e).__name__, "message": str(e)[:500], "code": getattr(e, "code", None)}}))
+        sys.exit(1)
+
+
+def _raise_worker_error(payload, stderr):
+    err = payload.get("__worker_error__") if isinstance(payload, dict) else None
+    msg = (err or {}).get("message") or (stderr or "DeepSeek worker failed")[:500]
+    exc = RuntimeError(f"DeepSeek worker failed: {msg}")
+    if err and err.get("code") is not None:
+        exc.code = err.get("code")
+    raise exc
+
+
 def deepseek(messages, tools):
     payload = {"model": MODEL, "messages": messages,
                "temperature": float(os.environ.get("DEEPSEEK_TEMP", "0")),
                "max_tokens": 4000}
     if tools:
         payload["tools"] = tools
-    body = json.dumps(payload).encode()
-    req = urllib.request.Request("https://api.deepseek.com/v1/chat/completions", data=body,
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"})
-    timeout_s = float(os.environ.get("DEEPSEEK_TIMEOUT", "120"))  # CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY
-    total_timeout_s = float(os.environ.get("DEEPSEEK_TOTAL_TIMEOUT", str(timeout_s)))
-    def _deepseek_total_timeout(_signum, _frame):
-        raise TimeoutError(f"DeepSeek model call exceeded total deadline {total_timeout_s}s")
+    total_timeout_s = float(os.environ.get("DEEPSEEK_TOTAL_TIMEOUT", os.environ.get("DEEPSEEK_TIMEOUT", "120")))
     for attempt in range(5):
-        old_alarm = signal.getsignal(signal.SIGALRM)
+        p = subprocess.Popen([sys.executable, __file__, "--deepseek-worker"],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                             text=True, start_new_session=True, env=os.environ.copy())
         try:
-            signal.signal(signal.SIGALRM, _deepseek_total_timeout)
-            signal.setitimer(signal.ITIMER_REAL, total_timeout_s)
-            with urllib.request.urlopen(req, timeout=timeout_s) as r:
-                d = json.loads(r.read())
-            _m = d["choices"][0]["message"]
-            # CLASS-EMPTY-RESPONSE-RETRY (R056, generalist): DeepSeek sometimes returns a fully EMPTY message — no
-            # tool_calls, no content, no reasoning_content — on hard inputs (sympy-13877 A/B LOSS: 10 of 16 model
-            # turns were empty → 0 edits → lost to native). An empty turn wastes a step and never edits. Treat it as
-            # a transient failure and RETRY (within the attempt budget) instead of returning the dead turn.
-            if attempt < 4 and not (_m.get("tool_calls") or (_m.get("content") or "").strip()
-                                    or (_m.get("reasoning_content") or "").strip()):
-                # CLASS-EMPTY-DETERMINISTIC-BREAK (R059, generalist): temperature defaults to 0 (DETERMINISTIC) →
-                # R056's retry of the IDENTICAL request returns the IDENTICAL empty (sympy-13877: 18 empties survived
-                # R056). BREAK the determinism — rebuild the request with a BUMPED temperature so the retry samples a
-                # DIFFERENT (likely non-empty) completion. Only on empty (reversible), no oracle, any deterministic stall.
-                payload["temperature"] = min(1.0, 0.4 + 0.3 * attempt)
-                body = json.dumps(payload).encode()
-                req = urllib.request.Request("https://api.deepseek.com/v1/chat/completions", data=body,
-                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"})
-                time.sleep(2 * (attempt + 1)); continue
-            return _m, d.get("usage", {})
+            stdout, stderr = p.communicate(json.dumps(payload), timeout=total_timeout_s)
+        except subprocess.TimeoutExpired:
+            # CLASS-MODEL-CALL-SUBPROCESS-DEADLINE: in-process SIGALRM is not reliable inside SSL/select polling.
+            # Kill the whole model-call worker group so the parent driver records model_timeout instead of wedging.
+            try:
+                os.killpg(p.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            try:
+                p.communicate(timeout=5)
+            except subprocess.TimeoutExpired:
+                try:
+                    os.killpg(p.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+                p.communicate()
+            raise TimeoutError(f"DeepSeek model call exceeded subprocess deadline {total_timeout_s}s")
+        try:
+            d = json.loads(stdout or "{}")
         except Exception as e:
-            if isinstance(e, TimeoutError) or attempt == 4:
-                raise
-            time.sleep(3 * (attempt + 1))
-        finally:
-            signal.setitimer(signal.ITIMER_REAL, 0)
-            signal.signal(signal.SIGALRM, old_alarm)
+            if attempt == 4:
+                raise RuntimeError(f"DeepSeek worker returned non-JSON output: {str(e)[:120]}; stderr={stderr[:300]}")
+            time.sleep(3 * (attempt + 1)); continue
+        if p.returncode != 0 or (isinstance(d, dict) and "__worker_error__" in d):
+            try:
+                _raise_worker_error(d, stderr)
+            except Exception as e:
+                if isinstance(e, TimeoutError) or attempt == 4:
+                    raise
+                time.sleep(3 * (attempt + 1)); continue
+        _m = d["choices"][0]["message"]
+        # CLASS-EMPTY-RESPONSE-RETRY (R056, generalist): DeepSeek sometimes returns a fully EMPTY message — no
+        # tool_calls, no content, no reasoning_content — on hard inputs (sympy-13877 A/B LOSS: 10 of 16 model
+        # turns were empty → 0 edits → lost to native). An empty turn wastes a step and never edits. Treat it as
+        # a transient failure and RETRY (within the attempt budget) instead of returning the dead turn.
+        if attempt < 4 and not (_m.get("tool_calls") or (_m.get("content") or "").strip()
+                                or (_m.get("reasoning_content") or "").strip()):
+            # CLASS-EMPTY-DETERMINISTIC-BREAK (R059, generalist): temperature defaults to 0 (DETERMINISTIC) →
+            # R056's retry of the IDENTICAL request returns the IDENTICAL empty (sympy-13877: 18 empties survived
+            # R056). BREAK the determinism — rebuild the request with a BUMPED temperature so the retry samples a
+            # DIFFERENT (likely non-empty) completion. Only on empty (reversible), no oracle, any deterministic stall.
+            payload["temperature"] = min(1.0, 0.4 + 0.3 * attempt)
+            time.sleep(2 * (attempt + 1)); continue
+        return _m, d.get("usage", {})
 
 
 # ── atomic hands: dispatch one tool through atomic-call against the local workdir ──
@@ -414,10 +453,31 @@ def _def_file_of(grep_res):
             return l.split(":", 1)[0].strip()
     return ""
 
+# CLASS-ROOT-CHECK-CALL-GREP-TIMEOUT-CACHE (R090, generalist): root-check is valuable
+# perception, but broad call-graph scans are expensive and can time out on common/newly-defined names.
+# Do not classify a newly added definition line as an added call, and do not retry the same broad
+# atomic_grep_calls timeout for the same symbol within a round.
+root_check_call_cache = {}
+
+def _root_check_callers(workdir, name):
+    key = str(name or "")
+    cached = root_check_call_cache.get(key)
+    if cached is not None:
+        return cached
+    callers, ok = atomic_call(workdir, "atomic_grep_calls", {"name": key})
+    if "timed out" in callers.lower():
+        callers = (f"(root-check caller scan timed out earlier this round for `{key}`; "
+                   "skip repeated broad call graph scan and use targeted body/local evidence)")
+        ok = False
+    root_check_call_cache[key] = (callers, ok)
+    return callers, ok
+
 def _existing_fn_perception(workdir, before, after):
     added = [l[1:] for l in after.splitlines() if l.startswith("+") and not l.startswith("+++")]
     seen = []
     for line in added:
+        if line.lstrip().startswith(("def ", "function ")):
+            continue
         for m in _CALL_RE.finditer(line):
             name = m.group(1)
             if name in _CALL_SKIP or len(name) < 4 or name in seen:
@@ -427,7 +487,7 @@ def _existing_fn_perception(workdir, before, after):
         defres, _ = atomic_call(workdir, "atomic_grep", {"pattern": rf"(def|function)\s+{re.escape(name)}\b"})
         if not defres.strip() or name not in defres:
             continue
-        callers, _ = atomic_call(workdir, "atomic_grep_calls", {"name": name})
+        callers, _ = _root_check_callers(workdir, name)
         df = _def_file_of(defres)
         # use the ENGINE tool name (code_readcode), not the agent alias — atomic_call dispatches engine tools
         body, _ = atomic_call(workdir, "code_readcode", {"path": df, "selector": name}) if df else ("", False)
@@ -454,13 +514,30 @@ def atomic_call(workdir, tool, args):
            # workdir so reads, writes, AND the lens all resolve to the A/B workspace. Verified: grep_calls then
            # finds the real Python call sites; writes still land. (Keystone — re-apply if WALL-META clobbers it.)
            "ATOMIC_EDIT_REPO_ROOT": workdir}
+    timeout = float(os.environ.get("ATOMIC_CALL_TIMEOUT", "150"))
+    p = subprocess.Popen([NODE, ATOMIC_CALL, tool, json.dumps(args)], cwd=workdir,
+                         env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         text=True, start_new_session=True)
     try:
-        p = subprocess.run([NODE, ATOMIC_CALL, tool, json.dumps(args)], cwd=workdir,
-                           env=env, capture_output=True, text=True, timeout=150)
+        stdout, stderr = p.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
-        return "(atomic-call timed out)", False
-    out = (p.stdout or "").strip()
-    err = (p.stderr or "").strip()
+        # CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP: timeout must clean up the atomic-call child
+        # and its spawned MCP server descendants, or an invalid/slow round can leak CPU into the next run.
+        try:
+            os.killpg(p.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
+        try:
+            stdout, stderr = p.communicate(timeout=5)
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(p.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+            stdout, stderr = p.communicate()
+        return "(atomic-call timed out; process group terminated)", False
+    out = (stdout or "").strip()
+    err = (stderr or "").strip()
     ok = p.returncode == 0 and not err
     # Compact the STDOUT payload regardless of `ok`: stderr almost always holds the harmless
     # `[atomic-edit] ready ...` banner (which flips ok=False), not a real error. Only surface stderr
@@ -1140,7 +1217,13 @@ def main():
     red_gate_fix_reason = ""
     red_gate_anchor_reads = 0  # CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: after a red gate, allow only a
     red_gate_anchor_read_keys = set()  # small number of fresh, unique repair anchors before the next edit.
+    red_scope_target_files = set()  # CLASS-RED-GATE-CROSS-FILE-STACK-EDIT-RESERVE: when red stack names
+    # actionable source files at/below the fail floor, the next repair read/edit is scoped to stack files.
+    # CLASS-RED-GATE-STACK-SCOPE-INCLUDES-CHANGED-FRAMES: stack scope must include already edited stack frames too,
+    # because the causal frame can be in the current diff while lower helper frames are external.
     red_gate_quick_checks = 0  # CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET: local quick_check is bounded per failed diff.
+    post_edit_gate_required = False  # CLASS-POST-EDIT-RUN-TESTS-MANDATORY: after an accepted edit in gate-on
+    post_edit_quick_checks = 0  # mode, quick_check is only a bounded self-check; run_tests is mandatory.
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -1155,7 +1238,12 @@ def main():
     EDIT_TEST_NAMES = {"atomic_replace", "atomic_create", "run_tests"}
     RED_FIX_NAMES = {"atomic_replace", "atomic_create", "quick_check", "run_tests"}
     RED_GATE_ANCHOR_READ_LIMIT = 3
+    RED_SCOPE_TARGET_READ_LIMIT = 1
+    RED_SCOPE_EDIT_RESERVE_STEPS = 4
     RED_GATE_QUICK_CHECK_LIMIT = 1
+    POST_EDIT_GATE_NAMES = {"quick_check", "run_tests"}
+    POST_EDIT_QUICK_CHECK_LIMIT = 1
+    POST_EDIT_GATE_RESERVE_STEPS = 3
     MINIMIZE_NAMES = {"atomic_replace", "run_tests"}
     GREEN_MINIMIZE_MAXSTEP_RESERVE = 3  # CLASS-GREEN-AT-MAXSTEP-NO-MINIMIZE: first green at max_steps still gets
     # a tiny post-green-only budget for GREEN-MINIMIZE. The reserve is inaccessible unless green minimization is
@@ -1186,13 +1274,91 @@ def main():
         if _file and _e >= _s:
             read_coverage.setdefault(_file, []).append((_s, _e))
 
-    for step in range(1, args.max_steps + GREEN_MINIMIZE_MAXSTEP_RESERVE + 1):
+    def _rel_candidate_file(_p):
+        _p = str(_p or "").replace("\\", "/")
+        if not _p:
+            return ""
+        if _p.startswith("/testbed/"):
+            _p = _p[len("/testbed/"):]
+        elif _p.startswith("testbed/"):
+            _p = _p[len("testbed/"):]
+        elif os.path.isabs(_p):
+            try:
+                _p = os.path.relpath(_p, workdir).replace("\\", "/")
+            except Exception:
+                return ""
+        return _p.lstrip("./")
+
+    def _changed_files():
+        try:
+            _out = subprocess.run(["git", "-C", workdir, "diff", "HEAD", "--name-only"],
+                                  capture_output=True, text=True).stdout
+        except Exception:
+            return set()
+        return set(_rel_candidate_file(_l.strip()) for _l in _out.splitlines() if _l.strip())
+
+    def _scope_match_file(candidate, targets):
+        _c = _rel_candidate_file(candidate)
+        if not _c or not targets:
+            return False
+        for _t0 in targets:
+            _t = _rel_candidate_file(_t0)
+            if not _t:
+                continue
+            if _c == _t or _c.endswith("/" + _t) or _t.endswith("/" + _c):
+                return True
+            if any(_ch in _c for _ch in "*?[") and "**" not in _c and fnmatch.fnmatch(_t, _c):
+                return True
+        return False
+
+    def _scope_read_matches_target(fn, a, targets):
+        _direct = a.get("path") or a.get("file")
+        if _direct and _scope_match_file(_direct, targets):
+            return True
+        _glob = a.get("glob")
+        return bool(_glob and "**" not in str(_glob) and _scope_match_file(_glob, targets))
+
+    def _stack_trace_files(out):
+        _seen = []
+        def _add(_p):
+            _r = _rel_candidate_file(_p)
+            if not _r or _r.startswith("../") or _r.startswith("/"):
+                return
+            _parts = _r.split("/")
+            if "tests" in _parts or _r.startswith("test_") or "/test_" in _r:
+                return
+            if _r not in _seen:
+                _seen.append(_r)
+        for _m in re.finditer(r'File "([^"]+\.py)"', out or ""):
+            _add(_m.group(1))
+        for _m in re.finditer(r'\b([A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+\.py)(?::\d+)?', out or ""):
+            _add(_m.group(1))
+        return _seen
+
+    def _stack_scope_targets(stack_files, changed_files):
+        changed_files = set(changed_files or set())
+        _stack_files = []
+        for _f in stack_files or []:
+            if _f and not _scope_match_file(_f, _stack_files):
+                _stack_files.append(_f)
+        _changed_in_stack = [f for f in _stack_files if _scope_match_file(f, changed_files)]
+        _external_stack_files = [f for f in _stack_files if not _scope_match_file(f, changed_files)]
+        return (_changed_in_stack + _external_stack_files)[:4]
+
+    for step in range(1, args.max_steps + GREEN_MINIMIZE_MAXSTEP_RESERVE + RED_SCOPE_EDIT_RESERVE_STEPS + POST_EDIT_GATE_RESERVE_STEPS + 1):
         _pending_green_minimize = (last_pass and not green_minimize_prompted and not NO_GATE)
-        if step > args.max_steps and not (green_minimize_active or _pending_green_minimize):
+        _pending_red_scope_reserve = red_gate_fix_required and bool(red_scope_target_files)
+        _pending_post_edit_gate_reserve = post_edit_gate_required and not NO_GATE
+        if step > args.max_steps and not (green_minimize_active or _pending_green_minimize or _pending_red_scope_reserve or _pending_post_edit_gate_reserve):
             break
         metrics["steps"] = step
         if step > args.max_steps:
-            metrics["transcript"].append(f"s{step} GREEN-AT-MAXSTEP reserve active (post-green minimization)")
+            if _pending_red_scope_reserve:
+                metrics["transcript"].append(f"s{step} RED-SCOPE reserve active (targets={','.join(sorted(red_scope_target_files))})")
+            elif _pending_post_edit_gate_reserve:
+                metrics["transcript"].append(f"s{step} POST-EDIT-GATE reserve active (run_tests required after edit)")
+            else:
+                metrics["transcript"].append(f"s{step} GREEN-AT-MAXSTEP reserve active (post-green minimization)")
         step_tools = active_tools
         if os.environ.get("ATOMIC_TOPOLOGY_TURN", "1") == "1" and metrics["edits_applied"] == 0 and metrics["body_context_reads"] > 0 and not pre_edit_topology_prompted:
             # CLASS-TOPOLOGY-WITHHOLD (R022, generalist): the old turn DEMANDED "text only, no tool call" and
@@ -1325,10 +1491,17 @@ def main():
             step_tools = [t for t in active_tools if t["function"]["name"] in allowed]
         elif red_gate_fix_required:
             _red_fix_allowed = RED_FIX_NAMES if red_gate_quick_checks < RED_GATE_QUICK_CHECK_LIMIT else (RED_FIX_NAMES - {"quick_check"})
-            _red_allowed = _red_fix_allowed | (READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set())
+            _red_read_limit = RED_SCOPE_TARGET_READ_LIMIT if red_scope_target_files else RED_GATE_ANCHOR_READ_LIMIT
+            _red_allowed = _red_fix_allowed | (READ_FNS if red_gate_anchor_reads < _red_read_limit else set())
             step_tools = [t for t in active_tools if t["function"]["name"] in _red_allowed]
+            _target_note = f" + cross-file stack target {','.join(sorted(red_scope_target_files))}" if red_scope_target_files else ""
             metrics["transcript"].append(
-                f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/test + quick_check {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT} + bounded fresh-read repairs {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
+                f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/test + quick_check {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT} + bounded fresh-read repairs {red_gate_anchor_reads}/{_red_read_limit}{_target_note})")
+        elif post_edit_gate_required and not NO_GATE:
+            _post_edit_allowed = {"run_tests"} if post_edit_quick_checks >= POST_EDIT_QUICK_CHECK_LIMIT else POST_EDIT_GATE_NAMES
+            step_tools = [t for t in active_tools if t["function"]["name"] in _post_edit_allowed]
+            metrics["transcript"].append(
+                f"s{step} POST-EDIT-GATE tools withheld (run_tests required; quick_check {post_edit_quick_checks}/{POST_EDIT_QUICK_CHECK_LIMIT})")
         elif force_no_edit_commit:
             step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
             metrics["transcript"].append(f"s{step} NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)")
@@ -1480,6 +1653,13 @@ def main():
                     "atomic_replace.")})
                 continue
             empties += 1
+            if post_edit_gate_required and not NO_GATE:
+                metrics["invalid_states_prevented"] += 1
+                metrics["transcript"].append(f"s{step} STOP refused (post-edit run_tests required)")
+                messages.append({"role": "user", "content": (
+                    "STOP is invalid: bytes changed after the last real gate result. quick_check is not acceptance. "
+                    "Call run_tests now before any more reads, edits, or final answer.")})
+                continue
             if last_pass or (NO_GATE and metrics["edits_applied"] > 0):
                 metrics["transcript"].append(f"s{step} DONE (no tool call{'; one-shot fix submitted' if NO_GATE else '; gate green'})")
                 break
@@ -1591,15 +1771,47 @@ def main():
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                 continue
 
+            if post_edit_gate_required and not NO_GATE:
+                _post_edit_allowed = {"run_tests"} if post_edit_quick_checks >= POST_EDIT_QUICK_CHECK_LIMIT else POST_EDIT_GATE_NAMES
+                if fn == "quick_check" and post_edit_quick_checks >= POST_EDIT_QUICK_CHECK_LIMIT:
+                    res = ("QUICK_CHECK DISABLED — post-edit quick_check budget is already used. "
+                           "quick_check is not acceptance; run_tests is mandatory after the last edit.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} quick_check REFUSED (post-edit quickcheck budget)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
+                if fn not in _post_edit_allowed:
+                    res = ("TOOL DISABLED — post-edit run_tests required. The last atomic edit changed bytes, "
+                           "and quick_check cannot replace the acceptance gate. Call run_tests now before any "
+                           "more reads, edits, or stop.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} {fn} REFUSED (post-edit run_tests required)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
+                if fn == "quick_check":
+                    post_edit_quick_checks += 1
+                    metrics["transcript"].append(
+                        f"s{step} quick_check ALLOWED (post-edit quickcheck {post_edit_quick_checks}/{POST_EDIT_QUICK_CHECK_LIMIT})")
+
             _red_gate_read_allowed = False
             if red_gate_fix_required and fn in READ_FNS:
                 _rk = _read_target_key(fn, a)
-                if _rk not in red_gate_anchor_read_keys and red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT:
+                _red_read_limit = RED_SCOPE_TARGET_READ_LIMIT if red_scope_target_files else RED_GATE_ANCHOR_READ_LIMIT
+                if red_scope_target_files and not _scope_read_matches_target(fn, a, red_scope_target_files):
+                    res = ("READING DISABLED — red-gate cross-file read target required. "
+                           f"The failing stack points at scoped source file(s): {', '.join(sorted(red_scope_target_files))}. "
+                           "Use at most one targeted atomic_read/atomic_grep with path/file set to one stack target, "
+                           "then edit a stack target.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} {fn} REFUSED (red-gate cross-file read target required)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
+                if _rk not in red_gate_anchor_read_keys and red_gate_anchor_reads < _red_read_limit:
                     red_gate_anchor_read_keys.add(_rk)
                     red_gate_anchor_reads += 1
                     _red_gate_read_allowed = True
                     metrics["transcript"].append(
-                        f"s{step} {fn} ALLOWED (red-gate fresh repair anchor {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
+                        f"s{step} {fn} ALLOWED (red-gate fresh repair anchor {red_gate_anchor_reads}/{_red_read_limit})")
                 else:
                     res = ("READING DISABLED — the acceptance gate is red for the current diff "
                            f"({red_gate_fix_reason}). Do not read/search/retest stale bytes. "
@@ -1623,6 +1835,15 @@ def main():
                 red_gate_quick_checks += 1
                 metrics["transcript"].append(
                     f"s{step} quick_check ALLOWED (red-gate quickcheck {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT})")
+
+            if red_gate_fix_required and red_scope_target_files and fn in ("atomic_replace", "atomic_create") and not _scope_match_file(a.get("file") or a.get("path"), red_scope_target_files):
+                res = ("EDIT DISABLED — red-gate cross-file stack target "
+                       f"{', '.join(sorted(red_scope_target_files))} must be edited before work outside the failing stack. "
+                       "The failing stack has scoped source frames; make the next atomic edit in one of those stack files.")
+                metrics["invalid_states_prevented"] += 1
+                metrics["transcript"].append(f"s{step} {fn} REFUSED (red-gate cross-file stack target)")
+                messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                continue
 
             if red_gate_fix_required and fn not in RED_FIX_NAMES and not _red_gate_read_allowed:
                 res = ("TOOL DISABLED — the acceptance gate is red for the current diff "
@@ -1661,6 +1882,8 @@ def main():
                            "still fails. Make your atomic edit FIRST, then run_tests.")
                 else:
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
+                    post_edit_gate_required = False
+                    post_edit_quick_checks = 0
                     if last_pass and overfix_full_file_required(workdir):
                         metrics["run_tests_calls"] += 1
                         last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate, full_file=True)
@@ -1694,6 +1917,17 @@ def main():
                         red_gate_anchor_reads = 0
                         red_gate_anchor_read_keys.clear()
                         red_gate_quick_checks = 0
+                        _changed_now = _changed_files()
+                        _stack_files = _stack_trace_files(gate_out)
+                        _scope_red_count = _consec_red + 1
+                        _scope_due = ((baseline_fail_floor is not None and nf_ <= baseline_fail_floor) or _scope_red_count >= 3)
+                        _stack_scope_files = _stack_scope_targets(_stack_files, _changed_now)
+                        if _scope_due and _stack_scope_files:
+                            red_scope_target_files = set(_stack_scope_files)
+                            metrics["transcript"].append(
+                                f"s{step} RED-SCOPE target captured (changed={','.join(sorted(_changed_now)) or 'none'}; stack={','.join(_stack_files) or 'none'}; targets={','.join(sorted(red_scope_target_files))})")
+                        else:
+                            red_scope_target_files = set()
                         _red_diff = git_diff(workdir)
                         if _red_diff.strip():
                             _red_semantic_lines = semantic_diff_lines(_red_diff)
@@ -1740,6 +1974,12 @@ def main():
                                 ]
                         # CLASS-DID-NOT-RAISE-RED-FEEDBACK (R043, generalist): this red-test symptom means the
                         # candidate became too permissive and erased a required error path. Surface that topology.
+                        if red_scope_target_files:
+                            diagnostics.insert(0,
+                                "[scope] The failing stack points at scoped source file(s): "
+                                + ", ".join(sorted(red_scope_target_files))
+                                + ". Use at most ONE targeted read of a listed stack file, then make the next edit in a listed stack file. "
+                                "Do not spend the repair turn outside the failing stack.")
                         if "DID NOT RAISE" in gate_out:
                             diagnostics.append(
                                 "[diagnose] A failing test says DID NOT RAISE: your edit is too permissive "
@@ -1944,6 +2184,9 @@ def main():
                         red_gate_anchor_reads = 0
                         red_gate_anchor_read_keys.clear()
                         red_gate_quick_checks = 0
+                        red_scope_target_files = set()
+                        post_edit_gate_required = not NO_GATE
+                        post_edit_quick_checks = 0
                         if green_minimize_active and fn == "atomic_replace":
                             green_minimize_edits += 1
                         # CLASS-EDIT-RECEIPT-BLIND: show the post-edit region so the model confirms by
@@ -2193,4 +2436,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--deepseek-worker" in sys.argv:
+        _deepseek_worker_main()
+        sys.exit(0)
     main()

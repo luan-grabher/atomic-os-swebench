@@ -466,12 +466,12 @@ record('CLASS-ENV-SECRET-PREFLIGHT: DeepSeek credentials are env-only and missin
     noArgvCodeSecrets: source.includes('Do not pass secrets on the command line or store them in code'),
     noImportKeyError: !source.includes('os.environ["DEEPSEEK_API_KEY"]'),
   });
-record('CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY: DeepSeek calls have configurable socket timeout, total deadline, and stderr heartbeat before blocking reads',
+record('CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY: DeepSeek calls have configurable socket timeout, parent-owned subprocess deadline, and stderr heartbeat before blocking reads',
   source.includes('DEEPSEEK_TIMEOUT') &&
   source.includes('timeout=timeout_s') &&
   source.includes('DEEPSEEK_TOTAL_TIMEOUT') &&
-  source.includes('signal.setitimer(signal.ITIMER_REAL, total_timeout_s)') &&
-  source.includes('DeepSeek model call exceeded total deadline') &&
+  source.includes('p.communicate(json.dumps(payload), timeout=total_timeout_s)') &&
+  source.includes('DeepSeek model call exceeded subprocess deadline') &&
   source.includes('ATOMIC_PROGRESS_STDERR') &&
   source.includes('model_call tools=') &&
   source.includes('file=sys.stderr, flush=True'),
@@ -479,8 +479,8 @@ record('CLASS-MODEL-CALL-LIVENESS-OBSERVABILITY: DeepSeek calls have configurabl
     timeoutEnv: source.includes('DEEPSEEK_TIMEOUT'),
     appliedTimeout: source.includes('timeout=timeout_s'),
     totalTimeoutEnv: source.includes('DEEPSEEK_TOTAL_TIMEOUT'),
-    totalDeadline: source.includes('signal.setitimer(signal.ITIMER_REAL, total_timeout_s)'),
-    totalError: source.includes('DeepSeek model call exceeded total deadline'),
+    totalDeadline: source.includes('p.communicate(json.dumps(payload), timeout=total_timeout_s)'),
+    totalError: source.includes('DeepSeek model call exceeded subprocess deadline'),
     progressEnv: source.includes('ATOMIC_PROGRESS_STDERR'),
     heartbeat: source.includes('model_call tools='),
     flushedStderr: source.includes('file=sys.stderr, flush=True'),
@@ -555,7 +555,8 @@ record('CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: red gate permits only bounded 
   source.includes('red_gate_anchor_reads = 0') &&
   source.includes('red_gate_anchor_read_keys = set()') &&
   source.includes('RED_GATE_ANCHOR_READ_LIMIT = 3') &&
-  source.includes('READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set()') &&
+  source.includes('_red_read_limit = RED_SCOPE_TARGET_READ_LIMIT if red_scope_target_files else RED_GATE_ANCHOR_READ_LIMIT') &&
+  source.includes('READ_FNS if red_gate_anchor_reads < _red_read_limit else set()') &&
   source.includes('_red_gate_read_allowed = False') &&
   source.includes('red_gate_anchor_read_keys.add(_rk)') &&
   source.includes('red-gate fresh repair anchor') &&
@@ -566,7 +567,8 @@ record('CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: red gate permits only bounded 
     marker: source.includes('CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE'),
     state: source.includes('red_gate_anchor_reads = 0') && source.includes('red_gate_anchor_read_keys = set()'),
     limit: source.includes('RED_GATE_ANCHOR_READ_LIMIT = 3'),
-    toolOffer: source.includes('READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set()'),
+    dynamicLimit: source.includes('_red_read_limit = RED_SCOPE_TARGET_READ_LIMIT if red_scope_target_files else RED_GATE_ANCHOR_READ_LIMIT'),
+    toolOffer: source.includes('READ_FNS if red_gate_anchor_reads < _red_read_limit else set()'),
     dispatchFlag: source.includes('_red_gate_read_allowed = False'),
     uniqueAdd: source.includes('red_gate_anchor_read_keys.add(_rk)'),
     allowTrace: source.includes('red-gate fresh repair anchor'),
@@ -594,6 +596,79 @@ record('CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET: under red gate, quick_check is 
     refusalTrace: source.includes('quick_check REFUSED (red-gate quickcheck budget)'),
     gatePrecedence: source.includes('Local snippets cannot override the red gate'),
     resets: (source.match(/red_gate_quick_checks = 0/g) || []).length,
+  });
+record('CLASS-POST-EDIT-RUN-TESTS-MANDATORY: after an accepted edit in gate-on mode, quick_check is bounded and run_tests is forced before further reads, edits, or STOP',
+  source.includes('CLASS-POST-EDIT-RUN-TESTS-MANDATORY') &&
+  source.includes('post_edit_gate_required = False') &&
+  source.includes('post_edit_quick_checks = 0') &&
+  source.includes('POST_EDIT_GATE_NAMES = {"quick_check", "run_tests"}') &&
+  source.includes('POST_EDIT_QUICK_CHECK_LIMIT = 1') &&
+  source.includes('POST_EDIT_GATE_RESERVE_STEPS = 3') &&
+  source.includes('_pending_post_edit_gate_reserve') &&
+  source.includes('POST-EDIT-GATE reserve active') &&
+  source.includes('POST-EDIT-GATE tools withheld') &&
+  source.includes('STOP refused (post-edit run_tests required)') &&
+  source.includes('post-edit run_tests required') &&
+  source.includes('quick_check REFUSED (post-edit quickcheck budget)') &&
+  source.includes('quick_check ALLOWED (post-edit quickcheck') &&
+  source.includes('post_edit_gate_required = not NO_GATE') &&
+  source.includes('quick_check is not acceptance; run_tests is mandatory'),
+  {
+    marker: source.includes('CLASS-POST-EDIT-RUN-TESTS-MANDATORY'),
+    state: source.includes('post_edit_gate_required = False') && source.includes('post_edit_quick_checks = 0'),
+    limits: source.includes('POST_EDIT_QUICK_CHECK_LIMIT = 1') && source.includes('POST_EDIT_GATE_RESERVE_STEPS = 3'),
+    reserve: source.includes('_pending_post_edit_gate_reserve') && source.includes('POST-EDIT-GATE reserve active'),
+    toolOffer: source.includes('POST-EDIT-GATE tools withheld'),
+    stopGuard: source.includes('STOP refused (post-edit run_tests required)'),
+    dispatchGuard: source.includes('post-edit run_tests required'),
+    quickBudget: source.includes('quick_check REFUSED (post-edit quickcheck budget)') && source.includes('quick_check ALLOWED (post-edit quickcheck'),
+    activatesOnEdit: source.includes('post_edit_gate_required = not NO_GATE'),
+    acceptanceTruth: source.includes('quick_check is not acceptance; run_tests is mandatory'),
+  });
+record('CLASS-RED-GATE-CROSS-FILE-STACK-EDIT-RESERVE: red gate fail-floor output that names source stack files reserves steps and forces the next repair read/edit into stack scope',
+  source.includes('CLASS-RED-GATE-CROSS-FILE-STACK-EDIT-RESERVE') &&
+  source.includes('red_scope_target_files = set()') &&
+  source.includes('RED_SCOPE_TARGET_READ_LIMIT = 1') &&
+  source.includes('RED_SCOPE_EDIT_RESERVE_STEPS = 4') &&
+  source.includes('def _stack_trace_files(out):') &&
+  source.includes('def _stack_scope_targets(stack_files, changed_files):') &&
+  source.includes('def _scope_match_file(candidate, targets):') &&
+  source.includes('def _scope_read_matches_target(fn, a, targets):') &&
+  source.includes('_pending_red_scope_reserve') &&
+  source.includes('RED-SCOPE reserve active') &&
+  source.includes('RED-SCOPE target captured') &&
+  source.includes('red-gate cross-file read target required') &&
+  source.includes('red-gate cross-file stack target') &&
+  source.includes('nf_ <= baseline_fail_floor') &&
+  source.includes('[scope] The failing stack points at scoped source file(s)'),
+  {
+    marker: source.includes('CLASS-RED-GATE-CROSS-FILE-STACK-EDIT-RESERVE'),
+    state: source.includes('red_scope_target_files = set()'),
+    limits: source.includes('RED_SCOPE_TARGET_READ_LIMIT = 1') && source.includes('RED_SCOPE_EDIT_RESERVE_STEPS = 4'),
+    parsers: source.includes('def _stack_trace_files(out):') && source.includes('def _stack_scope_targets(stack_files, changed_files):') && source.includes('def _scope_match_file(candidate, targets):'),
+    reserve: source.includes('_pending_red_scope_reserve') && source.includes('RED-SCOPE reserve active'),
+    capture: source.includes('RED-SCOPE target captured') && source.includes('nf_ <= baseline_fail_floor'),
+    readGuard: source.includes('red-gate cross-file read target required'),
+    editGuard: source.includes('red-gate cross-file stack target'),
+    feedback: source.includes('[scope] The failing stack points at scoped source file(s)'),
+  });
+record('CLASS-RED-GATE-STACK-SCOPE-INCLUDES-CHANGED-FRAMES: when the red stack includes an already edited causal frame, stack scope includes that changed frame instead of forcing only external helper frames',
+  source.includes('CLASS-RED-GATE-STACK-SCOPE-INCLUDES-CHANGED-FRAMES') &&
+  source.includes('def _stack_scope_targets(stack_files, changed_files):') &&
+  source.includes('_changed_in_stack = [f for f in _stack_files if _scope_match_file(f, changed_files)]') &&
+  source.includes('_external_stack_files = [f for f in _stack_files if not _scope_match_file(f, changed_files)]') &&
+  source.includes('return (_changed_in_stack + _external_stack_files)[:4]') &&
+  source.includes('_stack_scope_files = _stack_scope_targets(_stack_files, _changed_now)') &&
+  source.includes('stack={\',\'.join(_stack_files) or \'none\'}') &&
+  source.includes('work outside the failing stack') &&
+  source.includes('Do not spend the repair turn outside the failing stack'),
+  {
+    marker: source.includes('CLASS-RED-GATE-STACK-SCOPE-INCLUDES-CHANGED-FRAMES'),
+    helper: source.includes('def _stack_scope_targets(stack_files, changed_files):'),
+    changedFirst: source.includes('_changed_in_stack = [f for f in _stack_files if _scope_match_file(f, changed_files)]') && source.includes('return (_changed_in_stack + _external_stack_files)[:4]'),
+    captureUsesHelper: source.includes('_stack_scope_files = _stack_scope_targets(_stack_files, _changed_now)'),
+    editScope: source.includes('work outside the failing stack'),
+    feedback: source.includes('Do not spend the repair turn outside the failing stack'),
   });
 record('CLASS-RED-BEST-CANDIDATE-RESTORE: when no green is reached, final output restores the best gate-tested red candidate by fail-count and diff surface without claiming green',
   source.includes('CLASS-RED-BEST-CANDIDATE-RESTORE') &&
@@ -651,6 +726,66 @@ record('CLASS-RED-BEST-CANDIDATE-BASELINE-GAIN: best-red restore only preserves 
     captureSkipTrace: source.includes('RED-BEST candidate skipped (no baseline failure gain'),
     finalGuard: source.includes('best_red_score[0] >= baseline_fail_floor'),
     finalSkipTrace: source.includes('RED-BEST-CANDIDATE: skipped non-improving best red diff'),
+  });
+record('CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP: timed-out atomic-call subprocesses run in their own session and terminate the whole process group',
+  source.includes('CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP') &&
+  source.includes('subprocess.Popen(') &&
+  source.includes('ATOMIC_CALL_TIMEOUT') &&
+  source.includes('start_new_session=True') &&
+  source.includes('except subprocess.TimeoutExpired') &&
+  source.includes('os.killpg(p.pid, signal.SIGTERM)') &&
+  source.includes('os.killpg(p.pid, signal.SIGKILL)') &&
+  source.includes('process group terminated'),
+  {
+    marker: source.includes('CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP'),
+    popen: source.includes('subprocess.Popen('),
+    configurableTimeout: source.includes('ATOMIC_CALL_TIMEOUT'),
+    ownSession: source.includes('start_new_session=True'),
+    timeoutHandler: source.includes('except subprocess.TimeoutExpired'),
+    termGroup: source.includes('os.killpg(p.pid, signal.SIGTERM)'),
+    killGroup: source.includes('os.killpg(p.pid, signal.SIGKILL)'),
+    trace: source.includes('process group terminated'),
+  });
+record('CLASS-ROOT-CHECK-CALL-GREP-TIMEOUT-CACHE: root-check skips added definition lines and caches broad call-graph timeouts per symbol',
+  source.includes('CLASS-ROOT-CHECK-CALL-GREP-TIMEOUT-CACHE') &&
+  source.includes('root_check_call_cache = {}') &&
+  source.includes('def _root_check_callers(workdir, name):') &&
+  source.includes('if "timed out" in callers.lower():') &&
+  source.includes('root-check caller scan timed out earlier this round') &&
+  source.includes('line.lstrip().startswith(("def ", "function "))') &&
+  source.includes('callers, _ = _root_check_callers(workdir, name)') &&
+  source.includes('atomic_grep_calls'),
+  {
+    marker: source.includes('CLASS-ROOT-CHECK-CALL-GREP-TIMEOUT-CACHE'),
+    cache: source.includes('root_check_call_cache = {}'),
+    helper: source.includes('def _root_check_callers(workdir, name):'),
+    timeoutMemo: source.includes('if "timed out" in callers.lower():') && source.includes('root-check caller scan timed out earlier this round'),
+    definitionSkip: source.includes('line.lstrip().startswith(("def ", "function "))'),
+    callerHook: source.includes('callers, _ = _root_check_callers(workdir, name)'),
+  });
+record('CLASS-MODEL-CALL-SUBPROCESS-DEADLINE: model HTTPS calls run in a killable worker subprocess with a parent-owned deadline',
+  source.includes('CLASS-MODEL-CALL-SUBPROCESS-DEADLINE') &&
+  source.includes('def _deepseek_worker_main():') &&
+  source.includes('--deepseek-worker') &&
+  source.includes('subprocess.Popen([sys.executable, __file__, "--deepseek-worker"]') &&
+  source.includes('start_new_session=True') &&
+  source.includes('p.communicate(json.dumps(payload), timeout=total_timeout_s)') &&
+  source.includes('except subprocess.TimeoutExpired') &&
+  source.includes('os.killpg(p.pid, signal.SIGTERM)') &&
+  source.includes('os.killpg(p.pid, signal.SIGKILL)') &&
+  source.includes('DeepSeek model call exceeded subprocess deadline') &&
+  source.includes('DEEPSEEK_API_URL'),
+  {
+    marker: source.includes('CLASS-MODEL-CALL-SUBPROCESS-DEADLINE'),
+    worker: source.includes('def _deepseek_worker_main():') && source.includes('--deepseek-worker'),
+    popen: source.includes('subprocess.Popen([sys.executable, __file__, "--deepseek-worker"]'),
+    ownSession: source.includes('start_new_session=True'),
+    parentDeadline: source.includes('p.communicate(json.dumps(payload), timeout=total_timeout_s)'),
+    timeoutHandler: source.includes('except subprocess.TimeoutExpired'),
+    termGroup: source.includes('os.killpg(p.pid, signal.SIGTERM)'),
+    killGroup: source.includes('os.killpg(p.pid, signal.SIGKILL)'),
+    timeoutTrace: source.includes('DeepSeek model call exceeded subprocess deadline'),
+    injectableApiUrl: source.includes('DEEPSEEK_API_URL'),
   });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });

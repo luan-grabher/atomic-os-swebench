@@ -14,3 +14,5 @@
 {"ts": 1782180728, "task": "SWE-scikit-learn__scikit-learn-15100", "diff_lines": 5, "files_changed": 1, "diff_sha256": "a0216b6df358db48", "steps": 10, "edits": 2, "tokens": 68091, "wall_s": 98.0}
 {"ts": 1782181084, "task": "SWE-pytest-dev__pytest-8399", "diff_lines": 2, "files_changed": 1, "diff_sha256": "36f6ec3d7cc5e546", "steps": 6, "edits": 1, "tokens": 46184, "wall_s": 54.9}
 {"ts": 1782193207, "task": "SWE-sympy__sympy-20438", "diff_lines": 39, "files_changed": 3, "diff_sha256": "3b8ccef2ff9a45d2", "steps": 69, "edits": 8, "tokens": 1177331, "wall_s": 2086.6}
+{"ts": 1782199947, "task": "SWE-sympy__sympy-20438", "diff_lines": 34, "files_changed": 2, "diff_sha256": "274a8ff03a8890cc", "steps": 73, "edits": 10, "tokens": 1386244, "wall_s": 2521.0}
+{"ts": 1782211826, "task": "SWE-sympy__sympy-20438", "diff_lines": 21, "files_changed": 2, "diff_sha256": "9723475b1e8fdb62", "steps": 54, "edits": 6, "tokens": 878456, "wall_s": 1530.7}
