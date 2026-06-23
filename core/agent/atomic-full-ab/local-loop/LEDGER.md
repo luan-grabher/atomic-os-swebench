@@ -2338,3 +2338,14 @@ Next exact step: re-run a gate-ON round on a multi-edit instance (where --3way c
 - Honesty arc this round-pair: claimed flaky (R078) -> refuted by number (5/5 fresh repro) -> found real cause (UU/unmerged poison) -> fixed -> regressed on first try (-x nuked .so, caught by number) -> corrected -> validated isolated (gold/broken/gold) -> CONFIRMED end-to-end (R078b). Clean number-driven self-correction throughout.
 
 Next exact step: resume the clean-datapoint / edit-economy-dominance track on a NON-library-pinned multi-FILE instance (where --3way conflicts were most likely to have poisoned prior rounds) now that the gate is fixed — candidate pytest-8399 (proven edit-economy dominance instance; re-confirm it's clean+cheaper with the fixed gate) or a fresh multi-file instance for a new datapoint. Define task, run atomic gate-ON, official-score, compare to frozen native. Model locked DeepSeek V4 Pro.
+
+
+### Claude R079 pytest-8399 — multi-file class, FIXED gate: clean win, edit-economy dominance re-confirmed, cheapest round
+- date: 2026-06-23. pytest-dev__pytest-8399 (setUpClass private-fixture, gold touches 2 files), gate-ON, fixed gate.
+- Atomic receipt: steps=6, edits=1, reads=1, run_tests=1, diff_lines=2, tokens=46,184, gate_pass=TRUE. File: `src/_pytest/unittest.py` (1 file).
+- Official: resolved=1. s4 run_tests green 9/9 immediately; ZERO deadlock/poison/ARM_PATCH_FAILED (the fixed gate held on a multi-file-class instance — exactly where --3way conflicts most poisoned prior rounds).
+- Edit-economy DOMINANCE re-confirmed by number: 1 file / 2 diff-lines / 1 edit, RESOLVED (gold touches 2 files; native historically 10 lines / 5 edits / 2 files — atomic edits only the setUpClass site). gate_pass=True MATCHES official. Cheapest round this session (46k tokens, 6 steps).
+- Cumulative this session with the fixed gate: R078b (10 steps, 68k) + R079 (6 steps, 46k) = two clean gate_pass=True wins, no deadlocks. CLASS-GATE-RESET-INCOMPLETE-ON-MERGE-CONFLICT broadly validated (single-file AND multi-file classes).
+- HONEST framing (unchanged): these are findable/clean instances where atomic ties-or-wins + the gate proof confirms; the gate fix removed a HARNESS false-red that was inflating cost and masking clean wins — it does NOT change the model-bound ceiling on hard instances (sympy still loses). Real value = correctness-guarantee + edit-economy + now-trustworthy in-loop gate signal, not weak>>frontier.
+
+Next exact step: continue the clean track — either (a) a NEW findable multi-file instance for a fresh datapoint, or (b) re-test a prior "deadlock/0-edit" round (e.g. one of the sympy gate-ON rounds) with the fixed gate to see if the poison was misattributed as a model ceiling (high-value: could reclassify a prior loss as a harness artifact). Model locked DeepSeek V4 Pro.
