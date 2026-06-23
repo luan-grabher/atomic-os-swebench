@@ -2224,16 +2224,25 @@ def main():
                             red_scope_memory_files = set()
                             post_edit_gate_required = False
                             post_edit_quick_checks = 0
-                            post_rollback_edit_required = True
+                            # CLASS-PLATEAU-ABANDON-RESURVEY-NEEDS-READ (Claude-track, R100 self-mined): the abandon's
+                            # purpose is to RE-SURVEY for a new locus — which requires READING. Reusing seq616's
+                            # post_rollback edit-lockout (force a different edit before any read) directly contradicted
+                            # that: R100 s52 the model correctly decided "wrong locus, go to the handler" but the lockout
+                            # forced blind throwaway edits (s55 broke an import -> catastrophic fail=3) and burned ~8 steps
+                            # before it could navigate to the gold locus (s68: missing ProductSet/FiniteSet handler),
+                            # then ran out of budget. Leave reads ENABLED after a plateau-abandon; the normal force-edit
+                            # paralysis guards still bound exploration.
+                            post_rollback_edit_required = False
                             _consec_red = 0
                             metrics["invalid_states_prevented"] += 1
                             res += ("\n\n[plateau-abandon] The gate stayed at fail=%d (the no-patch floor) for %d "
                                     "consecutive tests with no improvement below it — your current approach is in the "
                                     "WRONG root-cause locus, not merely incomplete. The clean baseline is restored. Do "
-                                    "NOT reapply or refine that candidate. Survey for a DIFFERENT root cause (a different "
-                                    "function/file/handler than the one you just edited) before the next atomic edit." % (nf_, _plateau_n))
+                                    "NOT reapply or refine that candidate. Reading is ENABLED: survey/read the suspected "
+                                    "DIFFERENT locus (a different function/file/handler than the one you just edited) "
+                                    "first, then make one atomic edit there." % (nf_, _plateau_n))
                             metrics["transcript"].append(
-                                f"s{step} PLATEAU-ABANDON clean (fail={nf_}, floor={baseline_fail_floor}, consec={_plateau_n}); resurvey forced")
+                                f"s{step} PLATEAU-ABANDON clean (fail={nf_}, floor={baseline_fail_floor}, consec={_plateau_n}); resurvey enabled")
                             reads_since_edit = 0; distinct_since_edit.clear()
                             metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
                             messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
