@@ -2593,3 +2593,4 @@ Next exact step: run R097 Atomic-only on the same frozen `sympy__sympy-20438` sn
 - Dominance remains `0/2`; no complexity escalation. R097 loses correctness and exists only as representation fuel.
 
 Next exact step: run R098 Atomic-only on the same frozen `sympy__sympy-20438` snapshot against observed `Cicero`, with seq617/seq618 active. Do not rerun native. Measure whether causal red-scope memory keeps `sets.py` available after catastrophic rollback and whether the agent recovers to official green or exposes the next representation wall.
+
