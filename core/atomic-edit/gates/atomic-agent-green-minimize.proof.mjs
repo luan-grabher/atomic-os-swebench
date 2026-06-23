@@ -454,6 +454,28 @@ record('CLASS-WEIGHT-ULTIMATUM-NONEDIT-DISPATCH-GUARD: learned-weight edit-only 
     nonEditMessage: source.includes('Reading, quick_check, and run_tests on an empty diff only burn turns'),
     refusalTrace: source.includes('weight early-commit edit-only ultimatum'),
   });
+record('CLASS-WEIGHT-MULTILOCUS-RED-SCOPE-SEED: matched-weight source files read before the first edit seed red-scope memory on non-improving gates',
+  source.includes('CLASS-WEIGHT-MULTILOCUS-RED-SCOPE-SEED') &&
+  source.includes('weight_scope_seed_files = set()') &&
+  source.includes('weight_scope_hint_files = set()') &&
+  source.includes('def _remember_weight_scope_read(fn, a):') &&
+  source.includes('metrics["edits_applied"] != 0') &&
+  source.includes('_weight_hint_matches_file(_r)') &&
+  source.includes('_remember_weight_scope_read(fn, a)') &&
+  source.includes('_weight_seed_scope = set(weight_scope_hint_files or weight_scope_seed_files)') &&
+  source.includes('red_scope_memory_files.update(_weight_seed_scope)') &&
+  source.includes('WEIGHT-MULTILOCUS red scope seeded') &&
+  source.includes('_stack_scope_files = _red_scope_targets(_stack_files, _changed_now, nf_, baseline_fail_floor, red_scope_memory_files)'),
+  {
+    marker: source.includes('CLASS-WEIGHT-MULTILOCUS-RED-SCOPE-SEED'),
+    state: source.includes('weight_scope_seed_files = set()') && source.includes('weight_scope_hint_files = set()'),
+    captureHelper: source.includes('def _remember_weight_scope_read(fn, a):') && source.includes('metrics["edits_applied"] != 0'),
+    hintFilter: source.includes('_weight_hint_matches_file(_r)'),
+    readHook: source.includes('_remember_weight_scope_read(fn, a)'),
+    redScopeSeed: source.includes('_weight_seed_scope = set(weight_scope_hint_files or weight_scope_seed_files)') && source.includes('red_scope_memory_files.update(_weight_seed_scope)'),
+    trace: source.includes('WEIGHT-MULTILOCUS red scope seeded'),
+    scopeIntegration: source.includes('_stack_scope_files = _red_scope_targets(_stack_files, _changed_now, nf_, baseline_fail_floor, red_scope_memory_files)'),
+  });
 record('CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG: learned weights are advisory unless executable or repeatedly proven, preventing weak-weight read starvation',
   source.includes('CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG') &&
   source.includes('matched_weight_lockout_classes') &&

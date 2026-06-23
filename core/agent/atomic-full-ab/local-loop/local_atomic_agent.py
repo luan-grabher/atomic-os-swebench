@@ -1335,6 +1335,11 @@ def main():
     red_scope_memory_files = set()  # CLASS-RED-SCOPE-CAUSAL-MEMORY-SURVIVES-ROLLBACK: causal red-scope files
     # survive clean rollback. A later non-improving red scope must not forget an earlier changed/stack file just
     # because rollback removed its bytes; include that causal memory before hard-scoping repair tools.
+    weight_scope_seed_files = set()  # CLASS-WEIGHT-MULTILOCUS-RED-SCOPE-SEED: source files read under a matched
+    # proof-carrying weight before the first edit are causal multi-locus evidence. If a fail-floor red gate later
+    # narrows to only the symptom file, these seeds re-enter red_scope_memory_files so repair can touch every locus
+    # the learned strategy already caused the agent to inspect.
+    weight_scope_hint_files = set()
     red_gate_quick_checks = 0  # CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET: local quick_check is bounded per failed diff.
     post_edit_gate_required = False  # CLASS-POST-EDIT-RUN-TESTS-MANDATORY: after an accepted edit in gate-on
     post_edit_quick_checks = 0  # mode, quick_check is only a bounded self-check; run_tests is mandatory.
@@ -1496,6 +1501,52 @@ def main():
             if _combined:
                 return _combined[:4]
         return _stack_targets
+
+    def _scope_source_file(_f):
+        _r = _rel_candidate_file(_f)
+        if not _r:
+            return None
+        _parts = _r.split("/")
+        if "tests" in _parts or _r.startswith("test_") or "/test_" in _r:
+            return None
+        if not re.search(r"\.(py|pyi|js|jsx|ts|tsx|mjs|cjs|json|ya?ml|toml|ini|cfg|java|go|rs|rb|php|c|cc|cpp|h|hpp|cs|scala|kt|swift|m|mm|r|jl|lua|sh|bash|zsh)$", _r):
+            return None
+        return _r
+
+    def _weight_hint_matches_file(_r):
+        _hint = "\n".join(matched_weight_lockout_hints or matched_weight_hints).lower()
+        if not _hint:
+            return True
+        _generic = {"core", "src", "lib", "test", "tests", "file", "files", "sets", "utils", "common", "base", "main", "init"}
+        _tokens = [t for t in re.split(r"[^a-z0-9_]+", _r.lower()) if len(t) >= 4]
+        _stem = os.path.splitext(os.path.basename(_r.lower()))[0]
+        if _stem:
+            _tokens.append(_stem)
+        _tokens = [t for t in _tokens if t not in _generic]
+        _hint_words = set(re.findall(r"[a-z0-9_]{4,}", _hint)) - _generic
+        return any((t in _hint) or any(t in hw or hw in t for hw in _hint_words) for t in _tokens)
+
+    def _remember_weight_scope_read(fn, a):
+        if not matched_weight_lockout_classes or metrics["edits_applied"] != 0:
+            return
+        _paths = []
+        if fn in ("atomic_read", "atomic_outline"):
+            _paths.append(a.get("path") or a.get("file"))
+        elif fn == "atomic_read_many":
+            for _it in a.get("items") or []:
+                if isinstance(_it, dict):
+                    _paths.append(_it.get("path") or _it.get("file"))
+                elif isinstance(_it, str):
+                    _paths.append(_it)
+        elif fn in ("atomic_grep", "atomic_survey", "atomic_callers"):
+            _paths.append(a.get("path") or a.get("file") or a.get("glob"))
+        for _p in _paths:
+            _r = _scope_source_file(_p)
+            if not _r:
+                continue
+            weight_scope_seed_files.add(_r)
+            if _weight_hint_matches_file(_r):
+                weight_scope_hint_files.add(_r)
 
     for step in range(1, args.max_steps + GREEN_MINIMIZE_MAXSTEP_RESERVE + RED_SCOPE_EDIT_RESERVE_STEPS + POST_EDIT_GATE_RESERVE_STEPS + 1):
         _pending_green_minimize = (last_pass and not green_minimize_prompted and not NO_GATE)
@@ -2136,6 +2187,17 @@ def main():
                         _stack_files = _stack_trace_files(gate_out)
                         _scope_red_count = _consec_red + 1
                         _scope_due = ((baseline_fail_floor is not None and nf_ <= baseline_fail_floor) or _scope_red_count >= 3)
+                        try:
+                            _weight_non_improving = baseline_fail_floor is not None and int(nf_) >= int(baseline_fail_floor)
+                        except Exception:
+                            _weight_non_improving = False
+                        _weight_seed_scope = set()
+                        if matched_weight_lockout_classes and _weight_non_improving:
+                            _weight_seed_scope = set(weight_scope_hint_files or weight_scope_seed_files)
+                            if _weight_seed_scope:
+                                red_scope_memory_files.update(_weight_seed_scope)
+                                metrics["transcript"].append(
+                                    f"s{step} WEIGHT-MULTILOCUS red scope seeded (targets={','.join(sorted(_weight_seed_scope))})")
                         _stack_scope_files = _red_scope_targets(_stack_files, _changed_now, nf_, baseline_fail_floor, red_scope_memory_files)
                         if _stack_scope_files:
                             red_scope_memory_files.update(_stack_scope_files)
@@ -2420,6 +2482,7 @@ def main():
                         metrics["reads_suppressed"] = metrics.get("reads_suppressed", 0) + 1
                     else:
                         distinct_since_edit.add(_read_target_key(fn, a))  # breadth tracker (CLASS-FORCE-EDIT-TOO-RIGID)
+                    _remember_weight_scope_read(fn, a)
                 # L01-H: choose topology only after BODY-level context (real code bodies), not mere
                 # navigation (survey/outline/grep). Track body reads separately so the pre-edit topology
                 # turn fires after atomic_read/atomic_read_many — generalist (any model, any task).
