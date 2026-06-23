@@ -1139,6 +1139,88 @@ def fuse_adjacent_none_filter_loops(workdir, gate):
     return False, full_lines, "fusion not green/no-shrink; reverted"
 
 
+def _execute_weight_operator(spec, workdir, trigger, task):
+    """CLASS-WEIGHT-EXECUTABLE-NAVIGATE (ACT apply-path, model-agnostic): an executable operator RUNS the
+    navigation the prose strategy only DESCRIBES — it locates the upstream decision-predicate functions and
+    returns their BODIES as pre-fetched structured perception. This transfers the navigation CAPABILITY to a
+    weak model (deterministic git-grep + read, ZERO LLM at apply time → runs identical under any model), instead
+    of advice a confident model rationalizes away (the falsified prose rung). HONEST SCOPE: the apply-path is
+    mechanical, but the operator's ABSTRACTION (which name-shapes count as decision predicates) is strong-authored
+    in the weight spec — so this proves the EXECUTABLE rung over falsified prose, NOT yet the mechanical-abstraction
+    rung. Returns injection text, or "" when nothing matched (additive: no weight without an `executable` field
+    is affected)."""
+    try:
+        if not isinstance(spec, dict) or spec.get("op") != "locate_decision_predicate":
+            return ""
+        name_pats = spec.get("name_patterns") or ["is_", "should_", "_check", "matches", "_match",
+                                                   "_ignore", "_discover", "_normalize", "_filter", "_exclude", "_resolve"]
+        top_k = int(spec.get("top_k", 3)); read_lines = int(spec.get("read_lines", 50))
+        kws = [k for k in re.split(r"[|,\s]+", (trigger or "").lower()) if len(k) >= 3]
+        defs = []
+        for pat in name_pats:
+            try:
+                out = subprocess.run(
+                    ["git", "-C", workdir, "grep", "-nIE",
+                     r"^[[:space:]]*def[[:space:]]+[A-Za-z_]*" + re.escape(pat) + r"[A-Za-z0-9_]*\("],
+                    capture_output=True, text=True, timeout=25).stdout
+            except Exception:
+                out = ""
+            for line in out.splitlines():
+                m = re.match(r"([^:]+):(\d+):(.*)", line)
+                if not (m and m.group(1).endswith(".py")):
+                    continue
+                _fp = m.group(1).lower()
+                _base = _fp.rsplit("/", 1)[-1]
+                # The root fix lives in SOURCE, never in tests — exclude test/conftest paths so they
+                # cannot crowd out the real decision predicate (pylint-7080 unit test: tests/ outranked
+                # the source _is_ignored_file). Generalist: no repo/task specifics.
+                if ("/test" in _fp or _fp.startswith("test") or "/conftest" in _fp
+                        or _base.startswith("test_") or _base.endswith("_test.py") or _base == "conftest.py"):
+                    continue
+                defs.append((m.group(1), int(m.group(2)), m.group(3).strip()))
+
+        # Rank by keyword DENSITY over signature+BODY, not just the def line: the def signature is often
+        # multi-line (pylint-7080 `def _is_ignored_file(` puts ignore_list/ignore_list_paths_re on continuation
+        # lines), and the ROOT decision predicate's BODY is dense in the class vocabulary while unrelated
+        # same-shaped functions are not. Principled (not fit to any instance's known answer): density over the body.
+        _body_cache = {}
+        def _body(f, ln, n=40):
+            key = (f, ln)
+            if key not in _body_cache:
+                try:
+                    _body_cache[key] = "\n".join(open(os.path.join(workdir, f), errors="ignore").read().splitlines()[ln - 1:ln - 1 + n])
+                except Exception:
+                    _body_cache[key] = ""
+            return _body_cache[key]
+        def _score(d):
+            txt = (d[0] + " " + d[2] + " " + _body(d[0], d[1])).lower()
+            return sum(txt.count(k) for k in kws)
+        ranked = [d for d, s in sorted(((d, _score(d)) for d in defs), key=lambda x: -x[1]) if s > 0]
+        seen = set(); picked = []
+        for d in ranked:
+            if (d[0], d[1]) in seen:
+                continue
+            seen.add((d[0], d[1])); picked.append(d)
+            if len(picked) >= top_k:
+                break
+        if not picked:
+            return ""
+        chunks = []
+        for f, ln, sig in picked:
+            try:
+                body = "\n".join(open(os.path.join(workdir, f), errors="ignore").read().splitlines()[ln - 1:ln - 1 + read_lines])
+            except Exception:
+                body = sig
+            chunks.append(f"# {f}:{ln}\n{body}")
+        return ("\n\nPRE-FETCHED ROOT-CAUSE CANDIDATES (an atomic operator already navigated the decision-predicate "
+                "layer for you — these upstream functions DECIDE the behavior described in the task; for this bug "
+                "class the root fix is almost always a SMALL mutation INSIDE one of these bodies, not new code at the "
+                "symptom site. Read them, pick the one whose logic matches the failing behavior, and fix it there):\n\n"
+                + "\n\n".join(chunks))
+    except Exception:
+        return ""
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--workdir", required=True)
@@ -1266,6 +1348,16 @@ def main():
                 _wtxt = "\n".join(matched_weight_hints)
                 system += ("\n\nLEARNED RESOLUTION STRATEGIES (atomic weights — generalized operators captured from "
                            "PROVEN resolutions of this class; apply the matching one):\n" + _wtxt)
+                # CLASS-WEIGHT-EXECUTABLE-NAVIGATE: an executable ACT operator RUNS the navigation (model-agnostic,
+                # deterministic) and injects the pre-fetched root-cause bodies — the executable rung above falsified
+                # prose advice. Fires only for weights carrying an `executable` spec (additive; live prose weights
+                # unaffected → monotonic).
+                for _w in _matched[:5]:
+                    _exspec = _w.get("executable")
+                    if _exspec:
+                        _exinj = _execute_weight_operator(_exspec, workdir, _w.get("trigger", ""), task)
+                        if _exinj:
+                            system += _exinj
     except Exception:
         pass
     user = f"# Repository files\n{tree}\n\n# Your task\n{task}\n\nBegin. Use atomic tools only."
