@@ -1108,6 +1108,7 @@ def main():
     red_gate_fix_reason = ""
     red_gate_anchor_reads = 0  # CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: after a red gate, allow only a
     red_gate_anchor_read_keys = set()  # small number of fresh, unique repair anchors before the next edit.
+    red_gate_quick_checks = 0  # CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET: local quick_check is bounded per failed diff.
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -1122,6 +1123,7 @@ def main():
     EDIT_TEST_NAMES = {"atomic_replace", "atomic_create", "run_tests"}
     RED_FIX_NAMES = {"atomic_replace", "atomic_create", "quick_check", "run_tests"}
     RED_GATE_ANCHOR_READ_LIMIT = 3
+    RED_GATE_QUICK_CHECK_LIMIT = 1
     MINIMIZE_NAMES = {"atomic_replace", "run_tests"}
     GREEN_MINIMIZE_MAXSTEP_RESERVE = 3  # CLASS-GREEN-AT-MAXSTEP-NO-MINIMIZE: first green at max_steps still gets
     # a tiny post-green-only budget for GREEN-MINIMIZE. The reserve is inaccessible unless green minimization is
@@ -1290,10 +1292,11 @@ def main():
             allowed = {"run_tests"} if green_minimize_edits >= 1 else MINIMIZE_NAMES
             step_tools = [t for t in active_tools if t["function"]["name"] in allowed]
         elif red_gate_fix_required:
-            _red_allowed = RED_FIX_NAMES | (READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set())
+            _red_fix_allowed = RED_FIX_NAMES if red_gate_quick_checks < RED_GATE_QUICK_CHECK_LIMIT else (RED_FIX_NAMES - {"quick_check"})
+            _red_allowed = _red_fix_allowed | (READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set())
             step_tools = [t for t in active_tools if t["function"]["name"] in _red_allowed]
             metrics["transcript"].append(
-                f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/quick-check/test + bounded fresh-read repairs {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
+                f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/test + quick_check {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT} + bounded fresh-read repairs {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
         elif force_no_edit_commit:
             step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
             metrics["transcript"].append(f"s{step} NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)")
@@ -1571,6 +1574,20 @@ def main():
                     messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                     continue
 
+            if red_gate_fix_required and fn == "quick_check":
+                if red_gate_quick_checks >= RED_GATE_QUICK_CHECK_LIMIT:
+                    res = ("QUICK_CHECK DISABLED — the acceptance gate is already red for this diff "
+                           f"({red_gate_fix_reason}) and one local quick_check has already been used. "
+                           "Local snippets cannot override the red gate. Make one focused atomic_replace/atomic_create "
+                           "refinement first, then quick_check and run_tests.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} quick_check REFUSED (red-gate quickcheck budget)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
+                red_gate_quick_checks += 1
+                metrics["transcript"].append(
+                    f"s{step} quick_check ALLOWED (red-gate quickcheck {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT})")
+
             if red_gate_fix_required and fn not in RED_FIX_NAMES and not _red_gate_read_allowed:
                 res = ("TOOL DISABLED — the acceptance gate is red for the current diff "
                        f"({red_gate_fix_reason}). Do not read/search/retest stale bytes. "
@@ -1640,6 +1657,7 @@ def main():
                         red_gate_fix_reason = f"pass={np_} fail={nf_}"
                         red_gate_anchor_reads = 0
                         red_gate_anchor_read_keys.clear()
+                        red_gate_quick_checks = 0
                         _consec_red += 1
                         diagnostics = [
                             "[diagnose] The gate is red for your current non-empty diff. Do not read broadly or "
@@ -1872,6 +1890,7 @@ def main():
                         red_gate_fix_reason = ""
                         red_gate_anchor_reads = 0
                         red_gate_anchor_read_keys.clear()
+                        red_gate_quick_checks = 0
                         if green_minimize_active and fn == "atomic_replace":
                             green_minimize_edits += 1
                         # CLASS-EDIT-RECEIPT-BLIND: show the post-edit region so the model confirms by

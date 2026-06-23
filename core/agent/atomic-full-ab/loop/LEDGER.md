@@ -2333,3 +2333,10 @@ Next exact step: run R077 Atomic-only on `sympy__sympy-20438` against frozen `Ci
 - New class: `CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET`. Red-gate quick checks must be bounded to one per failed diff; repeated quick_check without a new edit is read-like paralysis and hid the need to repair.
 
 Next exact step: implement/prove the red-gate quick_check budget, then run R078 Atomic-only on the same task/snapshot against frozen `Cicero`.
+
+### Codex-paired track pointer update - 2026-06-23 seq594/seq595 red-gate repairs active
+- Sequence `594` is now confirmed in the archive for `CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE`; sequence `595` is confirmed for `CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET`.
+- Fresh verification passed: Python compile, `atomic-agent-green-minimize.proof.mjs --json`, and `git diff --check`.
+- Active red-gate policy now allows bounded unique fresh repair reads and only one quick_check per failed diff before requiring an edit.
+
+Next exact step: run R078 Atomic-only on frozen Level 4 `sympy__sympy-20438` against observed `Cicero`, then official-score and compare. Do not rerun native.

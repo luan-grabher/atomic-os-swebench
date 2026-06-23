@@ -561,6 +561,27 @@ record('CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: red gate permits only bounded 
     retestStillBlocked: source.includes('run_tests BLOCKED (red gate requires new edit)'),
     resets: (source.match(/red_gate_anchor_read_keys\.clear\(\)/g) || []).length,
   });
+record('CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET: under red gate, quick_check is allowed once per failed diff and then refused until an edit lands',
+  source.includes('CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET') &&
+  source.includes('red_gate_quick_checks = 0') &&
+  source.includes('RED_GATE_QUICK_CHECK_LIMIT = 1') &&
+  source.includes('RED_FIX_NAMES if red_gate_quick_checks < RED_GATE_QUICK_CHECK_LIMIT else (RED_FIX_NAMES - {"quick_check"})') &&
+  source.includes('if red_gate_fix_required and fn == "quick_check":') &&
+  source.includes('quick_check ALLOWED (red-gate quickcheck') &&
+  source.includes('quick_check REFUSED (red-gate quickcheck budget)') &&
+  source.includes('Local snippets cannot override the red gate') &&
+  (source.match(/red_gate_quick_checks = 0/g) || []).length >= 3,
+  {
+    marker: source.includes('CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET'),
+    state: source.includes('red_gate_quick_checks = 0'),
+    limit: source.includes('RED_GATE_QUICK_CHECK_LIMIT = 1'),
+    toolOffer: source.includes('RED_FIX_NAMES if red_gate_quick_checks < RED_GATE_QUICK_CHECK_LIMIT else (RED_FIX_NAMES - {"quick_check"})'),
+    dispatchGuard: source.includes('if red_gate_fix_required and fn == "quick_check":'),
+    allowTrace: source.includes('quick_check ALLOWED (red-gate quickcheck'),
+    refusalTrace: source.includes('quick_check REFUSED (red-gate quickcheck budget)'),
+    gatePrecedence: source.includes('Local snippets cannot override the red gate'),
+    resets: (source.match(/red_gate_quick_checks = 0/g) || []).length,
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
