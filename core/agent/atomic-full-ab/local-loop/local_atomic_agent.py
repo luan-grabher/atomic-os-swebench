@@ -982,7 +982,10 @@ def main():
                   "run_tests tool), BUT you CAN run short Python snippets with quick_check — USE IT to reproduce "
                   "the bug empirically (run the issue's repro snippet to SEE the real error) and to confirm your "
                   "fix, instead of simulating behavior by hand. Implement the fix carefully and completely, then "
-                  "STOP by replying with a short summary and NO tool call. Paths are relative to the repo root.")
+                  "STOP by replying with a short summary and NO tool call. Paths are relative to the repo root. "
+                  # CLASS-NO-TEST-FILE-EDITS (R077, generalist): edit source only; the grader supplies hidden tests.
+                  "Edit SOURCE files ONLY — NEVER modify test files (paths under a tests/ directory or matching "
+                  "test_*.py / *_test.py); the grader supplies the hidden test, so editing tests is wasted surface.")
     else:
         system = ("You are the Atomic-CLI coding agent. Solve the task by editing a real repository using "
                   "ONLY atomic tools, plus run_tests to verify. " + survey + lean + "Then run_tests; iterate until "
@@ -992,7 +995,13 @@ def main():
                   # 'test_ignore_path_recursive_current_dir' (a phantom) instead of fixing the code. Tell it.
                   "IMPORTANT: the acceptance test is HIDDEN (supplied by the grader) and is NOT in this checkout — "
                   "do NOT search for it by name or try to read it; you cannot. When run_tests is red, fix the "
-                  "SOURCE based on the issue and the failing assertion shown, not by hunting the test file.")
+                  "SOURCE based on the issue and the failing assertion shown, not by hunting the test file. "
+                  # CLASS-NO-TEST-FILE-EDITS (R077, generalist): pylint-4661 the model spent edits on
+                  # tests/lint/unittest_lint.py; the grader REPLACES local tests with its hidden test_patch, so a
+                  # test edit is wasted surface AND can make the local gate falsely green vs the official grader.
+                  "Edit SOURCE files ONLY — NEVER modify test files (paths under a tests/ directory or matching "
+                  "test_*.py / *_test.py); the grader overwrites them with its hidden test_patch, so test edits are "
+                  "wasted and make your local gate disagree with the official result.")
     # §8 CORPUS RETRIEVAL (aprendizado entre sessões): read the cross-session corpus and inject a generalist
     # experience hint. Generalist: structural patterns from past successes, not task-specific content.
     try:

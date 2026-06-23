@@ -2324,3 +2324,12 @@ Next exact step: promote bounded red-gate repair-anchor reads via `atomic_expand
 - Fresh verification passed: `py_compile`, `atomic-agent-green-minimize.proof.mjs --json`, and `git diff --check`.
 
 Next exact step: run R077 Atomic-only on `sympy__sympy-20438` against frozen `Cicero`, then official-score and compare. Do not rerun native.
+
+### Codex-paired track pointer update - 2026-06-23 R077 official red; repair-anchor class worked, quick_check budget gap
+- Active Level 4 frozen task remains SWE-Bench Verified `sympy__sympy-20438`, base `33b47e4bd60e2302e42616141e76285038b724d6`; frozen native baseline remains observed `Cicero`.
+- R077 Atomic official result: patch applied, `completed=1`, `resolved=0`, F2P `0/2`, P2P `93/93`, `empty_patch=0`, `errors=0`; summary `atomic-gateon-R077.sympy20438_R077_atomic_gateON_x86_forced.json`.
+- R077 local metrics: `steps=80`, `edits=4`, `reads=42`, `body_reads=28`, `run_tests=3`, `quick_check=28`, `tokens=1,180,789`, `wall=1462.8s`.
+- The bounded red-gate repair-anchor class was exercised: fresh repair anchors were allowed and stale/exhausted ones refused, so the R076 total read starvation is fixed.
+- New class: `CLASS-RED-GATE-QUICKCHECK-REPAIR-BUDGET`. Red-gate quick checks must be bounded to one per failed diff; repeated quick_check without a new edit is read-like paralysis and hid the need to repair.
+
+Next exact step: implement/prove the red-gate quick_check budget, then run R078 Atomic-only on the same task/snapshot against frozen `Cicero`.
