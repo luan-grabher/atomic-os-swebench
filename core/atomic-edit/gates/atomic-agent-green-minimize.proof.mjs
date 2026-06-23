@@ -727,6 +727,39 @@ record('CLASS-RED-BEST-CANDIDATE-BASELINE-GAIN: best-red restore only preserves 
     finalGuard: source.includes('best_red_score[0] >= baseline_fail_floor'),
     finalSkipTrace: source.includes('RED-BEST-CANDIDATE: skipped non-improving best red diff'),
   });
+record('CLASS-NONIMPROVING-RED-RESTORE-CLEAN: non-improving red churn restores the clean baseline before receipt export instead of preserving latest dirty diff',
+  source.includes('CLASS-NONIMPROVING-RED-RESTORE-CLEAN') &&
+  source.includes('def _restore_clean_nonimproving_red(reason):') &&
+  source.includes('RED-BEST-CANDIDATE: skipped semantic-empty best red diff; restored clean baseline') &&
+  source.includes('RED-BEST-CANDIDATE: skipped non-improving best red diff') &&
+  source.includes('RED-BEST-CANDIDATE: no gate-tested red candidate improved the known fail floor; restored clean baseline') &&
+  source.includes('no improving red diff exists') &&
+  source.includes('elif not final_pass and baseline_fail_floor is not None and git_diff(workdir).strip():') &&
+  !source.includes('keeping latest red diff'),
+  {
+    marker: source.includes('CLASS-NONIMPROVING-RED-RESTORE-CLEAN'),
+    helper: source.includes('def _restore_clean_nonimproving_red(reason):'),
+    semanticEmptyClean: source.includes('RED-BEST-CANDIDATE: skipped semantic-empty best red diff; restored clean baseline'),
+    nonImprovingClean: source.includes('RED-BEST-CANDIDATE: skipped non-improving best red diff') && source.includes('restored clean baseline'),
+    noCandidateClean: source.includes('RED-BEST-CANDIDATE: no gate-tested red candidate improved the known fail floor; restored clean baseline'),
+    cleanTrace: source.includes('no improving red diff exists'),
+    dirtyFallbackRemoved: !source.includes('keeping latest red diff'),
+  });
+record('CLASS-POST-EDIT-EMPTY-DIFF-UNLOCK: stale post-edit gate latches clear when the working tree has no pending diff',
+  source.includes('CLASS-POST-EDIT-EMPTY-DIFF-UNLOCK') &&
+  source.includes('POST-EDIT-GATE empty-diff unlock') &&
+  source.includes('no pending bytes; edit/test tools restored') &&
+  source.includes('if not git_diff(workdir).strip():') &&
+  source.includes('step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]') &&
+  source.includes('POST-EDIT-GATE cleared because') &&
+  source.includes('no pending bytes exist to validate'),
+  {
+    marker: source.includes('CLASS-POST-EDIT-EMPTY-DIFF-UNLOCK'),
+    routerUnlock: source.includes('POST-EDIT-GATE empty-diff unlock') && source.includes('edit/test tools restored'),
+    cleanDiffGuard: source.includes('if not git_diff(workdir).strip():'),
+    editToolsRestored: source.includes('step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]'),
+    runTestsLatchClear: source.includes('POST-EDIT-GATE cleared because') && source.includes('no pending bytes exist to validate'),
+  });
 record('CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP: timed-out atomic-call subprocesses run in their own session and terminate the whole process group',
   source.includes('CLASS-ATOMIC-CALL-TIMEOUT-KILLS-PROCESS-GROUP') &&
   source.includes('subprocess.Popen(') &&

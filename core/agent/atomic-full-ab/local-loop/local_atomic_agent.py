@@ -1498,10 +1498,23 @@ def main():
             metrics["transcript"].append(
                 f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/test + quick_check {red_gate_quick_checks}/{RED_GATE_QUICK_CHECK_LIMIT} + bounded fresh-read repairs {red_gate_anchor_reads}/{_red_read_limit}{_target_note})")
         elif post_edit_gate_required and not NO_GATE:
-            _post_edit_allowed = {"run_tests"} if post_edit_quick_checks >= POST_EDIT_QUICK_CHECK_LIMIT else POST_EDIT_GATE_NAMES
-            step_tools = [t for t in active_tools if t["function"]["name"] in _post_edit_allowed]
-            metrics["transcript"].append(
-                f"s{step} POST-EDIT-GATE tools withheld (run_tests required; quick_check {post_edit_quick_checks}/{POST_EDIT_QUICK_CHECK_LIMIT})")
+            # CLASS-POST-EDIT-EMPTY-DIFF-UNLOCK: a post-edit gate latch is stale once the tree is clean.
+            # There are no pending bytes to validate; exposing only run_tests deadlocks the agent because
+            # run_tests on an empty diff correctly asks for an edit first. Restore edit/test tools instead.
+            if not git_diff(workdir).strip():
+                post_edit_gate_required = False
+                post_edit_quick_checks = 0
+                step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
+                metrics["transcript"].append(
+                    f"s{step} POST-EDIT-GATE empty-diff unlock (no pending bytes; edit/test tools restored)")
+                messages.append({"role": "user", "content": (
+                    "The working tree is clean, so the stale post-edit gate latch was cleared. "
+                    "Make an atomic edit first; call run_tests only after bytes change.")})
+            else:
+                _post_edit_allowed = {"run_tests"} if post_edit_quick_checks >= POST_EDIT_QUICK_CHECK_LIMIT else POST_EDIT_GATE_NAMES
+                step_tools = [t for t in active_tools if t["function"]["name"] in _post_edit_allowed]
+                metrics["transcript"].append(
+                    f"s{step} POST-EDIT-GATE tools withheld (run_tests required; quick_check {post_edit_quick_checks}/{POST_EDIT_QUICK_CHECK_LIMIT})")
         elif force_no_edit_commit:
             step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
             metrics["transcript"].append(f"s{step} NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)")
@@ -1878,8 +1891,14 @@ def main():
                     continue
                 d_before = git_diff(workdir)
                 if not d_before.strip():
-                    res = ("Working tree is unmodified (empty diff). run_tests only verifies; the target "
-                           "still fails. Make your atomic edit FIRST, then run_tests.")
+                    if post_edit_gate_required:
+                        post_edit_gate_required = False
+                        post_edit_quick_checks = 0
+                        res = ("Working tree is unmodified (empty diff). POST-EDIT-GATE cleared because "
+                               "no pending bytes exist to validate. Make your atomic edit FIRST, then run_tests.")
+                    else:
+                        res = ("Working tree is unmodified (empty diff). run_tests only verifies; the target "
+                               "still fails. Make your atomic edit FIRST, then run_tests.")
                 else:
                     last_pass, gate_out, (np_, nf_) = run_gate(workdir, args.gate)
                     post_edit_gate_required = False
@@ -2376,13 +2395,24 @@ def main():
         # CLASS-RED-BEST-CANDIDATE-RESTORE: if no green was ever proven, still emit the best
         # gate-tested red candidate instead of the latest repair churn. This never turns red green;
         # it only improves the evidence patch surface for official scoring and diagnosis.
+        # CLASS-NONIMPROVING-RED-RESTORE-CLEAN: if the best red candidate is empty or does not
+        # strictly improve the known failure floor, restore the clean baseline before receipt export.
+        # A red non-improving diff is negative evidence; preserving it can regress official P2P.
+        def _restore_clean_nonimproving_red(reason):
+            try:
+                subprocess.run(["git", "checkout", "--", "."], cwd=workdir, capture_output=True)
+                subprocess.run(["git", "clean", "-fdq"], cwd=workdir, capture_output=True)
+                metrics["transcript"].append(f"{reason}; no improving red diff exists")
+            except Exception as _e:
+                metrics["transcript"].append(f"RED-BEST-CANDIDATE clean-restore error: {str(_e)[:120]}")
+
         if not final_pass and best_red_diff and best_red_diff.strip():
             if semantic_diff_lines(best_red_diff) == 0:
-                metrics["transcript"].append(
-                    "RED-BEST-CANDIDATE: skipped semantic-empty best red diff; keeping latest red diff")
+                _restore_clean_nonimproving_red(
+                    "RED-BEST-CANDIDATE: skipped semantic-empty best red diff; restored clean baseline")
             elif baseline_fail_floor is not None and best_red_score and best_red_score[0] >= baseline_fail_floor:
-                metrics["transcript"].append(
-                    f"RED-BEST-CANDIDATE: skipped non-improving best red diff (fail={best_red_score[0]}, floor={baseline_fail_floor}); keeping latest red diff")
+                _restore_clean_nonimproving_red(
+                    f"RED-BEST-CANDIDATE: skipped non-improving best red diff (fail={best_red_score[0]}, floor={baseline_fail_floor}); restored clean baseline")
             else:
                 try:
                     subprocess.run(["git", "checkout", "--", "."], cwd=workdir, capture_output=True)
@@ -2394,9 +2424,13 @@ def main():
                         metrics["transcript"].append(
                             f"RED-BEST-CANDIDATE: restored best red diff (fail={_best_fail}, diff_lines={_best_lines}); final remains RED")
                     else:
-                        metrics["transcript"].append("RED-BEST-CANDIDATE: restore failed; keeping latest red diff")
+                        _restore_clean_nonimproving_red(
+                            "RED-BEST-CANDIDATE: restore failed; restored clean baseline")
                 except Exception as _e:
                     metrics["transcript"].append(f"RED-BEST-CANDIDATE restore error: {str(_e)[:120]}")
+        elif not final_pass and baseline_fail_floor is not None and git_diff(workdir).strip():
+            _restore_clean_nonimproving_red(
+                "RED-BEST-CANDIDATE: no gate-tested red candidate improved the known fail floor; restored clean baseline")
         metrics["gate_pass"] = final_pass
     d = git_diff(workdir)
     metrics["diff_lines"] = diff_lines(d)

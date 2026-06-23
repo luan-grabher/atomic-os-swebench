@@ -1,0 +1,50 @@
+diff --git a/sympy/core/relational.py b/sympy/core/relational.py
+index e2e0b7fbcc..d61a0322c2 100644
+--- a/sympy/core/relational.py
++++ b/sympy/core/relational.py
+@@ -311,8 +311,14 @@ def _eval_simplify(self, **kwargs):
+             v = None
+             if dif.is_comparable:
+                 v = dif.n(2)
+-            elif dif.equals(0):  # XXX this is expensive
++            elif dif is S.EmptySet:
+                 v = S.Zero
++            else:
++                try:
++                    if dif.equals(0):  # XXX this is expensive
++                        v = S.Zero
++                except AttributeError:
++                    pass
+             if v is not None:
+                 r = r.func._eval_relation(v, S.Zero)
+             r = r.canonical
+diff --git a/sympy/sets/sets.py b/sympy/sets/sets.py
+index 3c4aa86e36..68855f2d6d 100644
+--- a/sympy/sets/sets.py
++++ b/sympy/sets/sets.py
+@@ -835,6 +835,11 @@ def is_iterable(self):
+         """
+         return all(set.is_iterable for set in self.sets)
+ 
++    def _eval_is_subset(self, other):
++        from sympy.sets.sets import FiniteSet
++        if isinstance(other, FiniteSet):
++            return fuzzy_and(elem in other for elem in self)
++
+     def __iter__(self):
+         """
+         A method which implements is_iterable property method.
+diff --git a/sympy/solvers/solveset.py b/sympy/solvers/solveset.py
+index aae7b963ae..6c8b251165 100644
+--- a/sympy/solvers/solveset.py
++++ b/sympy/solvers/solveset.py
+@@ -2305,6 +2305,9 @@ def linear_coeffs(eq, *syms, **_kw):
+     """
+     d = defaultdict(list)
+     eq = _sympify(eq)
++    from sympy.sets.sets import Set
++    if isinstance(eq, Set):
++        raise TypeError('cannot compute linear coefficients of a Set')
+     symset = set(syms)
+     has = eq.free_symbols & symset
+     if not has:
