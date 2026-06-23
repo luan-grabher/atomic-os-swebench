@@ -1,0 +1,13 @@
+=============================== warnings summary ===============================
+../opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    import pkg_resources
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_self.py::TestRunTC::test_ignore_path_recursive_current_dir
+FAILED tests/test_self.py::TestCallbackOptions::test_generate_toml_config - a...
+FAILED tests/test_self.py::TestCallbackOptions::test_generate_toml_config_disable_symbolic_names
+3 failed, 121 passed, 1 xfailed, 1 warning in 78.86s (0:01:18)
+# tests 1
+# pass 121
+# fail 3

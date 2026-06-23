@@ -7,7 +7,7 @@
       "type": "local",
       "command": [
         "bash",
-        "/Users/danielpenin/kloel/scripts/mcp/atomic-edit-mcp-launcher.sh"
+        "/Users/danielpenin/atomic-os-swebench/core/atomic-edit-mcp-launcher.sh"
       ],
       "enabled": true
     }

@@ -92,6 +92,22 @@ async function main() {
     detail: absent,
   });
 
+  const absentFileRoot = path.join(atomicDir, `absent-file-broker-${process.pid}`);
+  fs.rmSync(absentFileRoot, { recursive: true, force: true });
+  const absentFile = callBroker(
+    { command: 'echo hi', cwd: fixture, effectRoot: fixture, timeoutMs: 10 },
+    'file://' + absentFileRoot,
+  );
+  results.push({
+    name: 'file client fail-fast when broker marker and queues are absent',
+    ok:
+      absentFile.ok === false &&
+      absentFile.brokerUnreachable === true &&
+      /broker file endpoint unavailable/i.test(String(absentFile.error || '')) &&
+      !fs.existsSync(path.join(absentFileRoot, 'requests')),
+    detail: absentFile,
+  });
+
   const child = spawn('node', [broker, sock], {
     env: { ...process.env, ATOMIC_EXEC_BROKER_ROOT: repoRoot },
     stdio: ['ignore', 'pipe', 'pipe'],

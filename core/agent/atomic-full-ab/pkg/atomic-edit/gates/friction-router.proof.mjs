@@ -27,7 +27,7 @@ const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));            // gates/
 const root = path.join(dir, '..');                                  // scripts/mcp/atomic-edit
 const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT ?? path.resolve(root, '..', '..', '..');
-const FR = await import(path.join(root, '..', 'atomic-edit-evolution', 'friction-router.mjs'));
+const FR = await import(path.join(root, 'friction-router.mjs'));
 const { buildFrictionLedger, frictionFor, trustTier, TIER, routeTask, routeBatch, verifyPheromone, pheromoneDigest, ingestCorpus } = FR;
 
 let pass = 0, fail = 0;

@@ -1,0 +1,13 @@
+diff --git a/sympy/core/assumptions.py b/sympy/core/assumptions.py
+index ce4dd30f2e..3acf43df77 100644
+--- a/sympy/core/assumptions.py
++++ b/sympy/core/assumptions.py
+@@ -185,6 +185,8 @@
+     'nonpositive    ==  real & !positive',
+     'nonnegative    ==  real & !negative',
+ 
++    'rational       ->  finite',
++
+     'zero           ->  even & finite',
+ 
+     'prime          ->  integer & positive',

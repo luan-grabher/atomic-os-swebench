@@ -25,7 +25,7 @@ function read(rel) {
 
 function sourceAssertions() {
   const agent = read('core/atomic-edit/server-tools-agent.ts');
-  const surface = read('core/atomic-edit-evolution/opencode-tool-surface-harness.mjs');
+  const surface = read('core/atomic-edit/opencode-tool-surface-harness.mjs');
   return {
     atomicAgentPlanAdvertisesTodowriteReplacement:
       agent.includes('Use this atomic planning/progress receipt instead of native todowrite'),

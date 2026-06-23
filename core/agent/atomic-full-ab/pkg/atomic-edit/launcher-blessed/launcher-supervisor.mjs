@@ -22,10 +22,22 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SRC_DIR = path.dirname(fileURLToPath(import.meta.url)); // flattened package dir
-// Flattened package layout: bootstrap + impl are SIBLINGS of this supervisor
-// (same dir), and the package dir IS the self-contained repo root.
+
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
+// Flattened package layout: bootstrap + impl are SIBLINGS of this supervisor.
+// The action root is the enclosing git repo when present, with a self-contained
+// fallback for packaged installs.
 const SCRIPTS_MCP_DIR = SRC_DIR;
-const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || SRC_DIR;
+const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || findRepoRoot(SRC_DIR);
 const BOOTSTRAP_PATH = path.join(SCRIPTS_MCP_DIR, 'atomic-edit-mcp-launcher.sh');
 const IMPL_PATH = path.join(SCRIPTS_MCP_DIR, 'atomic-edit-mcp-launcher-impl.sh');
 const SUPERVISOR_PATH = path.join(SRC_DIR, 'launcher-supervisor.mjs');

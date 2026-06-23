@@ -39,26 +39,45 @@ try {
   {
     const brk = path.join(work, 'brk');
     const ownerFile = path.join(work, 'owner.mjs');
+    const brokerEnv = {
+      ...process.env,
+      ATOMIC_EXEC_BROKER_ROOT: work,
+      ATOMIC_EXEC_BROKER_SOCKET: '',
+      ATOMIC_HOST_SANDBOX: '',
+      ATOMIC_HOST_ATOMIC_ONLY: '',
+      ATOMIC_ALLOW_NESTED_PROOF_BROKER: '',
+      ATOMIC_HOST_WRITE_ROOT: work,
+      CODEX_PROJECT_DIR: work,
+    };
     fs.writeFileSync(ownerFile, [
       "import * as cp from 'node:child_process';",
-      `const b = cp.spawn(process.execPath, [${JSON.stringify(brokerPath)}, ${JSON.stringify('file://' + brk)}],`,
-      `  { stdio: ['ignore','pipe','pipe'], env: { ...process.env, ATOMIC_EXEC_BROKER_ROOT: ${JSON.stringify(work)} } });`,
-      "let seen=false; const e=(s)=>{ if(!seen && String(s).includes('ATOMIC_BROKER_READY')){ seen=true; process.stdout.write('BROKER_PID='+b.pid+'\\n'); } };",
+      "const brokerArgs = " + JSON.stringify([brokerPath, 'file://' + brk]) + ";",
+      "const brokerEnv = { ...process.env, ATOMIC_EXEC_BROKER_ROOT: " + JSON.stringify(work) + ", ATOMIC_EXEC_BROKER_SOCKET: '', ATOMIC_HOST_SANDBOX: '', ATOMIC_HOST_ATOMIC_ONLY: '', ATOMIC_ALLOW_NESTED_PROOF_BROKER: '', ATOMIC_HOST_WRITE_ROOT: " + JSON.stringify(work) + ", CODEX_PROJECT_DIR: " + JSON.stringify(work) + " };",
+      "const b = cp.spawn(process.execPath, brokerArgs, { stdio: ['ignore','pipe','pipe'], env: brokerEnv });",
+      "let seen=false; const e=(s)=>{ if(!seen && String(s).includes('ATOMIC_BROKER_READY')){ seen=true; console.log('BROKER_PID='+b.pid); } };",
       "b.stdout.on('data', e); b.stderr.on('data', e); setInterval(() => {}, 1e9);",
     ].join('\n'));
-    const owner = spawn('node', [ownerFile], { stdio: ['ignore', 'pipe', 'ignore'], env: { ...process.env, ATOMIC_EXEC_BROKER_ROOT: work } });
+    const owner = spawn('node', [ownerFile], { stdio: ['ignore', 'pipe', 'ignore'], env: brokerEnv });
     let oo = '';
     const brokerPid = await new Promise((res) => {
       owner.stdout.on('data', (d) => { oo += d.toString(); const m = oo.match(/BROKER_PID=(\d+)/); if (m) res(m[1]); });
-      setTimeout(() => res((oo.match(/BROKER_PID=(\d+)/) || [])[1] || null), 8000);
+      setTimeout(() => res((oo.match(/BROKER_PID=(\d+)/) || [])[1] || null), 20000);
     });
-    const endpointUpBefore = fs.existsSync(path.join(brk, 'broker.json'));
+    let endpointUpBefore = false;
+    for (let i = 0; i < 20 && !(endpointUpBefore = fs.existsSync(path.join(brk, 'broker.json'))); i += 1) await sleep(500);
     try { owner.kill('SIGKILL'); } catch { /* */ }
+    let ownerGone = false;
     let endpointGone = false;
-    for (let i = 0; i < 16 && !(endpointGone = !fs.existsSync(path.join(brk, 'broker.json'))); i += 1) await sleep(500);
-    if (brokerPid && alive(brokerPid)) { try { process.kill(Number(brokerPid), 'SIGKILL'); } catch { /* */ } }
+    for (let i = 0; i < 50; i += 1) {
+      ownerGone = !alive(owner.pid);
+      endpointGone = !fs.existsSync(path.join(brk, 'broker.json'));
+      if (ownerGone && endpointGone) break;
+      await sleep(500);
+    }
+    const brokerAliveAfterWait = brokerPid ? alive(brokerPid) : false;
+    if (brokerPid && brokerAliveAfterWait) { try { process.kill(Number(brokerPid), 'SIGKILL'); } catch { /* */ } }
     check('FD1: the real broker was live (endpoint published) then reaped its endpoint on abnormal owner death',
-      endpointUpBefore && endpointGone, { brokerPid: brokerPid ?? null, endpointUpBefore, endpointGoneAfterReap: endpointGone });
+      endpointUpBefore && endpointGone, { ownerPid: owner.pid ?? null, ownerGone, brokerPid: brokerPid ?? null, endpointUpBefore, endpointGoneAfterReap: endpointGone, brokerAliveAfterWait });
   }
 
   // ── FD2: DISCRIMINATING — a reaper-less endpoint-holder leaks its endpoint ──────

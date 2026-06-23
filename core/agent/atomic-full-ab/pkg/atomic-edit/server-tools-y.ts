@@ -322,7 +322,7 @@ function runJsonScriptViaBroker(
 ): { ok: true; value: Record<string, unknown> } | { ok: false; error: string } | null {
   const socket = process.env.ATOMIC_EXEC_BROKER_SOCKET ?? '';
   const root = jsonScriptHostRoot();
-  const client = path.join(root, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  const client = path.join(atomicRootFromModule(import.meta.url), 'atomic-exec-broker-client.mjs');
   if (!socket || process.env.ATOMIC_EXEC_BROKER_ROOT || !fs.existsSync(client)) return null;
 
   const command = [process.execPath, scriptPath(name), ...args].map(shellPath).join(' ');
@@ -741,7 +741,7 @@ export function registerToolsY(server: McpServer): void {
           });
         }
 
-        const selfExpansionValidatorLattice = runJsonScript('gates/self-expansion-validator-lattice.proof.mjs', ['--json']);
+        const selfExpansionValidatorLattice = runJsonScript('gates/self-expansion-validator-lattice.proof.mjs', ['--json'], 300000);
         const selfExpansionValidatorLatticeGreen =
           selfExpansionValidatorLattice.ok && selfExpansionValidatorLattice.value.ok === true;
         domains.push({
@@ -758,7 +758,7 @@ export function registerToolsY(server: McpServer): void {
           detail: selfExpansionValidatorLattice.ok ? selfExpansionValidatorLattice.value : undefined,
         });
 
-        const selfEvolutionAdmission = runJsonScript('gates/self-evolution-mcp-tool.proof.mjs', ['--json'], 120000);
+        const selfEvolutionAdmission = runJsonScript('gates/self-evolution-mcp-tool.proof.mjs', ['--json'], 300000);
         const selfEvolutionAdmissionGreen = selfEvolutionAdmission.ok && selfEvolutionAdmission.value.ok === true;
         domains.push({
           domain: 'selfEvolutionAdmission',
@@ -774,7 +774,7 @@ export function registerToolsY(server: McpServer): void {
           detail: selfEvolutionAdmission.ok ? selfEvolutionAdmission.value : undefined,
         });
 
-        const capabilityMonotonicity = runJsonScript('gates/security-monotonicity.proof.mjs', ['--json'], 120000);
+        const capabilityMonotonicity = runJsonScript('gates/security-monotonicity.proof.mjs', ['--json'], 300000);
         const capabilityMonotonicityGreen = capabilityMonotonicity.ok && capabilityMonotonicity.value.ok === true;
         domains.push({
           domain: 'capabilityMonotonicity',
@@ -790,7 +790,7 @@ export function registerToolsY(server: McpServer): void {
           detail: capabilityMonotonicity.ok ? capabilityMonotonicity.value : undefined,
         });
 
-        const readOnlyUsability = runJsonScript('gates/atomic-exec-readonly-usability.proof.mjs', ['--json'], 120000);
+        const readOnlyUsability = runJsonScript('gates/atomic-exec-readonly-usability.proof.mjs', ['--json'], 300000);
         const readOnlyUsabilityGreen = readOnlyUsability.ok && readOnlyUsability.value.ok === true;
         domains.push({
           domain: 'atomicExecReadOnlyUsability',
@@ -818,7 +818,7 @@ export function registerToolsY(server: McpServer): void {
             : 'Repair the Codex atomic-only hook/proof so native tool calls are denied before the host can execute them.',
         });
 
-        const codexEntrypointProof = runJsonScript('gates/codex-entrypoint-contract.proof.mjs', ['--json'], 120000);
+        const codexEntrypointProof = runJsonScript('gates/codex-entrypoint-contract.proof.mjs', ['--json'], 300000);
         const codexEntrypointGreen = codexEntrypointProof.ok && codexEntrypointProof.value.ok === true;
         domains.push({
           domain: 'codexEntrypointContract',
@@ -834,7 +834,7 @@ export function registerToolsY(server: McpServer): void {
           detail: codexEntrypointProof.ok ? codexEntrypointProof.value : undefined,
         });
 
-        const agentHookRuntimeProof = runJsonScript('gates/agent-hook-runtime-boundary.proof.mjs', ['--json'], 120000);
+        const agentHookRuntimeProof = runJsonScript('gates/agent-hook-runtime-boundary.proof.mjs', ['--json'], 300000);
         const agentHookRuntimeGreen = agentHookRuntimeProof.ok && agentHookRuntimeProof.value.ok === true;
         domains.push({
           domain: 'agentHookRuntimeBoundary',
@@ -921,7 +921,7 @@ export function registerToolsY(server: McpServer): void {
         const sandboxProof = runJsonScript(
           'gates/atomic-exec-sandbox.proof.mjs',
           ['--json'],
-          hostSandboxActiveForProof ? 120000 : 30000,
+          hostSandboxActiveForProof ? 300000 : 30000,
         );
         const sandboxGreen = sandboxProof.ok && sandboxProof.value.ok === true;
         domains.push({

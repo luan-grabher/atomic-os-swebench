@@ -40,10 +40,21 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
+
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
 const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT
   ? path.resolve(process.env.ATOMIC_EDIT_REPO_ROOT)
-  : path.resolve(HERE, '../../..');
-const SELF_DIR = path.join(REPO_ROOT, 'scripts/mcp/atomic-edit');
+  : findRepoRoot(HERE);
+const SELF_DIR = HERE;
 const sha256 = (s) => crypto.createHash('sha256').update(s, 'utf8').digest('hex');
 
 function fail(msg, extra) {

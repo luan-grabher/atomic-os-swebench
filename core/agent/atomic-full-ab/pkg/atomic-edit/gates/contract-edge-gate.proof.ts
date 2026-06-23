@@ -37,11 +37,7 @@ const HERE = path.dirname(fileURLToPath(import.meta.url));
 function findRepoRoot(start: string): string {
   let dir = start;
   for (;;) {
-    if (
-      fs.existsSync(path.join(dir, 'backend/src')) &&
-      fs.existsSync(path.join(dir, 'frontend/src')) &&
-      fs.existsSync(path.join(dir, 'scripts/mcp/atomic-edit'))
-    ) {
+    if (fs.existsSync(path.join(dir, '.git')) || fs.existsSync(path.join(dir, 'core/atomic-edit'))) {
       return dir;
     }
     const parent = path.dirname(dir);
@@ -50,6 +46,10 @@ function findRepoRoot(start: string): string {
     }
     dir = parent;
   }
+}
+
+function contractEdgeInputsAvailable(root: string): boolean {
+  return fs.existsSync(path.join(root, 'backend/src')) && fs.existsSync(path.join(root, 'frontend/src'));
 }
 
 const repoRoot = findRepoRoot(HERE);
@@ -61,6 +61,11 @@ const check = (label: string, cond: boolean): void => {
 };
 
 async function main(): Promise<void> {
+  if (!contractEdgeInputsAvailable(repoRoot)) {
+    console.log('\nPROOF SKIP — contract-edge inputs absent in this repo (backend/src + frontend/src not present)');
+    return;
+  }
+
   /* ───────────────────────── RED case ───────────────────────── */
   // Brand-new consumer file with a dangling HTTP call + a dangling @OnEvent listener.
   const redRel = 'frontend/src/lib/api/__contract_edge_red__.ts';

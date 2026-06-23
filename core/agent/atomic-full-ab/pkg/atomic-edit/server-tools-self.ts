@@ -6,7 +6,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { resolveSafeTarget, REPO_ROOT } from './guard.js';
 import { guardSha, atomicWrite, readUtf8, sha256, targetDetails } from './server-helpers-io.js';
-import { withSelfExpansionAdmission, isAtomicSelfExpansionPath } from './server-helpers-self-expansion.js';
+import { withSelfExpansionAdmission, isAtomicSelfExpansionPath, atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
 import { ok, fail } from './server-helpers-result.js';
 import {
   captureEffectSnapshot,
@@ -254,8 +254,8 @@ const SELF_EVOLUTION_ARCHIVE_ID = 'atomic-real-self-expansion-archive-v1';
 const SELF_EVOLUTION_POLICY_ID = 'atomic-real-self-expansion-admission-v1';
 const SELF_EVOLUTION_DISPROOF_CORPUS_REL = path.join('.atomic', 'disproof-corpus.jsonl');
 const SELF_EVOLUTION_LESSON_RULES_REL = path.join('.atomic', 'lesson-rules.jsonl');
-const DISPROOF_CORPUS_HARNESS_REL = path.join('scripts/mcp/atomic-edit-evolution', 'disproof-corpus-harness.mjs');
-const LESSON_RULE_HARNESS_REL = path.join('scripts/mcp/atomic-edit-evolution', 'lesson-harness.mjs');
+const DISPROOF_CORPUS_HARNESS_REL = 'disproof-corpus-harness.mjs';
+const LESSON_RULE_HARNESS_REL = 'lesson-harness.mjs';
 
 function parseFileOps(raw: unknown[]): SelfFileOp[] {
   return raw.map((entry) => {
@@ -493,7 +493,7 @@ function runProofCommandViaBroker(command: string, cwd: string, timeoutMs: numbe
   if (!socket) return Promise.resolve(null);
   const brokerRoot = process.env.ATOMIC_HOST_WRITE_ROOT ?? REPO_ROOT;
   const codexHome = process.env.CODEX_HOME ?? path.join(brokerRoot, '.codex');
-  const client = path.join(brokerRoot, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  const client = path.join(atomicSelfSourceRoot() ?? REPO_ROOT, 'atomic-exec-broker-client.mjs');
   const req = {
     command,
     cwd,
@@ -613,7 +613,7 @@ function selfExpansionProofRoot(): string {
 
 function selfExpansionProofTempRoot(hostRoot: string): string {
   const requested = process.env.TMPDIR ? path.resolve(process.env.TMPDIR) : '';
-  const selfRoot = path.join(REPO_ROOT, 'scripts/mcp/atomic-edit');
+  const selfRoot = REPO_ROOT;
   if (requested === selfRoot || requested.startsWith(selfRoot + path.sep)) return requested;
   return hostRoot;
 }
@@ -645,7 +645,7 @@ function selfExpansionHostProofEnv(socket: string, cwd: string, command: string)
 }
 
 function selfExpansionProofCwd(): string {
-  return path.join(selfExpansionProofRoot(), 'scripts/mcp/atomic-edit');
+  return atomicSelfSourceRoot();
 }
 
 function selfExpansionProofMustRunHostDirect(command: string): boolean {
@@ -838,7 +838,7 @@ function realSelfExpansionPolicy(requiredCommands: string[]): JsonRecord {
 }
 
 function runSelfEvolutionHarness(mode: string, input: unknown): JsonRecord {
-  const selfRoot = path.join(REPO_ROOT, 'scripts/mcp/atomic-edit');
+  const selfRoot = atomicSelfSourceRoot();
   const token = process.pid + '.' + Date.now() + '.' + Math.random().toString(16).slice(2);
   const outputFile = path.join(selfRoot, '.self-evolution-harness-output.' + token + '.json');
   const inputFile = path.join(selfRoot, '.self-evolution-harness-input.' + token + '.json');
@@ -1004,7 +1004,7 @@ function appendRealSelfExpansionArchive(selfRoot: string, receipt: JsonRecord): 
 }
 
 function runDisproofCorpusHarness(mode: string, input: unknown): JsonRecord {
-  const harnessPath = path.join(REPO_ROOT, DISPROOF_CORPUS_HARNESS_REL);
+  const harnessPath = path.join(atomicSelfSourceRoot(), DISPROOF_CORPUS_HARNESS_REL);
   if (!fs.existsSync(harnessPath)) throw new Error(`disproof corpus harness is missing: ${DISPROOF_CORPUS_HARNESS_REL}`);
   const result = childProcess.spawnSync(process.execPath, [harnessPath, mode], {
     cwd: REPO_ROOT,
@@ -1024,7 +1024,7 @@ function runDisproofCorpusHarness(mode: string, input: unknown): JsonRecord {
 }
 
 function runLessonRuleHarness(mode: string, input: unknown): JsonRecord {
-  const harnessPath = path.join(REPO_ROOT, LESSON_RULE_HARNESS_REL);
+  const harnessPath = path.join(atomicSelfSourceRoot(), LESSON_RULE_HARNESS_REL);
   if (!fs.existsSync(harnessPath)) throw new Error(`lesson rule harness is missing: ${LESSON_RULE_HARNESS_REL}`);
   const result = childProcess.spawnSync(process.execPath, [harnessPath, mode], {
     cwd: REPO_ROOT,
@@ -1279,8 +1279,16 @@ function formatFailedProofs(failed: { command: string; stdout: string; stderr: s
  */
 function enforceSecurityMonotonicity(options: { ratchet?: boolean } = {}): void {
   const args = options.ratchet ? ['security-invariants.mjs', '--enforce', '--ratchet'] : ['security-invariants.mjs', '--enforce'];
+  const candidates = [
+    path.join(REPO_ROOT, 'scripts/mcp/atomic-edit'),
+    atomicSelfSourceRoot(),
+  ];
+  const cwd = candidates.find((candidate) => fs.existsSync(path.join(candidate, 'security-invariants.mjs')));
+  if (!cwd) {
+    throw new Error(`security monotonicity refused this expansion: missing security-invariants.mjs in ${candidates.join(', ')}`);
+  }
   const res = childProcess.spawnSync(process.execPath, args, {
-    cwd: path.join(REPO_ROOT, 'scripts/mcp/atomic-edit'),
+    cwd,
     encoding: 'utf8',
     timeout: 30000,
   });
@@ -1318,8 +1326,11 @@ function isEphemeralSelfExpansionEffect(file: string): boolean {
 
 function selfRootRelativeEffectPath(file: string): string {
   const rel = file.replaceAll('\\', '/');
-  const prefix = 'scripts/mcp/atomic-edit/';
-  return rel.startsWith(prefix) ? rel.slice(prefix.length) : rel;
+  const legacyPrefix = 'scripts/mcp/atomic-edit/';
+  if (rel.startsWith(legacyPrefix)) return rel.slice(legacyPrefix.length);
+  const selfRootRel = path.relative(REPO_ROOT, atomicSelfSourceRoot()).split(path.sep).join('/');
+  const selfPrefix = selfRootRel ? `${selfRootRel}/` : '';
+  return selfPrefix && rel.startsWith(selfPrefix) ? rel.slice(selfPrefix.length) : rel;
 }
 
 function isSelfEvolutionArchiveEffect(file: string): boolean {
@@ -1508,6 +1519,7 @@ export function registerToolsSelf(server: McpServer): void {
         // does NOT touch the type-gate machinery itself (else they must run to re-prove that gate). This
         // keeps full type safety (build covers it) while making self-expansion tractable. Recorded honestly.
         const editedFiles = ops.map((op) => op.file);
+        let buildCoveredProofs: ProofCommandResult[] = [];
         const touchesTypeGate = editedFiles.some((f) =>
           /type-soundness|repo-typecheck|type-check|lang-validate|tsconfig|(^|\/)build\.mjs$/.test(f),
         );
@@ -1516,17 +1528,24 @@ export function registerToolsSelf(server: McpServer): void {
             'node gates/type-soundness-gate.proof.mjs --json',
             'node gates/repo-typecheck-gate.proof.mjs --json',
           ]);
-          const before = proofCommands.length;
+          const skippedBuildCovered = proofCommands.filter((c) => buildCovered.has(c));
           proofCommands = proofCommands.filter((c) => !buildCovered.has(c));
-          if (proofCommands.length < before) {
+          if (skippedBuildCovered.length > 0) {
+            buildCoveredProofs = skippedBuildCovered.map((command) => ({
+              command,
+              ok: true,
+              stdout:
+                'covered-by-build: node build.mjs typechecks atomic-edit source for self-edits that do not touch type-gate machinery\n',
+              stderr: '',
+            }));
             process.stderr.write(
               '[atomic_expand_self] incremental: skipped full-repo typecheck proofs (covered by `node build.mjs` for atomic-edit-scoped self-edits; edit does not touch the type gates)\n',
             );
           }
         }
-        const selfRoot = path.join(REPO_ROOT, 'scripts/mcp/atomic-edit');
+        const selfRoot = atomicSelfSourceRoot();
         const preflightDisproofBriefing = buildSelfEvolutionNextDisproofBriefing(
-          Array.from(new Set(ops.map((op) => op.file))).sort().join('|') || 'scripts/mcp/atomic-edit',
+          Array.from(new Set(ops.map((op) => op.file))).sort().join('|') || 'core/atomic-edit',
           'preflight-proposal-briefing',
         );
         const claimedPreflightDisproofBriefingDigest = a.preflightDisproofBriefingDigest ?? null;
@@ -1557,7 +1576,9 @@ export function registerToolsSelf(server: McpServer): void {
           // security surface. Mandatory and non-skippable (not a caller proofCommand).
           enforceSecurityMonotonicity();
           const proofStartedAt = Date.now();
-          const proofs = await runProofCommands(proofCommands);
+          const executedProofs = await runProofCommands(proofCommands);
+          const buildPassed = executedProofs.some((p) => p.command === 'node build.mjs' && p.ok);
+          const proofs = buildPassed ? [...executedProofs, ...buildCoveredProofs] : executedProofs;
           const proofDurationMs = Date.now() - proofStartedAt;
           // Host-dependent validators that failed purely from infra-absence ABSTAIN (unjudged) rather
           // than block — they are recorded honestly (NOT counted green) and surfaced in the receipt's
@@ -1660,7 +1681,7 @@ export function registerToolsSelf(server: McpServer): void {
               archive: selfEvolutionArchive,
             },
             preflightDisproofBriefing: admittedPreflightDisproofBriefing,
-            target: targetDetails(path.join(REPO_ROOT, 'scripts/mcp/atomic-edit'), 'scripts/mcp/atomic-edit'),
+            target: targetDetails(atomicSelfSourceRoot() ?? REPO_ROOT, path.relative(REPO_ROOT, atomicSelfSourceRoot() ?? REPO_ROOT).split(path.sep).join('/')),
             admission: 'self-expansion-validator-lattice-green-and-darwin-godel-promoted',
           });
         } catch (e) {

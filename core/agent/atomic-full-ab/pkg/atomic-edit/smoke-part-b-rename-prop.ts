@@ -4,8 +4,8 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBRenameProp(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
-    const rpkRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-rpk.${process.pid}.ts`);
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
+    const rpkRel = path.posix.join(selfRel, `.smoke-rpk.${process.pid}.ts`);
     const rpkAbs = path.join(repoRoot, rpkRel);
     fs.writeFileSync(
       rpkAbs,
@@ -39,12 +39,7 @@ export async function partBRenameProp(ctx: PartBCtx): Promise<void> {
       if (fs.existsSync(rpkAbs)) fs.unlinkSync(rpkAbs);
     }
 
-    const rpkAmbiguousRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-rpk-ambiguous.${process.pid}.ts`,
-    );
+    const rpkAmbiguousRel = path.posix.join(selfRel, `.smoke-rpk-ambiguous.${process.pid}.ts`);
     const rpkAmbiguousAbs = path.join(repoRoot, rpkAmbiguousRel);
     fs.writeFileSync(rpkAmbiguousAbs, 'const a = { k: 1 };\nconst b = { k: 2 };\n');
     try {
@@ -63,7 +58,7 @@ export async function partBRenameProp(ctx: PartBCtx): Promise<void> {
     }
 
     // live add_await_to_call: wraps call in async function preserving call text
-    const awaitRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-await.${process.pid}.ts`);
+    const awaitRel = path.posix.join(selfRel, `.smoke-await.${process.pid}.ts`);
     const awaitAbs = path.join(repoRoot, awaitRel);
     fs.writeFileSync(
       awaitAbs,

@@ -8,7 +8,7 @@ const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const source = fs.readFileSync(path.join(sourceDir, 'server-tools-self.ts'), 'utf8');
 const latticeProof = fs.readFileSync(path.join(sourceDir, 'gates/self-expansion-validator-lattice.proof.mjs'), 'utf8');
 const realProof = fs.readFileSync(path.join(sourceDir, 'gates/self-expansion-real-self-evolution.proof.mjs'), 'utf8');
-const harness = fs.readFileSync(path.join(sourceDir, '..', 'atomic-edit-evolution/disproof-corpus-harness.mjs'), 'utf8');
+const harness = fs.readFileSync(path.join(sourceDir, 'disproof-corpus-harness.mjs'), 'utf8');
 const results = [];
 
 function record(name, ok, detail = {}) {

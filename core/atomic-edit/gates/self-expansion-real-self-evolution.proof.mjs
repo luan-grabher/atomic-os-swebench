@@ -16,8 +16,8 @@ function record(name, ok, detail = {}) {
 
 const proofRunIndex = source.indexOf('const executedProofs = await runProofCommands(proofCommands);');
 const failedIndex = source.indexOf('const failed = proofs.filter((p) => !p.ok && !isSelfExpansionInfraAbsence(p));');
-const effectsBeforePromotionIndex = source.indexOf('const effectsBeforePromotion = diffEffect(snap);');
-const candidateSnapIndex = source.indexOf('const candidateSnap = captureSelfExpansionSnapshot(selfRoot);');
+const effectsBeforePromotionIndex = source.indexOf('const effectsBeforePromotion = diffSelfExpansionSnapshot(snap);');
+const candidateSnapIndex = source.indexOf('const candidateSnap = captureSelfExpansionCandidateSnapshot(selfRoot);');
 const receiptIndex = source.indexOf('const promotionReceipt = buildRealSelfExpansionPromotionReceipt');
 const rejectIndex = source.indexOf("promotionReceipt.decision !== 'promote'");
 const archiveIndex = source.indexOf('const selfEvolutionArchive = appendRealSelfExpansionArchive');
@@ -75,7 +75,7 @@ record(
 record(
   'promotion reject is fail-closed and rolls back the edited tree instead of accepting a benchmark-only failure',
   rejectIndex > receiptIndex &&
-    source.includes("rollbackEffectStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')") &&
+    source.includes("rollbackSelfExpansionSnapshotStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')") &&
     source.includes('self-evolution promotion rejected'),
   { rejectIndex, receiptIndex },
 );

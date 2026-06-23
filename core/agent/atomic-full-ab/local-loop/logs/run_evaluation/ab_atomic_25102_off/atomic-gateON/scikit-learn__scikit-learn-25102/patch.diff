@@ -1,0 +1,52 @@
+diff --git a/sklearn/utils/_set_output.py b/sklearn/utils/_set_output.py
+index 335773c6af..47ffb347f1 100644
+--- a/sklearn/utils/_set_output.py
++++ b/sklearn/utils/_set_output.py
+@@ -12,6 +12,7 @@ def _wrap_in_pandas_container(
+     *,
+     columns,
+     index=None,
++    dtypes=None,
+ ):
+     """Create a Pandas DataFrame.
+ 
+@@ -36,6 +37,11 @@ def _wrap_in_pandas_container(
+     index : array-like, default=None
+         Index for data.
+ 
++    dtypes : pandas.Series, default=None
++        Original dtypes to preserve. If provided, the output DataFrame will
++        have its dtypes cast to match these dtypes for columns that exist in
++        both.
++
+     Returns
+     -------
+     dataframe : DataFrame
+@@ -57,9 +63,18 @@ def _wrap_in_pandas_container(
+             data_to_wrap.columns = columns
+         if index is not None:
+             data_to_wrap.index = index
++        if dtypes is not None:
++            common_cols = data_to_wrap.columns.intersection(dtypes.index)
++            if len(common_cols) > 0:
++                return data_to_wrap.astype(dtypes[common_cols].to_dict())
+         return data_to_wrap
+ 
+-    return pd.DataFrame(data_to_wrap, index=index, columns=columns)
++    result = pd.DataFrame(data_to_wrap, index=index, columns=columns)
++    if dtypes is not None:
++        common_cols = result.columns.intersection(dtypes.index)
++        if len(common_cols) > 0:
++            return result.astype(dtypes[common_cols].to_dict())
++    return result
+ 
+ 
+ def _get_output_config(method, estimator=None):
+@@ -131,6 +146,7 @@ def _wrap_data_with_container(method, data_to_wrap, original_input, estimator):
+         data_to_wrap=data_to_wrap,
+         index=getattr(original_input, "index", None),
+         columns=estimator.get_feature_names_out,
++        dtypes=getattr(original_input, "dtypes", None),
+     )
+ 
+ 

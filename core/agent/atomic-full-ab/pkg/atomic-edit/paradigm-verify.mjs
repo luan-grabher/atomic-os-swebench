@@ -92,7 +92,15 @@ for (const c of CHECKS) {
     continue;
   }
   let ok = false;
-  try { execSync(c.cmd, { cwd: dir, env, stdio: 'ignore', timeout: 300000 }); ok = true; } catch { ok = false; }
+  try {
+    try { execSync('rm -rf .smoke-fixture.* .proof-no-bypass-*', { cwd: dir, stdio: 'ignore' }); } catch { /* ignore */ }
+    execSync(c.cmd, { cwd: dir, env, stdio: 'ignore', timeout: 300000 });
+    ok = true;
+  } catch {
+    ok = false;
+  } finally {
+    try { execSync('rm -rf .smoke-fixture.* .proof-no-bypass-*', { cwd: dir, stdio: 'ignore' }); } catch { /* ignore */ }
+  }
   ok ? (green += 1) : (red += 1);
   process.stdout.write(ok ? 'GREEN\n' : 'RED\n');
 }

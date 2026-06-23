@@ -61,13 +61,18 @@ function probeCommand(cmd: string, args: string[]): boolean {
  */
 function validatePython(absPath: string): { errorCount: number; firstError?: string } {
   const script = [
-    'import ast, sys',
+    'import ast, sys, warnings',
+    'warnings.filterwarnings("error", category=SyntaxWarning)',
+    'warnings.filterwarnings("error", category=DeprecationWarning)',
     `try:`,
     `  with open(${JSON.stringify(absPath)}, 'r') as f:`,
-    '    ast.parse(f.read())',
+    `    ast.parse(f.read(), filename=${JSON.stringify(absPath)})`,
     '  print("OK")',
-    'except SyntaxError as e:',
-    '  print(f"SYNTAX_ERROR:{e.msg}:line {e.lineno}:col {e.offset}")',
+    'except (SyntaxError, SyntaxWarning, DeprecationWarning) as e:',
+    '  msg = getattr(e, "msg", str(e))',
+    '  lineno = getattr(e, "lineno", "?")',
+    '  offset = getattr(e, "offset", "?")',
+    '  print(f"SYNTAX_ERROR:{msg}:line {lineno}:col {offset}")',
     'except Exception as e:',
     '  print(f"ERROR:{e}")',
   ].join('\n');

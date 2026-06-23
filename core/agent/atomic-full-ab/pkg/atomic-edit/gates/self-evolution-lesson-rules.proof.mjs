@@ -9,8 +9,8 @@ const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
 const toolSource = fs.readFileSync(path.join(sourceDir, 'server-tools-disproof.ts'), 'utf8');
 const selfSource = fs.readFileSync(path.join(sourceDir, 'server-tools-self.ts'), 'utf8');
 const latticeSource = fs.readFileSync(path.join(sourceDir, 'gates/self-expansion-validator-lattice.proof.mjs'), 'utf8');
-const lessonHarnessPath = path.join(sourceDir, '..', 'atomic-edit-evolution', 'lesson-harness.mjs');
-const lessonProofPath = path.join(sourceDir, '..', 'atomic-edit-evolution', 'lesson.proof.mjs');
+const lessonHarnessPath = path.join(sourceDir, 'lesson-harness.mjs');
+const lessonProofPath = path.join(sourceDir, 'lesson.proof.mjs');
 
 function record(results, name, ok, detail = {}) {
   results.push({ name, ok: Boolean(ok), detail });
@@ -29,7 +29,7 @@ function main() {
     ? selfSource.slice(buildBriefingIndex, nextFunctionIndex > buildBriefingIndex ? nextFunctionIndex : selfSource.length)
     : '';
   const lessonProof = childProcess.spawnSync(process.execPath, [lessonProofPath], {
-    cwd: path.join(sourceDir, '..', 'atomic-edit-evolution'),
+    cwd: sourceDir,
     encoding: 'utf8',
     timeout: 60000,
     maxBuffer: 10 * 1024 * 1024,
@@ -77,7 +77,7 @@ function main() {
     results,
     'atomic_expand_self preflight consumes validated lessons instead of empty lessons',
     selfSource.includes("const SELF_EVOLUTION_LESSON_RULES_REL = path.join('.atomic', 'lesson-rules.jsonl')") &&
-      selfSource.includes("const LESSON_RULE_HARNESS_REL = path.join('scripts/mcp/atomic-edit-evolution', 'lesson-harness.mjs')") &&
+      selfSource.includes("const LESSON_RULE_HARNESS_REL = 'lesson-harness.mjs'") &&
       selfSource.includes('function readSelfEvolutionLessonRules') &&
       buildBriefingBody.includes('const lessonRules = readSelfEvolutionLessonRules();') &&
       buildBriefingBody.includes('lessons: lessonRules.lessons') &&

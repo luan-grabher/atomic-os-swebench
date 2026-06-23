@@ -2,7 +2,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
-import { spawn, execSync } from "node:child_process";
+import { spawn, execSync, spawnSync } from "node:child_process";
 import { createInterface } from "node:readline";
 const KLOEL_HOME = path.join(os.homedir(), ".kloel");
 const KLOEL_CONFIG = path.join(KLOEL_HOME, "config.json");
@@ -56,19 +56,41 @@ async function callDeepSeek(messages, tools, apiKey, model) {
   const data = await response.json();
   return data.choices[0]?.message ?? { role: "assistant", content: "" };
 }
+function resolveAtomicPaths(repoRoot) {
+  const corePath = path.join(repoRoot, "core", "atomic-edit");
+  const mcpPath = path.join(repoRoot, "scripts", "mcp", "atomic-edit");
+  const useCore = fs.existsSync(corePath);
+  const base = useCore ? corePath : mcpPath;
+  const launcher = useCore 
+    ? path.join(corePath, "atomic-edit-mcp-launcher.sh") 
+    : path.join(repoRoot, "scripts", "mcp", "atomic-edit-mcp-launcher.sh");
+  return {
+    distDir: path.join(base, "dist"),
+    toolsDir: base,
+    launcher,
+    serverPath: path.join(base, "dist", "server.js"),
+    base
+  };
+}
+
 let atomicServer = null;
+
 async function startAtomicServer(repoRoot) {
-  const launcher = path.join(repoRoot, "scripts", "mcp", "atomic-edit-mcp-launcher.sh");
+  const paths = resolveAtomicPaths(repoRoot);
+  const launcher = paths.launcher;
   if (!fs.existsSync(launcher)) {
     throw new Error(`Atomic MCP launcher not found: ${launcher}. Run in a kloel repo.`);
   }
+
   atomicServer = spawn("bash", [launcher], {
     cwd: repoRoot,
     stdio: ["pipe", "pipe", "pipe"],
     env: { ...process.env, ATOMIC_EDIT_REPO_ROOT: repoRoot }
   });
+
+  // Wait for server ready signal
   await new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error("Atomic MCP server start timeout")), 1e4);
+    const timeout = setTimeout(() => reject(new Error("Atomic MCP server start timeout")), 10000);
     const onData = (chunk) => {
       const text = chunk.toString();
       if (text.includes("ready")) {
@@ -84,39 +106,48 @@ async function startAtomicServer(repoRoot) {
     });
   });
 }
+
 async function callAtomicTool(repoRoot, toolName, args) {
-  const serverPath = path.join(repoRoot, "scripts", "mcp", "atomic-edit", "dist", "server.js");
+  const paths = resolveAtomicPaths(repoRoot);
+  const serverPath = paths.serverPath;
+
+  // For direct tool calls without full MCP handshake, use the engine directly
   return new Promise((resolve, reject) => {
+    const escapedServerPath = serverPath.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
     const child = spawn("node", [
       "-e",
       `
-      const { resolveSafeTarget } = require('${serverPath.replace(".js", ".js").replace(/'/g, "\\'")}');
-      process.stdout.write(JSON.stringify({ok:true}));
+      import('${escapedServerPath}').then(({ resolveSafeTarget }) => {
+        process.stdout.write(JSON.stringify({ok:true}));
+      }).catch(err => {
+        console.error(err);
+        process.exit(1);
+      });
       `
     ], {
       cwd: repoRoot,
       env: { ...process.env, ATOMIC_EDIT_REPO_ROOT: repoRoot }
     });
+
     let output = "";
-    child.stdout.on("data", (c) => {
-      output += c.toString();
-    });
+    child.stdout.on("data", (c) => { output += c.toString(); });
     child.on("close", () => {
-      try {
-        resolve(JSON.parse(output));
-      } catch {
-        resolve({ raw: output });
-      }
+      try { resolve(JSON.parse(output)); }
+      catch { resolve({ raw: output }); }
     });
     child.on("error", reject);
   });
 }
+
 async function stopAtomicServer() {
   if (atomicServer) {
     atomicServer.kill();
     atomicServer = null;
   }
 }
+
+// ── Agent Loop — the heart of Kloel CLI ───────────────────────────────────
+
 const SYSTEM_PROMPT = `You are Kloel CLI \u2014 an AI coding agent powered by the Atomic Envelope.
 
 RULES:
@@ -134,6 +165,7 @@ AVAILABLE ATOMIC OPERATIONS:
 - Proof: atomic_seal, truth_receipt, behavior_receipt
 
 Always provide the exact atomic tool call for any mutation.`;
+
 function createSession() {
   return {
     messages: [
@@ -142,26 +174,122 @@ function createSession() {
     atomicOps: []
   };
 }
+
 async function executeAtomicOp(repoRoot, toolName, args) {
-  const distDir = path.join(repoRoot, "scripts", "mcp", "atomic-edit", "dist");
-  const toolsDir = path.join(repoRoot, "scripts", "mcp", "atomic-edit");
+  if (toolName === "atomic_exec") {
+    const cwd = args.cwd || repoRoot;
+    const timeout = args.timeoutMs || 120000;
+    try {
+      const child = spawnSync("/bin/bash", ["-c", args.command], {
+        cwd,
+        input: args.stdin || "",
+        encoding: "utf8",
+        timeout,
+        env: { ...process.env, ...(args.env || {}) }
+      });
+      if (child.error) {
+        return { result: { ok: false, error: child.error.message } };
+      }
+      const exitCode = child.status ?? 1;
+      return {
+        result: {
+          ok: exitCode === 0,
+          exitCode,
+          stdout: child.stdout,
+          stderr: child.stderr
+        }
+      };
+    } catch (e) {
+      return { result: { ok: false, error: String(e instanceof Error ? e.message : e) } };
+    }
+  }
+
+  const paths = resolveAtomicPaths(repoRoot);
+  const distDir = paths.distDir;
+
   try {
-    const result = execSync(
-      `node -e "
-        const mod = require('${distDir}/engine.js');
-        const fs = require('fs');
-        const path = require('path');
-        const args = ${JSON.stringify(args)};
-        const file = path.resolve('${repoRoot}', args.file);
-        const before = fs.readFileSync(file, 'utf8');
-        const edits = [${JSON.stringify(args.edits || [])}][0];
-        const spec = edits.map(e => ({ start: e.start, end: e.end, newText: e.newText }));
-        const result = mod.applyEdits(file, before, spec);
-        console.log(JSON.stringify(result));
-      "`,
-      { cwd: repoRoot, encoding: "utf8", timeout: 1e4 }
-    );
-    return { result: JSON.parse(result) };
+    const escapedEnginePath = path.join(distDir, "engine.js").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const escapedNavPath = path.join(distDir, "nav.js").replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    const escapedRepoRoot = repoRoot.replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+    
+    let nodeCode = "";
+    if (toolName === "code_read_symbol") {
+      nodeCode = `
+        import('${escapedNavPath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const text = fs.readFileSync(file, 'utf8');
+          mod.readSymbol(args.file, text, args.selector).then(result => {
+            console.log(JSON.stringify(result));
+          }).catch(err => {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          });
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    } else if (toolName === "atomic_replace_text") {
+      nodeCode = `
+        import('${escapedEnginePath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const before = fs.readFileSync(file, 'utf8');
+          try {
+            const result = mod.replaceText(args.file, before, args.oldText, args.newText, args.occurrence);
+            if (result && result.validation && result.validation.ok) {
+              fs.writeFileSync(file, result.newText, 'utf8');
+            }
+            console.log(JSON.stringify(result));
+          } catch(err) {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          }
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    } else {
+      nodeCode = `
+        import('${escapedEnginePath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const before = fs.readFileSync(file, 'utf8');
+          const edits = [${JSON.stringify(args.edits || [])}][0];
+          const spec = edits.map(e => ({ start: e.start, end: e.end, newText: e.newText }));
+          try {
+            const result = mod.applyEdits(file, before, spec);
+            if (result && result.validation && result.validation.ok) {
+              fs.writeFileSync(file, result.newText, 'utf8');
+            }
+            console.log(JSON.stringify(result));
+          } catch(err) {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          }
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    }
+
+    const child = spawnSync(process.execPath, [], {
+      cwd: repoRoot,
+      input: nodeCode,
+      encoding: "utf8",
+      timeout: 15000
+    });
+
+    if (child.error) {
+      throw child.error;
+    }
+    return { result: JSON.parse(child.stdout) };
   } catch (e) {
     return { result: { ok: false, error: String(e instanceof Error ? e.message : e) } };
   }
@@ -217,9 +345,9 @@ async function agentLoop(session, userTask, config) {
       }
     }
   ];
-  for (let turn = 0; turn < 10; turn++) {
+  for (let turn = 0; turn < 60; turn++) {  // CLASS-PRODUCT-TURN-CAP: 10 turns cannot converge a real multi-file SWE task; align with the benchmark driver 60-step budget
     const response = await callDeepSeek(session.messages, tools, config.apiKey, config.model);
-    if (response.content) {
+    if (response.content || response.tool_calls) {
       session.messages.push(response);
     }
     if (response.tool_calls) {

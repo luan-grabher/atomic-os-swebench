@@ -1,0 +1,44 @@
+diff --git a/pylint/config/argument.py b/pylint/config/argument.py
+index 30a5fd175..c4893bff4 100644
+--- a/pylint/config/argument.py
++++ b/pylint/config/argument.py
+@@ -111,10 +111,29 @@ def _regex_transformer(value: str) -> Pattern[str]:
+         raise argparse.ArgumentTypeError(msg) from e
+ 
+ 
++def _split_csv_respecting_braces(value: str) -> list[str]:
++    """Split `value` on commas only when outside of ``{}``, ``()``, and ``[]``."""
++    result: list[str] = []
++    current: list[str] = []
++    depth = 0
++    for ch in value:
++        if ch == "," and depth == 0:
++            result.append("".join(current))
++            current = []
++        else:
++            if ch in "{([":
++                depth += 1
++            elif ch in "})]":
++                depth -= 1
++            current.append(ch)
++    result.append("".join(current))
++    return result
++
++
+ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _split_csv_respecting_braces(value):
+         patterns.append(_regex_transformer(pattern))
+     return patterns
+ 
+@@ -122,7 +141,7 @@ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+ def _regexp_paths_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions paths."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _split_csv_respecting_braces(value):
+         patterns.append(
+             re.compile(
+                 str(pathlib.PureWindowsPath(pattern)).replace("\\", "\\\\")

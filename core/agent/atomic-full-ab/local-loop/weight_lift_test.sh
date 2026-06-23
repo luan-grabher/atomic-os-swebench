@@ -28,7 +28,8 @@ ensure_setup
 mkdir -p evidence/NLIFT/clean
 
 run_arm () { # $1=arm(base|weight) $2=sample-index
-  local arm="$1" i="$2" wd="/private/tmp/swe/round/CLEAN/${ID}_${arm}_${i}/atomic"
+  local arm="$1" i="$2"
+  local wd="/private/tmp/swe/round/CLEAN/${ID}_${arm}_${i}/atomic"
   rm -rf "$wd"; mkdir -p "$(dirname "$wd")"; cp -R /private/tmp/swe/suite/$ID/pristine "$wd"
   git -C "$wd" reset --hard -q HEAD; git -C "$wd" clean -fdq
   if [ "$arm" = "weight" ]; then export ATOMIC_WEIGHTS_FILE="$WEIGHTS"; else unset ATOMIC_WEIGHTS_FILE; fi

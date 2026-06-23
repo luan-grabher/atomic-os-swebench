@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const F = await import(path.join(root, '..', 'atomic-edit-evolution', 'truth-funnel.mjs'));
+const F = await import(path.join(root, 'truth-funnel.mjs'));
 const { funnelGate, mergeBytePositive, runFunnel, makeSyntheticTask, runArm } = F;
 
 let pass = 0, fail = 0;

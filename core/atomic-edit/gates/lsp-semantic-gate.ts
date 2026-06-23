@@ -31,6 +31,7 @@
  * files per run. When absent it costs one cheap probe and abstains.
  */
 import * as path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { GateModule, GateContext, GateResult, GateRed } from './contract.js';
 import { EXT_TO_LSP, queryLspMesh } from './lsp-diagnostic-gate.js';
 
@@ -89,6 +90,8 @@ const gate: GateModule = {
     const abstentions: string[] = [];
     let judged = 0;
 
+    const rootUri = pathToFileURL(ctx.repoRoot).href;
+
     for (const rel of applicable) {
       const after = ctx.readFile(rel);
       if (after === null) continue;
@@ -102,9 +105,9 @@ const gate: GateModule = {
       try {
         // Baseline first: if we cannot establish the prior diagnostics honestly we must
         // not red the edit (the delta would be meaningless). New file → '' before.
-        beforeRes = await queryLspMesh(absPath, language, before);
+        beforeRes = await queryLspMesh(absPath, language, before, 15000, rootUri);
         if (!beforeRes.ok) { abstentions.push(`${rel}: LSP baseline unavailable (${language})`); continue; }
-        afterRes = await queryLspMesh(absPath, language, after);
+        afterRes = await queryLspMesh(absPath, language, after, 15000, rootUri);
         if (!afterRes.ok) { abstentions.push(`${rel}: LSP candidate query failed (${language})`); continue; }
       } catch (err) {
         abstentions.push(`${rel}: LSP threw (${(err as Error).message.slice(0, 80)})`);

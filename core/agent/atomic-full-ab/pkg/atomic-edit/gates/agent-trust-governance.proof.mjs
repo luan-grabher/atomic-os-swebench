@@ -20,8 +20,8 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const FR = await import(path.join(root, '..', 'atomic-edit-evolution', 'friction-router.mjs'));
-const TG = await import(path.join(root, '..', 'atomic-edit-evolution', 'agent-trust-governance.mjs'));
+const FR = await import(path.join(root, 'friction-router.mjs'));
+const TG = await import(path.join(root, 'agent-trust-governance.mjs'));
 const { buildFrictionLedger } = FR;
 const { grantCapability, governanceMonotone, CAP } = TG;
 

@@ -31,8 +31,8 @@ const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
 const A = await import(path.join(root, 'dist', 'gates', 'algebra.js'));
 const { commute } = A;
-const FR = await import(path.join(root, '..', 'atomic-edit-evolution', 'friction-router.mjs'));
-const E1 = await import(path.join(root, '..', 'atomic-edit-evolution', 'e1-fusion.mjs'));
+const FR = await import(path.join(root, 'friction-router.mjs'));
+const E1 = await import(path.join(root, 'e1-fusion.mjs'));
 const { buildFrictionLedger, routeTask } = FR;
 const { certifyConfluentWavefront, confluentThroughput } = E1;
 

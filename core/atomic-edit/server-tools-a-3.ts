@@ -82,6 +82,22 @@ server.registerTool(
   },
 );
 
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
+// lacuna #4: atomic_create_file overwrite:true is the whole-file materialization macro (proof-plumbing TBD).
 server.registerTool(
   'atomic_create_file',
   {

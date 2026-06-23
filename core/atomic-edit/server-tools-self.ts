@@ -505,6 +505,10 @@ function proofCommandPriority(command: string): number {
     ['formal-gate', 15],
     ['vitest-package-suite', 16],
     ['multilang-supply-chain-resolver', 17],
+    ['resource-lifetime.proof.mjs', 18],
+    ['temp-artifact-hygiene.proof.mjs', 19],
+    ['fd-socket-lifetime.proof.mjs', 20],
+    ['machine-lifetime-supervisor.proof.mjs', 21],
   ];
   return priorities.find(([needle]) => command.includes(needle))?.[1] ?? 100;
 }
@@ -774,6 +778,9 @@ function selfExpansionProofMustRunHostDirect(command: string): boolean {
     'lsp-semantic-delta.proof.mjs',
     'vitest-package-suite.proof.mjs',
     'multilang-supply-chain-resolver.proof.mjs',
+    'resource-lifetime.proof.mjs',
+    'fd-socket-lifetime.proof.mjs',
+    'machine-lifetime-supervisor.proof.mjs',
   ].some((name) => command.includes(name));
 }
 

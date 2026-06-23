@@ -45,6 +45,15 @@ function parseToolResult(result) {
   }
 }
 
+function safeExternalTmpRoot() {
+  const tmp = path.resolve(os.tmpdir());
+  const source = path.resolve(sourceDir);
+  const repo = path.resolve(repoRoot);
+  const insideSource = tmp === source || tmp.startsWith(source + path.sep);
+  const insideRepo = tmp === repo || tmp.startsWith(repo + path.sep);
+  return insideSource || insideRepo ? fs.realpathSync('/tmp') : tmp;
+}
+
 function sourceAssertions() {
   const converge = read('core/atomic-edit/server-tools-converge.ts');
   return {
@@ -96,7 +105,7 @@ async function withClient(proofRoot, workspace, fn) {
 }
 
 async function dynamicProof() {
-  const proofRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'converge-symbol-mutation-proof-'));
+  const proofRoot = fs.mkdtempSync(path.join(safeExternalTmpRoot(), 'converge-symbol-mutation-proof-'));
   const workspace = path.join(proofRoot, 'worker');
   fs.mkdirSync(path.join(workspace, 'src'), { recursive: true });
   fs.writeFileSync(path.join(workspace, 'tsconfig.json'), JSON.stringify({

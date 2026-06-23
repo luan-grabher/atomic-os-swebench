@@ -20,12 +20,6 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         arguments: { file: delRel, preview: true },
       })) as { content: { text: string }[] };
       const delPrevBody = jsonBody(delPrev);
-      const delPrevTracePath =
-        typeof delPrevBody.tracePath === 'string' ? path.join(repoRoot, delPrevBody.tracePath) : '';
-      const delPrevTrace =
-        delPrevTracePath && fs.existsSync(delPrevTracePath)
-          ? JSON.parse(fs.readFileSync(delPrevTracePath, 'utf8'))
-          : {};
       check(
         'delete_file preview does not delete',
         delPrevBody.preview === true &&
@@ -35,13 +29,14 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         delPrev.content[0]?.text ?? '',
       );
       check(
-        'delete_file preview trace is honest',
-        delPrevTrace.operation === 'atomic_delete_file' &&
-          delPrevTrace.preview === true &&
-          delPrevTrace.changed === false &&
-          delPrevTrace.afterSha256 === sha(delBefore) &&
-          delPrevTrace.proposedSha256 === sha(''),
-        JSON.stringify(delPrevTrace),
+        'delete_file preview receipt is honest',
+        delPrevBody.operation === 'atomic_delete_file' &&
+          delPrevBody.preview === true &&
+          delPrevBody.changed === false &&
+          delPrevBody.tracePath === undefined &&
+          typeof delPrevBody.operationId === 'string' &&
+          fs.existsSync(delAbs),
+        JSON.stringify(delPrevBody),
       );
 
       const delNoProof = (await client.callTool({

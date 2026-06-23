@@ -264,7 +264,7 @@ function runPassthrough(command, runCwd, eRoot, req) {
     let stderr = '';
     let settled = false;
     let timedOut = false;
-    const timeoutMs = req.timeoutMs || 120000;
+    const timeoutMs = req.timeoutMs || 300000;
     const forceKill = () => {
       try { child.kill('SIGKILL'); } catch { /* best-effort */ }
     };
@@ -312,7 +312,7 @@ function runSandboxed(command, runCwd, eRoot, profileName, req) {
     let stderr = '';
     let settled = false;
     let timedOut = false;
-    const timeoutMs = req.timeoutMs || 120000;
+    const timeoutMs = req.timeoutMs || 300000;
     const forceKill = () => {
       try {
         child.kill('SIGKILL');

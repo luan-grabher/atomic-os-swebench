@@ -30,13 +30,37 @@ const check = (name, cond, detail) => {
   if (!jsonMode) console.log(`  ${ok ? 'PASS ' : 'FAIL '} ${name}`);
 };
 
-// Snapshot the SOURCE entry set (top-level of atomic-edit + gates/), excluding the always-churning dirs.
+// Snapshot the SOURCE entry set (top-level of atomic-edit + gates/), excluding always-churning dirs
+// and predeclared proof-scratch classes. H1 is about NEW unknown artifacts in the source tree; known
+// gitignored proof scratch may appear concurrently while the mandatory self-expansion lattice is running.
 const SKIP = new Set(['node_modules', 'dist', 'dist-lkg', 'dist.broken-last', '.atomic-build-tmp', 'vendor', '.atomic', 'node-compile-cache']);
+const SKIP_PATTERNS = [
+  /^\.proof-/,
+  /^\.smoke-/,
+  /^\.self-expansion-/,
+  /^\.self-evolution-harness-(input|output)\./,
+  /^\.security-mono-proof-/,
+  /^\.atomic-exec-sandbox/,
+  /^\.external-runtime-denial-/,
+  /^atomic-exec-broker-file-/,
+  /^atomic-type-gate-/,
+  /^atomic-rt-proof-/,
+  /^converge-symbol-mutation-proof-/,
+  /^readcode-.*-root-/,
+  /^property-gate-/,
+  /^probe-gate-/,
+  /^dist-lkg\.tmp-/,
+  /^typescript-language-server/,
+  /^[0-9a-f]{32}(\/|$)/,
+];
+function isKnownProofScratch(e) {
+  return SKIP.has(e) || SKIP_PATTERNS.some((pattern) => pattern.test(e));
+}
 function snapshot() {
   const set = new Set();
   for (const base of [root, dir]) {
     for (const e of fs.readdirSync(base)) {
-      if (base === root && SKIP.has(e)) continue;
+      if (base === root && isKnownProofScratch(e)) continue;
       set.add(path.relative(root, path.join(base, e)));
     }
   }
@@ -65,7 +89,7 @@ check('H2: a synthetic stray artifact IS detected (hygiene check can go RED)', d
 // ── H3: every known litter CLASS is gitignored ────────────────────────────────
 const litterSamples = [
   'atomic-rt-proof-XXXXXX', 'converge-symbol-mutation-proof-XXXXXX', 'readcode-source-batchnext-root-XXXXXX',
-  'tmpdir-check.tmp', '.smoke-fixture.123.ts', 'atomic-type-gate-XXXXXX', '.proof-XXXXXX',
+  'tmpdir-check.tmp', '.smoke-fixture.123.ts', 'atomic-type-gate-XXXXXX', '.proof-XXXXXX', 'dist-lkg.tmp-XXXXXX',
 ];
 const notIgnored = [];
 for (const s of litterSamples) {

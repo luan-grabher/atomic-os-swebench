@@ -1,0 +1,13 @@
+E       assert 20 == 0
+tests/test_self.py:146: AssertionError
+=============================== warnings summary ===============================
+../opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6
+  /opt/miniconda3/envs/testbed/lib/python3.9/site-packages/astroid/interpreter/_import/util.py:6: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    import pkg_resources
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_self.py::TestRunTC::test_ignore_path_recursive_current_dir
+1 failed, 15 passed, 1 warning in 6.30s
+# tests 16
+# pass 15
+# fail 1

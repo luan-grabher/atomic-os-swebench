@@ -13,12 +13,12 @@ function record(name, ok, detail = {}) {
 }
 
 const guardIndex = source.indexOf('function assertNoUnexpectedSelfExpansionEffects');
-const prePromotionIndex = source.indexOf('assertNoUnexpectedSelfExpansionEffects(effectsBeforePromotion, applied);');
+const prePromotionIndex = source.indexOf('assertNoUnexpectedSelfExpansionEffects(effectsBeforePromotion.effects, applied);');
 const promotionIndex = source.indexOf('const promotionReceipt = buildRealSelfExpansionPromotionReceipt');
 const archiveIndex = source.indexOf('const selfEvolutionArchive = appendRealSelfExpansionArchive');
 const ratchetIndex = source.indexOf('enforceSecurityMonotonicity({ ratchet: true })');
-const finalEffectIndex = source.indexOf('const effects = diffEffect(snap);', archiveIndex + 1);
-const finalGuardIndex = source.indexOf('assertNoUnexpectedSelfExpansionEffects(effects, applied);');
+const finalEffectIndex = source.indexOf('const effects = diffSelfExpansionSnapshot(snap);', archiveIndex + 1);
+const finalGuardIndex = source.indexOf('assertNoUnexpectedSelfExpansionEffects(effects.effects, applied);');
 const returnOkIndex = source.indexOf('return ok({', finalEffectIndex);
 
 record('FileEffect type is imported for byte-effect guard', source.includes('type FileEffect'));

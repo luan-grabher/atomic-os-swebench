@@ -29,7 +29,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { spawn, execSync } from 'node:child_process';
+import { spawn, execSync, spawnSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import crypto from 'node:crypto';
 
@@ -131,12 +131,28 @@ async function callDeepSeek(
   return data.choices[0]?.message ?? { role: 'assistant', content: '' };
 }
 
-// ── Atomic MCP Server Manager ─────────────────────────────────────────────
+function resolveAtomicPaths(repoRoot: string) {
+  const corePath = path.join(repoRoot, 'core', 'atomic-edit');
+  const mcpPath = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit');
+  const useCore = fs.existsSync(corePath);
+  const base = useCore ? corePath : mcpPath;
+  const launcher = useCore 
+    ? path.join(corePath, 'atomic-edit-mcp-launcher.sh') 
+    : path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit-mcp-launcher.sh');
+  return {
+    distDir: path.join(base, 'dist'),
+    toolsDir: base,
+    launcher,
+    serverPath: path.join(base, 'dist', 'server.js'),
+    base
+  };
+}
 
 let atomicServer: ReturnType<typeof spawn> | null = null;
 
 async function startAtomicServer(repoRoot: string): Promise<void> {
-  const launcher = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit-mcp-launcher.sh');
+  const paths = resolveAtomicPaths(repoRoot);
+  const launcher = paths.launcher;
   if (!fs.existsSync(launcher)) {
     throw new Error(`Atomic MCP launcher not found: ${launcher}. Run in a kloel repo.`);
   }
@@ -171,16 +187,21 @@ async function callAtomicTool(
   toolName: string,
   args: Record<string, unknown>,
 ): Promise<unknown> {
-  // Direct invocation via spawn for tools that need MCP
-  const serverPath = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', 'dist', 'server.js');
+  const paths = resolveAtomicPaths(repoRoot);
+  const serverPath = paths.serverPath;
 
   // For direct tool calls without full MCP handshake, use the engine directly
   return new Promise((resolve, reject) => {
+    const escapedServerPath = serverPath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const child = spawn('node', [
       '-e',
       `
-      const { resolveSafeTarget } = require('${serverPath.replace('.js', '.js').replace(/'/g, "\\'")}');
-      process.stdout.write(JSON.stringify({ok:true}));
+      import('${escapedServerPath}').then(({ resolveSafeTarget }) => {
+        process.stdout.write(JSON.stringify({ok:true}));
+      }).catch(err => {
+        console.error(err);
+        process.exit(1);
+      });
       `,
     ], {
       cwd: repoRoot,
@@ -243,28 +264,120 @@ async function executeAtomicOp(
   toolName: string,
   args: Record<string, unknown>,
 ): Promise<{ result: unknown }> {
-  // For tools that don't need MCP, call directly
-  const distDir = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', 'dist');
-  const toolsDir = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit');
+  if (toolName === 'atomic_exec') {
+    const cwd = (args.cwd as string) || repoRoot;
+    const timeout = (args.timeoutMs as number) || 120000;
+    try {
+      const child = spawnSync('/bin/bash', ['-c', args.command as string], {
+        cwd,
+        input: (args.stdin as string) || '',
+        encoding: 'utf8',
+        timeout,
+        env: { ...process.env, ...((args.env as Record<string, string>) || {}) },
+      });
+      if (child.error) {
+        return { result: { ok: false, error: child.error.message } };
+      }
+      const exitCode = child.status ?? 1;
+      return {
+        result: {
+          ok: exitCode === 0,
+          exitCode,
+          stdout: child.stdout,
+          stderr: child.stderr,
+        },
+      };
+    } catch (e) {
+      return { result: { ok: false, error: String(e instanceof Error ? e.message : e) } };
+    }
+  }
+
+  const paths = resolveAtomicPaths(repoRoot);
+  const distDir = paths.distDir;
 
   try {
-    // Use tsx for TypeScript tools, node for compiled
-    const result = execSync(
-      `node -e "
-        const mod = require('${distDir}/engine.js');
-        const fs = require('fs');
-        const path = require('path');
-        const args = ${JSON.stringify(args)};
-        const file = path.resolve('${repoRoot}', args.file);
-        const before = fs.readFileSync(file, 'utf8');
-        const edits = [${JSON.stringify(args.edits || [])}][0];
-        const spec = edits.map(e => ({ start: e.start, end: e.end, newText: e.newText }));
-        const result = mod.applyEdits(file, before, spec);
-        console.log(JSON.stringify(result));
-      "`,
-      { cwd: repoRoot, encoding: 'utf8', timeout: 10000 },
-    );
-    return { result: JSON.parse(result) };
+    const escapedEnginePath = path.join(distDir, 'engine.js').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedNavPath = path.join(distDir, 'nav.js').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const escapedRepoRoot = repoRoot.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    
+    let nodeCode = '';
+    if (toolName === 'code_read_symbol') {
+      nodeCode = `
+        import('${escapedNavPath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const text = fs.readFileSync(file, 'utf8');
+          mod.readSymbol(args.file, text, args.selector).then(result => {
+            console.log(JSON.stringify(result));
+          }).catch(err => {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          });
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    } else if (toolName === 'atomic_replace_text') {
+      nodeCode = `
+        import('${escapedEnginePath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const before = fs.readFileSync(file, 'utf8');
+          try {
+            const result = mod.replaceText(args.file, before, args.oldText, args.newText, args.occurrence);
+            if (result && result.validation && result.validation.ok) {
+              fs.writeFileSync(file, result.newText, 'utf8');
+            }
+            console.log(JSON.stringify(result));
+          } catch(err) {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          }
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    } else {
+      nodeCode = `
+        import('${escapedEnginePath}').then(mod => {
+          const fs = require('fs');
+          const path = require('path');
+          const args = ${JSON.stringify(args)};
+          const file = path.resolve('${escapedRepoRoot}', args.file);
+          const before = fs.readFileSync(file, 'utf8');
+          const edits = [${JSON.stringify(args.edits || [])}][0];
+          const spec = edits.map(e => ({ start: e.start, end: e.end, newText: e.newText }));
+          try {
+            const result = mod.applyEdits(file, before, spec);
+            if (result && result.validation && result.validation.ok) {
+              fs.writeFileSync(file, result.newText, 'utf8');
+            }
+            console.log(JSON.stringify(result));
+          } catch(err) {
+            console.log(JSON.stringify({ ok: false, error: err.message }));
+          }
+        }).catch(err => {
+          console.error(err);
+          process.exit(1);
+        });
+      `;
+    }
+
+    const child = spawnSync(process.execPath, [], {
+      cwd: repoRoot,
+      input: nodeCode,
+      encoding: 'utf8',
+      timeout: 15000,
+    });
+
+    if (child.error) {
+      throw child.error;
+    }
+    return { result: JSON.parse(child.stdout) };
   } catch (e) {
     return { result: { ok: false, error: String(e instanceof Error ? e.message : e) } };
   }
@@ -326,7 +439,7 @@ async function agentLoop(session: AgentSession, userTask: string, config: KloelC
   for (let turn = 0; turn < 10; turn++) {
     const response = await callDeepSeek(session.messages, tools, config.apiKey, config.model);
 
-    if (response.content) {
+    if (response.content || response.tool_calls) {
       session.messages.push(response);
     }
 
@@ -520,10 +633,12 @@ async function analyzeAndAdapt(results: BenchmarkResult[], suite: string): Promi
 
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
+  const silent = process.argv.includes('--silent');
   const config = loadConfig();
+  config.repoRoot = findRepoRoot(process.cwd());
 
   if (args.length === 0) {
-    printUsage();
+    if (!silent) printUsage();
     return;
   }
 
@@ -546,11 +661,15 @@ async function main(): Promise<void> {
   } else {
     // Single task mode
     const task = args.join(' ');
-    process.stdout.write(`Kloel CLI — executing: ${task}\n`);
+    if (!silent) process.stdout.write(`Kloel CLI — executing: ${task}\n`);
     const session = createSession();
     try {
       const result = await agentLoop(session, task, config);
-      process.stdout.write(`\n${'─'.repeat(40)}\n${result}\n`);
+      if (silent) {
+        process.stdout.write(`${result}\n`);
+      } else {
+        process.stdout.write(`\n${'─'.repeat(40)}\n${result}\n`);
+      }
     } catch (e) {
       process.stderr.write(`Kloel error: ${e instanceof Error ? e.message : String(e)}\n`);
       process.exit(1);

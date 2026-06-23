@@ -35,7 +35,7 @@
  * with frozen accepted units (disjoint read-set), monotonicity (P10) is preserved by
  * construction. The funnel's convergence IS the byte-positive monotone ratchet.
  */
-import { runArm, makeSyntheticTask } from '../../atomic-edit-evolution/truth-funnel.mjs';
+import { runArm, makeSyntheticTask } from '../truth-funnel.mjs';
 
 const jsonMode = process.argv.includes('--json');
 

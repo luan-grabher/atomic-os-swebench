@@ -1,0 +1,22 @@
+{
+  "action": "created",
+  "class": "INTERNAL-GENERATED-FIXTURE-HIDDEN-NAME",
+  "failures": [],
+  "fidelity_ok": true,
+  "proof_n": 1,
+  "repair_triple": {
+    "diff_lines": 2,
+    "diff_sha256": "36f6ec3d7cc5e546",
+    "edits": 1,
+    "files_changed": 1,
+    "local_gate_invalid_reason": "gate_infra_failure",
+    "official_resolved": true,
+    "steps": 7,
+    "task": "SWE-pytest-dev__pytest-8399",
+    "tokens": 36412,
+    "ts": 1782171019,
+    "wall_s": 40.4
+  },
+  "weights_after": 8,
+  "weights_before": 7
+}

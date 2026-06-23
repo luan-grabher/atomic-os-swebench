@@ -17,10 +17,8 @@ import { installInheritedAtomicHostEnv } from './proof-host-env.mjs';
 const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const repoRoot = path.resolve(sourceDir, '..', '..');
-const hostVisibleRepoRoot = process.env.ATOMIC_HOST_WRITE_ROOT
-  ? path.resolve(process.env.ATOMIC_HOST_WRITE_ROOT)
-  : repoRoot;
-const hostMode = process.env.ATOMIC_HOST_SANDBOX === 'macos-sandbox-exec' && process.env.ATOMIC_HOST_ATOMIC_ONLY === '1';
+const hostVisibleRepoRoot = repoRoot;
+let hostMode = false;
 const readOnlyArgs = {};
 const readOnlyCwd = hostVisibleRepoRoot;
 const protectedReadCommand = "sed -n '1,1p' core/atomic-edit/package.json";
@@ -53,6 +51,7 @@ async function callAtomicExec(client, command, args = {}) {
 
 function serverTransport() {
   const inheritedHostEnv = installInheritedAtomicHostEnv(hostVisibleRepoRoot);
+  hostMode = inheritedHostEnv.ATOMIC_HOST_SANDBOX === 'macos-sandbox-exec' && inheritedHostEnv.ATOMIC_HOST_ATOMIC_ONLY === '1';
   const compiledServer = path.join(sourceDir, 'dist', 'server.js');
   return new StdioClientTransport({
     command: process.execPath,

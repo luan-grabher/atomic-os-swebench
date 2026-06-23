@@ -217,9 +217,18 @@ export function installHotReloadingToolCallbacks(
         ? options.shouldDelegate(name)
         : shouldDelegateToFreshRuntime(atomicRoot, bootDistHash, env);
       if (delegate) {
-        options.log?.('hot-reload delegating', name, 'to fresh Atomic runtime');
-        const callFresh = options.callFreshTool ?? ((tool, toolArgs) => defaultCallFreshTool(atomicRoot, env, tool, toolArgs));
-        return callFresh(name, args);
+        try {
+          options.log?.('hot-reload delegating', name, 'to fresh Atomic runtime');
+          const callFresh = options.callFreshTool ?? ((tool, toolArgs) => defaultCallFreshTool(atomicRoot, env, tool, toolArgs));
+          return await callFresh(name, args);
+        } catch (freshError) {
+          // Graceful degradation: if the fresh runtime is unavailable (build
+          // failed, dist/ missing, timeout, etc.), fall back to the in-process
+          // callback. The in-process code may be stale (pre-source-edit), but a
+          // stale-but-working tool is strictly better than a crashed one. The
+          // source changes will be picked up on the next server restart.
+          options.log?.('hot-reload fresh runtime failed for', name, ', falling back to in-process:', freshError instanceof Error ? freshError.message : String(freshError));
+        }
       }
       return callback(args, extra);
     };

@@ -31,7 +31,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from 'node:child_process';
 import { createInterface } from 'node:readline';
 import crypto from 'node:crypto';
 
@@ -169,8 +169,13 @@ async function executeCommand(command: string): Promise<void> {
     // Direct execution (no sandbox)
     exitCode = await directExec(command, cwd);
     if (exitCode !== 0 && process.env.ATOMIC_AUTO_ROLLBACK !== '0') {
-      // TODO: git checkout changed files
-      rolledBack = false;
+      try {
+        execSync('git restore . && git clean -fd', { cwd: REPO_ROOT });
+        rolledBack = true;
+      } catch (e) {
+        console.error('[atsh] rollback failed:', e.message);
+        rolledBack = false;
+      }
     }
   }
 

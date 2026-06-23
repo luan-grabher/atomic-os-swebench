@@ -1,0 +1,58 @@
+diff --git a/pylint/config/argument.py b/pylint/config/argument.py
+index 30a5fd175..421d5f177 100644
+--- a/pylint/config/argument.py
++++ b/pylint/config/argument.py
+@@ -114,7 +114,7 @@ def _regex_transformer(value: str) -> Pattern[str]:
+ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _split_regexp_csv(value):
+         patterns.append(_regex_transformer(pattern))
+     return patterns
+ 
+@@ -122,7 +122,7 @@ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+ def _regexp_paths_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions paths."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _split_regexp_csv(value):
+         patterns.append(
+             re.compile(
+                 str(pathlib.PureWindowsPath(pattern)).replace("\\", "\\\\")
+@@ -133,6 +133,35 @@ def _regexp_paths_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     return patterns
+ 
+ 
++def _split_regexp_csv(value: str) -> list[str]:
++    """Split a string on commas, respecting backslash-escaped commas.
++
++    Backslash-escaped commas (``\,``) are treated as literal commas within
++    patterns, and the backslash is removed from the resulting pattern.
++    """
++    result: list[str] = []
++    current: list[str] = []
++    i = 0
++    while i < len(value):
++        if value[i] == "\\" and i + 1 < len(value) and value[i + 1] == ",":
++            # Escaped comma: keep the comma, strip the backslash.
++            current.append(",")
++            i += 2
++        elif value[i] == ",":
++            pattern = "".join(current).strip()
++            if pattern:
++                result.append(pattern)
++            current = []
++            i += 1
++        else:
++            current.append(value[i])
++            i += 1
++    pattern = "".join(current).strip()
++    if pattern:
++        result.append(pattern)
++    return result
++
++
+ _TYPE_TRANSFORMERS: dict[str, Callable[[str], _ArgumentTypes]] = {
+     "choice": str,
+     "csv": _csv_transformer,

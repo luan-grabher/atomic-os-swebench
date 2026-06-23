@@ -7,6 +7,7 @@ const jsonMode = process.argv.includes('--json');
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const source = fs.readFileSync(path.join(sourceDir, 'server-tools-self.ts'), 'utf8');
 const brokerSource = fs.readFileSync(path.join(sourceDir, 'atomic-exec-broker.mjs'), 'utf8');
+const brokerClientSource = fs.readFileSync(path.join(sourceDir, 'atomic-exec-broker-client.mjs'), 'utf8');
 
 const requiredCommands = [
   'node build.mjs',
@@ -291,6 +292,66 @@ function main() {
       hasLspSemanticDeltaHostDirect: source.includes("'lsp-semantic-delta.proof.mjs'"),
       hasVitestPackageHostDirect: source.includes("'vitest-package-suite.proof.mjs'"),
       hasMultilangSupplyChainHostDirect: source.includes("'multilang-supply-chain-resolver.proof.mjs'"),
+    },
+  );
+  record(
+    results,
+    'self-expansion proof env scrubs single-tool delegation vars for both broker and direct fallback paths',
+    source.includes('function selfExpansionProofEnv(socket: string | null, command: string)') &&
+      source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_CALL') &&
+      source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_NAME') &&
+      source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_ARGS_JSON') &&
+      source.includes('const proofEnv = selfExpansionProofEnv(socket, command)') &&
+      source.includes('runProofCommandDirect(command, cwd, timeout, proofEnv)') &&
+      source.includes("ATOMIC_SINGLE_TOOL_CALL: ''") &&
+      source.includes("ATOMIC_SINGLE_TOOL_NAME: ''") &&
+      source.includes("ATOMIC_SINGLE_TOOL_ARGS_JSON: ''"),
+    {
+      hasUnifiedProofEnv: source.includes('function selfExpansionProofEnv(socket: string | null, command: string)'),
+      scrubsCall: source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_CALL'),
+      scrubsName: source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_NAME'),
+      scrubsArgs: source.includes('delete cleanProofEnv.ATOMIC_SINGLE_TOOL_ARGS_JSON'),
+      directFallbackUsesProofEnv: source.includes('runProofCommandDirect(command, cwd, timeout, proofEnv)'),
+      brokerOverridesSingleToolCall: source.includes("ATOMIC_SINGLE_TOOL_CALL: ''"),
+      brokerOverridesSingleToolName: source.includes("ATOMIC_SINGLE_TOOL_NAME: ''"),
+      brokerOverridesSingleToolArgs: source.includes("ATOMIC_SINGLE_TOOL_ARGS_JSON: ''"),
+    },
+  );
+  record(
+    results,
+    'self-expansion proof temp roots never intentionally point at the atomic source root or host workspace root',
+    source.includes('function selfExpansionProofTempRoot(hostRoot: string)') &&
+      source.includes('const selfRoot = path.resolve(atomicSelfSourceRoot())') &&
+      source.includes('const insideSelfRoot = requested === selfRoot || requested.startsWith(selfRoot + path.sep)') &&
+      source.includes('const insideHostRoot = requested === host || requested.startsWith(host + path.sep)') &&
+      source.includes('if (requested && !insideSelfRoot && !insideHostRoot) return requested') &&
+      source.includes("path.join(host, '.atomic', 'self-expansion-proof-tmp')") &&
+      source.includes('const brokerTempRoot = proofEnv.TMPDIR ?? selfExpansionProofTempRoot(brokerRoot)'),
+    {
+      hasSafeTempRootFunction: source.includes('function selfExpansionProofTempRoot(hostRoot: string)'),
+      checksSelfRoot: source.includes('insideSelfRoot'),
+      checksHostRoot: source.includes('insideHostRoot'),
+      acceptsExternalTmp: source.includes('if (requested && !insideSelfRoot && !insideHostRoot) return requested'),
+      brokerUsesProofTempRoot: source.includes('const brokerTempRoot = proofEnv.TMPDIR ?? selfExpansionProofTempRoot(brokerRoot)'),
+    },
+  );
+  record(
+    results,
+    'file broker clients validate marker, owner process, and queue directories before writing a request',
+    brokerClientSource.includes("broker file endpoint unavailable") &&
+      brokerClientSource.includes("fs.readFileSync(path.join(root, 'broker.json')") &&
+      brokerClientSource.includes("marker?.protocol !== 'atomic-file-broker-v1'") &&
+      brokerClientSource.includes('process.kill(marker.pid, 0)') &&
+      brokerClientSource.includes("!fs.statSync(requests).isDirectory()") &&
+      brokerClientSource.indexOf('writeJsonAtomic(requestFile, req)') > brokerClientSource.indexOf("!fs.statSync(requests).isDirectory()"),
+    {
+      hasUnavailableMarker: brokerClientSource.includes('broker file endpoint unavailable'),
+      readsMarker: brokerClientSource.includes("fs.readFileSync(path.join(root, 'broker.json')"),
+      validatesProtocol: brokerClientSource.includes("marker?.protocol !== 'atomic-file-broker-v1'"),
+      probesOwner: brokerClientSource.includes('process.kill(marker.pid, 0)'),
+      validatesQueues: brokerClientSource.includes("!fs.statSync(requests).isDirectory()"),
+      writesAfterValidation:
+        brokerClientSource.indexOf('writeJsonAtomic(requestFile, req)') > brokerClientSource.indexOf("!fs.statSync(requests).isDirectory()"),
     },
   );
   record(

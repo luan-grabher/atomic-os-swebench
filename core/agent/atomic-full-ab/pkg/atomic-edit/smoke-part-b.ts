@@ -21,9 +21,19 @@ export async function partB(): Promise<void> {
   const { Client } = await import('@modelcontextprotocol/sdk/client/index.js');
   const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js');
 
-  const repoRoot = path.resolve(SOURCE_DIR, '..', '..', '..');
-  const fixtureRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-fixture.${process.pid}.ts`);
-  const fixtureAbs = path.join(repoRoot, fixtureRel);
+  const findRepoRoot = (start: string): string => {
+    let dir = start;
+    for (;;) {
+      if (fs.existsSync(path.join(dir, '.git'))) return dir;
+      const parent = path.dirname(dir);
+      if (parent === dir) return start;
+      dir = parent;
+    }
+  };
+  const repoRoot = findRepoRoot(SOURCE_DIR);
+  const selfRel = path.relative(repoRoot, SOURCE_DIR).split(path.sep).join('/');
+  const fixtureRel = path.posix.join(selfRel, `.smoke-live-fixture.${process.pid}.ts`);
+  const fixtureAbs = path.join(SOURCE_DIR, `.smoke-live-fixture.${process.pid}.ts`);
   fs.writeFileSync(fixtureAbs, "export const TARGET = '5511999999999';\n");
 
   const compiledServer = path.join(SOURCE_DIR, 'dist', 'server.js');
@@ -38,7 +48,7 @@ export async function partB(): Promise<void> {
   const client = new Client({ name: 'smoke', version: '1.0.0' });
   try {
     await client.connect(transport);
-    const ctx = { client, fixtureAbs, fixtureRel, repoRoot };
+    const ctx = { client, fixtureAbs, fixtureRel, repoRoot, selfRel, selfAbs: SOURCE_DIR };
     await partBSetup(ctx);
     await partBRenameProp(ctx);
     await partBAnchorAfter(ctx);

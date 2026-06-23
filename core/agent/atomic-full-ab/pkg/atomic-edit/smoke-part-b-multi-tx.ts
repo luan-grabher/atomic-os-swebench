@@ -4,10 +4,10 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBMultiTx(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
     // ── Lever #3: multi-file atomic transaction ──
-    const txA = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-tx-a.${process.pid}.ts`);
-    const txB = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-tx-b.${process.pid}.ts`);
+    const txA = path.posix.join(selfRel, `.smoke-tx-a.${process.pid}.ts`);
+    const txB = path.posix.join(selfRel, `.smoke-tx-b.${process.pid}.ts`);
     const txAAbs = path.join(repoRoot, txA);
     const txBAbs = path.join(repoRoot, txB);
     fs.writeFileSync(txAAbs, 'export const A = 1;\n');
@@ -72,6 +72,9 @@ export async function partBMultiTx(ctx: PartBCtx): Promise<void> {
     for (const f of [txAAbs, txBAbs]) if (fs.existsSync(f)) fs.unlinkSync(f);
 
     // analyzer transaction: ESLint proposes fixes in dry-run mode, atomic-edit writes them.
+    const workerDir = path.join(repoRoot, 'worker');
+    const createdWorkerDir = !fs.existsSync(workerDir);
+    fs.mkdirSync(workerDir, { recursive: true });
     const eslintRel = path.join('worker', `.smoke-eslint.${process.pid}.ts`);
     const eslintAbs = path.join(repoRoot, eslintRel);
     fs.writeFileSync(
@@ -212,5 +215,12 @@ export async function partBMultiTx(ctx: PartBCtx): Promise<void> {
       }
     } finally {
       if (fs.existsSync(eslintAbs)) fs.unlinkSync(eslintAbs);
+      if (createdWorkerDir && fs.existsSync(workerDir)) {
+        try {
+          fs.rmdirSync(workerDir);
+        } catch {
+          // If a real test leaves residue, keep it visible instead of deleting unrelated bytes.
+        }
+      }
     }
 }

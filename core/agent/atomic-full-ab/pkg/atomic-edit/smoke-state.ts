@@ -37,4 +37,6 @@ export interface PartBCtx {
   fixtureAbs: string;
   fixtureRel: string;
   repoRoot: string;
+  selfRel: string;
+  selfAbs: string;
 }

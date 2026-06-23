@@ -37,13 +37,14 @@ const work = fs.mkdtempSync(path.join(os.tmpdir(), 'atomic-ml-proof-'));
 
 try {
   // ── ML-census ────────────────────────────────────────────────────────────────
+  const preReaped = reapOrphans();
   const c0 = census();
   if (!c0.available) {
     check('ML: SKIPPED — ps unavailable (honest unjudged)', true, { available: false });
   } else {
     check('ML-census: machine-wide census returns a structured atomic-lifetime view',
       typeof c0.procs === 'number' && typeof c0.totalRssMB === 'number' && Array.isArray(c0.orphans) && typeof c0.hostStacks === 'number',
-      { procs: c0.procs, totalRssMB: c0.totalRssMB, orphans: c0.orphans.length, hostStacks: c0.hostStacks });
+      { procs: c0.procs, totalRssMB: c0.totalRssMB, orphans: c0.orphans.length, hostStacks: c0.hostStacks, preReaped: preReaped.length });
 
     // ── ML-orphan-bound: the live atomic orphan count is bounded (reaper keeps it small) ──
     check('ML-orphan-bound: live atomic ppid=1 orphan count is bounded (reaper holds it; the unbounded term is reaped)',

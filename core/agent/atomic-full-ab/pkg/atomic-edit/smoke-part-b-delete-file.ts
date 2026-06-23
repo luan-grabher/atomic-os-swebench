@@ -6,9 +6,9 @@ import { check, jsonBody, sha, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
     // ── atomic_delete_file ──
-    const delRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-delete.${process.pid}.ts`);
+    const delRel = path.posix.join(selfRel, `.smoke-delete.${process.pid}.ts`);
     const delAbs = path.join(repoRoot, delRel);
     fs.writeFileSync(delAbs, 'export const WILL_DELETE = 1;\n');
     const delBefore = fs.readFileSync(delAbs, 'utf8');
@@ -20,12 +20,6 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         arguments: { file: delRel, preview: true },
       })) as { content: { text: string }[] };
       const delPrevBody = jsonBody(delPrev);
-      const delPrevTracePath =
-        typeof delPrevBody.tracePath === 'string' ? path.join(repoRoot, delPrevBody.tracePath) : '';
-      const delPrevTrace =
-        delPrevTracePath && fs.existsSync(delPrevTracePath)
-          ? JSON.parse(fs.readFileSync(delPrevTracePath, 'utf8'))
-          : {};
       check(
         'delete_file preview does not delete',
         delPrevBody.preview === true &&
@@ -35,13 +29,14 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         delPrev.content[0]?.text ?? '',
       );
       check(
-        'delete_file preview trace is honest',
-        delPrevTrace.operation === 'atomic_delete_file' &&
-          delPrevTrace.preview === true &&
-          delPrevTrace.changed === false &&
-          delPrevTrace.afterSha256 === sha(delBefore) &&
-          delPrevTrace.proposedSha256 === sha(''),
-        JSON.stringify(delPrevTrace),
+        'delete_file preview receipt is honest',
+        delPrevBody.operation === 'atomic_delete_file' &&
+          delPrevBody.preview === true &&
+          delPrevBody.changed === false &&
+          delPrevBody.tracePath === undefined &&
+          typeof delPrevBody.operationId === 'string' &&
+          fs.existsSync(delAbs),
+        JSON.stringify(delPrevBody),
       );
 
       const delNoProof = (await client.callTool({
@@ -121,7 +116,7 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
 
       const delDir = (await client.callTool({
         name: 'atomic_delete_file',
-        arguments: { file: 'scripts/mcp/atomic-edit' },
+        arguments: { file: selfRel },
       })) as { content: { text: string }[]; isError?: boolean };
       check(
         'delete_file refuses directory',
@@ -140,12 +135,7 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         delProtected.content[0]?.text ?? '',
       );
 
-      const delShaRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-delete-sha.${process.pid}.ts`,
-      );
+      const delShaRel = path.posix.join(selfRel, `.smoke-delete-sha.${process.pid}.ts`);
       const delShaAbs = path.join(repoRoot, delShaRel);
       fs.writeFileSync(delShaAbs, 'export const SHA_GUARD = 1;\n');
       try {
@@ -162,18 +152,8 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
         if (fs.existsSync(delShaAbs)) fs.unlinkSync(delShaAbs);
       }
 
-      const depTargetRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-delete-dep-target.${process.pid}.ts`,
-      );
-      const depImporterRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-delete-dep-importer.${process.pid}.ts`,
-      );
+      const depTargetRel = path.posix.join(selfRel, `.smoke-delete-dep-target.${process.pid}.ts`);
+      const depImporterRel = path.posix.join(selfRel, `.smoke-delete-dep-importer.${process.pid}.ts`);
       const depTargetAbs = path.join(repoRoot, depTargetRel);
       const depImporterAbs = path.join(repoRoot, depImporterRel);
       const depSpecifier = './' + path.basename(depTargetRel, '.ts');
@@ -215,14 +195,9 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
     // not the coordinator's main repo root.
     const linkedParent = fs.mkdtempSync(path.join(os.tmpdir(), `atomic-edit-wt-${process.pid}-`));
     const linkedRoot = path.join(linkedParent, 'repo');
-    const linkedRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-linked-worktree.${process.pid}.ts`,
-    );
+    const linkedRel = path.posix.join(selfRel, `.smoke-linked-worktree.${process.pid}.ts`);
     const linkedAbs = path.join(linkedRoot, linkedRel);
-    const linkedTsconfigAbs = path.join(linkedRoot, 'scripts', 'mcp', 'atomic-edit', 'tsconfig.json');
+    const linkedTsconfigAbs = path.join(linkedRoot, selfRel, 'tsconfig.json');
     let linkedTsconfigCreated = false;
     try {
       childProcess.execFileSync('git', ['worktree', 'add', '--detach', linkedRoot, 'HEAD'], {
@@ -231,7 +206,7 @@ export async function partBDeleteFile(ctx: PartBCtx): Promise<void> {
       });
       if (!fs.existsSync(linkedTsconfigAbs)) {
         fs.copyFileSync(
-          path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', 'tsconfig.json'),
+          path.join(repoRoot, selfRel, 'tsconfig.json'),
           linkedTsconfigAbs,
         );
         linkedTsconfigCreated = true;

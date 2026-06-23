@@ -70,14 +70,19 @@ const transport = new StdioClientTransport({
     ATOMIC_DISABLE_HOT_RELOAD: '1',
   },
 });
-const client = new Client({ name: 'atomic-worker', version: '1.0.0' });
+const client = new Client({ name: 'atomic-worker', version: '1.0.0' }, { requestTimeout: 32 * 60 * 1000 });
 
 // ── Tool-call helper with receipt capture ───────────────────────────────────
+// Kernel tools (atomic_expand_self, atomic_self_evolution) run the full proof
+// battery inside their own budget (~30min). The MCP SDK default request
+// timeout is 60s — way too short. Per-call timeout is sized to the tool class.
+const KERNEL_TOOLS = new Set(['atomic_expand_self', 'atomic_self_evolution', 'atomic_converge']);
 const receipts = [];
 async function callTool(name, toolArgs) {
   const t0 = Date.now();
+  const timeout = KERNEL_TOOLS.has(name) ? 32 * 60 * 1000 : 5 * 60 * 1000;
   try {
-    const r = await client.callTool({ name, arguments: toolArgs });
+    const r = await client.callTool({ name, arguments: toolArgs }, undefined, { timeout });
     const dt = Date.now() - t0;
     const text = Array.isArray(r?.content) ? r.content.map((c) => c?.text ?? '').join('\n') : JSON.stringify(r);
     const ok = !/^\s*\{\s*"ok":\s*false/i.test(text) && !/"error"\s*:\s*"/i.test(text);

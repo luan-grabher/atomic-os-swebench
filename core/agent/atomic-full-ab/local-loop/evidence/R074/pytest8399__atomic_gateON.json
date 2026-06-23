@@ -1,0 +1,218 @@
+{
+  "arm": "atomic-cli-deepseek-v4-pro",
+  "task": "core/agent/atomic-full-ab/local-loop/tasks/SWE-pytest-dev__pytest-8399/PROBLEM.md",
+  "workdir": "/private/tmp/swe/round/R074/pytest8399/atomic",
+  "steps": 6,
+  "tool_calls": {
+    "atomic_survey": 1,
+    "atomic_read_many": 1,
+    "atomic_grep": 1,
+    "quick_check": 2,
+    "atomic_replace": 1,
+    "run_tests": 1
+  },
+  "edits_applied": 1,
+  "invalid_states_prevented": 0,
+  "reads": 3,
+  "body_context_reads": 1,
+  "run_tests_calls": 1,
+  "quick_check_calls": 2,
+  "tokens": 31674,
+  "gate_pass": null,
+  "round_invalid": true,
+  "invalid_reason": "gate_infra_failure",
+  "model_call_error": "",
+  "model_call_error_kind": "",
+  "diff_lines": 2,
+  "wall_s": 36.5,
+  "transcript": [
+    "s1 atomic_survey({\"glob\": \"src/_pytest/unittest.py\"}) -> src/_pytest/unittest.py: pytest_pycollect_makeitem@L45, UnitTestCase@L61, collect@L66, _inject_setup_teardown_fixtures@L",
+    "s2 atomic_read_many({\"items\": [{\"path\": \"src/_pytest/unittest.py\", \"selector\": \"_make_xunit_fixture\"}, {\"path\") -> ## src/_pytest/unittest.py:123-181 [_make_xunit_fixture]",
+    "s3 TOPOLOGY-GUIDANCE injected (non-blocking)",
+    "s3 atomic_grep({\"pattern\": \"unittest_\", \"path\": \"src/_pytest/unittest.py\"}) -> src/_pytest/unittest.py:147: name=f\"unittest_{setup_name}_fixture_{obj.__qualname__}\",",
+    "s3 quick_check -> FAIL (exit 1)",
+    "s4 quick_check -> FAIL (exit 1)",
+    "s5 atomic_replace({\"file\": \"src/_pytest/unittest.py\", \"oldText\": \"name=f\\\"unittest_{setup_name}_fixture_{obj) -> \u2705 Atomic edit applied",
+    "s6 GATE-INFRA-RED classified; preserving diff for official scoring",
+    "s6 run_tests -> pass=0 fail=0 all_green=False",
+    "ROUND INVALID (local gate infrastructure failure; official scoring required)"
+  ],
+  "reasoning_trace": [
+    {
+      "step": 1,
+      "reasoning": "Let me understand the issue:\n\n1. In pytest 6.2.0+, `unittest` `setUpClass` fixtures are no longer \"private\" (their names don't start with an underscore).\n2. Previously, these fixtures had names starting with `_`, which made them hidden from `--fixtures` output unless `-v` was used.\n3. The fix should make these fixture names start with `_` again.\n\nLet me look at the relevant code.",
+      "say": ""
+    },
+    {
+      "step": 2,
+      "reasoning": "Let me look at the `_make_xunit_fixture` function, which likely creates the fixture name.",
+      "say": ""
+    },
+    {
+      "step": 3,
+      "reasoning": "The issue is that the fixture name is not \"private\" (doesn't start with underscore). Looking at the code in `_make_xunit_fixture`, the fixture name is:\n\n```python\nname=f\"unittest_{setup_name}_fixture_{obj.__qualname__}\",\n```\n\nThe fix is to prefix the name with an underscore so it becomes private:\n\n```python\nname=f\"_unittest_{setup_name}_fixture_{obj.__qualname__}\",\n```\n\nThis is a one-character change. Let me verify this is the right approach by checking if there's any other place that references the fixture name.\n\nLet me also check the quick_check to see the current behavior.",
+      "say": ""
+    },
+    {
+      "step": 4,
+      "reasoning": "The function isn't exported from the module. Let me check the fixture name differently.",
+      "say": ""
+    },
+    {
+      "step": 5,
+      "reasoning": "Can't quick_check, but the fix is clear. The fixture name on line 147 should be prefixed with underscore to make it private. Let me make the edit.",
+      "say": ""
+    },
+    {
+      "step": 6,
+      "reasoning": "The fix is applied. Now let me run the tests to verify.",
+      "say": ""
+    }
+  ],
+  "gate_infra_reason": "ule_details\n    __import__(pkg_name)\n  File \"/testbed/src/pytest/__init__.py\", line 5, in <module>\n    from _pytest.assertion import register_assert_rewrite\n  File \"/testbed/src/_pytest/assertion/__init__.py\", line 9, in <module>\n    from _pytest.assertion import rewrite\n  File \"/testbed/src/_pytest/assertion/rewrite.py\", line 31, in <module>\n    from _pytest._version import version\nModuleNotFoundError: No module named '_pytest._version'\n# tests 16\n# pass 0\n# fail 1\n\n\n[GATE-HOST-DIFF-RESTORED]\n[GATE-INFRA-RED] local gate infrastructure failed; preserve current source diff for official scoring.",
+  "final_diff": "diff --git a/src/_pytest/unittest.py b/src/_pytest/unittest.py\nindex 719eb4e88..3f88d7a9e 100644\n--- a/src/_pytest/unittest.py\n+++ b/src/_pytest/unittest.py\n@@ -144,7 +144,7 @@ def _make_xunit_fixture(\n         scope=scope,\n         autouse=True,\n         # Use a unique name to speed up lookup.\n-        name=f\"unittest_{setup_name}_fixture_{obj.__qualname__}\",\n+        name=f\"_unittest_{setup_name}_fixture_{obj.__qualname__}\",\n     )\n     def fixture(self, request: FixtureRequest) -> Generator[None, None, None]:\n         if _is_skipped(self):\n",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are the Atomic-CLI coding agent. Solve the task by editing a real repository using ONLY atomic tools, plus run_tests to verify. Be efficient with calls: to understand the code, FIRST call atomic_survey(glob) once to outline the region, then atomic_read_many(items) to read the relevant files in ONE call \u2014 do NOT read files one at a time. Then make minimal faithful edits with atomic_replace / atomic_create (supply proofOfIncorrectness when you remove code). Spend your reads on SOURCE files only; do NOT read changelog/news/release-notes/.rst/docs files or grep for the issue number \u2014 the fix lives in source, and adding changelog/doc files is out of scope. Prefer the smallest correct behavioral delta: preserve existing exports, comments, and call graph where possible; avoid rewriting unrelated helpers; when two touched functions need the same logic, implement one canonical helper and have wrappers delegate instead of duplicating state machines or parsers. For merge/default-composition/update helpers, reason over the final merged representation unless source identity is explicitly part of the contract; preserve override precedence and filter by final value, not by independently scanning input sources. When the fix is 'apply check/filter F': FIRST call atomic_callers(F) \u2014 if F is ALREADY invoked where the bug manifests, the root is the EXISTING call or F's own body (often a normalization/comparison detail), so fix THAT; adding a second F guard usually duplicates the same latent bug and fails. Then run_tests; iterate until fully green, then STOP with a short summary and NO tool call. Paths are relative to the repo root. IMPORTANT: the acceptance test is HIDDEN (supplied by the grader) and is NOT in this checkout \u2014 do NOT search for it by name or try to read it; you cannot. When run_tests is red, fix the SOURCE based on the issue and the failing assertion shown, not by hunting the test file.\n\nCROSS-SESSION EXPERIENCE: this atomic agent has resolved 12 previous tasks (avg 12 diff lines, 2 edits). From that experience: the smallest correct fix is almost always a single-symbol mutation or a one-line policy-site change; prefer modifying an existing canonical construct over adding parallel logic.\n\nLEARNED RESOLUTION STRATEGIES (atomic weights \u2014 generalized operators captured from PROVEN resolutions of this class; apply the matching one):\n- [MISSED-COMPANION-CONFIG-FILE] (proven on 1 resolution(s)): A behavior fix that touches configuration/path/registration logic often spans TWO files: the code (the logic) AND a packaging/metadata file (setup.cfg, pyproject.toml, MANIFEST.in, conftest.py). After fixing the code, check whether a companion metadata/config file also declares or registers the thing you changed -- the hidden test may assert the metadata too. Don't stop at the single code file; grep the repo root for setup.cfg/pyproject for a related key.\n- [INTERNAL-GENERATED-FIXTURE-HIDDEN-NAME] (proven on 1 resolution(s)): When a framework auto-generates an INTERNAL fixture/hook/adapter but the public introspection surface lists it, fix the generated registration NAME at the creation site so it follows the framework hidden/private naming convention (for pytest fixtures: leading underscore hides it from normal --fixtures output). Do not patch the introspection/listing code; the generated object should be born private while preserving behavior and autouse semantics."
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_CpLlQEgeVK5w5RXg92gT3246",
+          "type": "function",
+          "function": {
+            "name": "atomic_survey",
+            "arguments": "{\"glob\": \"src/_pytest/unittest.py\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_CpLlQEgeVK5w5RXg92gT3246",
+      "content": "src/_pytest/unittest.py: pytest_pycollect_makeitem@L45, UnitTestCase@L61, collect@L66, _inject_setup_teardown_fixtures@L97, _make_xunit_fixture@L123, cleanup@L140, fixture@L149, TestCaseFunction@L184, setup@L189, teardown@L198, startTest@L205, _addexcinfo@L208, addError@L241, addFailure@L251, addSkip@L256, addExpectedFailure@L262, addUnexpectedSuccess@L273, addSuccess@L287, stopTest@L290, runtest@L293, _prunetraceback@L323, pytest_runtest_makereport@L335, pytest_runtest_protocol@L365, excstore@L371, check_testcase_implements_trial_reporter@L394, _is_skipped@L404"
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_vqqSPAzgVNtqAXZxKSyI8148",
+          "type": "function",
+          "function": {
+            "name": "atomic_read_many",
+            "arguments": "{\"items\": [{\"path\": \"src/_pytest/unittest.py\", \"selector\": \"_make_xunit_fixture\"}, {\"path\": \"src/_pytest/unittest.py\", \"selector\": \"_inject_setup_teardown_fixtures\"}]}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_vqqSPAzgVNtqAXZxKSyI8148",
+      "content": "## src/_pytest/unittest.py:123-181 [_make_xunit_fixture]\ndef _make_xunit_fixture(\n    obj: type,\n    setup_name: str,\n    teardown_name: str,\n    cleanup_name: Optional[str],\n    scope: \"_Scope\",\n    pass_self: bool,\n):\n    setup = getattr(obj, setup_name, None)\n    teardown = getattr(obj, teardown_name, None)\n    if setup is None and teardown is None:\n        return None\n\n    if cleanup_name:\n        cleanup = getattr(obj, cleanup_name, lambda *args: None)\n    else:\n\n        def cleanup(*args):\n            pass\n\n    @pytest.fixture(\n        scope=scope,\n        autouse=True,\n        # Use a unique name to speed up lookup.\n        name=f\"unittest_{setup_name}_fixture_{obj.__qualname__}\",\n    )\n    def fixture(self, request: FixtureRequest) -> Generator[None, None, None]:\n        if _is_skipped(self):\n            reason = self.__unittest_skip_why__\n            raise pytest.skip.Exception(reason, _use_item_location=True)\n        if setup is not None:\n            try:\n                if pass_self:\n                    setup(self, request.function)\n                else:\n                    setup()\n            # unittest does not call the cleanup function for every BaseException, so we\n            # follow this here.\n            except Exception:\n                if pass_self:\n                    cleanup(self)\n                else:\n                    cleanup()\n\n                raise\n        yield\n        try:\n            if teardown is not None:\n                if pass_self:\n                    teardown(self, request.function)\n                else:\n                    teardown()\n        finally:\n            if pass_self:\n                cleanup(self)\n            else:\n                cleanup()\n\n    return fixture\n\n## src/_pytest/unittest.py:97-120 [_inject_setup_teardown_fixtures]\ndef _inject_setup_teardown_fixtures(self, cls: type) -> None:\n        \"\"\"Injects a hidden auto-use fixture to invoke setUpClass/setup_method and corresponding\n        teardown functions (#517).\"\"\"\n        class_fixture = _make_xunit_fixture(\n            cls,\n            \"setUpClass\",\n            \"tearDownClass\",\n            \"doClassCleanups\",\n            scope=\"class\",\n            pass_self=False,\n        )\n        if class_fixture:\n            cls.__pytest_class_setup = class_fixture  # type: ignore[attr-defined]\n\n        method_fixture = _make_xunit_fixture(\n            cls,\n            \"setup_method\",\n            \"teardown_method\",\n            None,\n            scope=\"function\",\n            pass_self=True,\n        )\n        if method_fixture:\n            cls.__pytest_method_setup = method_fixture  # type: ignore[attr-defined]"
+    },
+    {
+      "role": "user",
+      "content": "You have read enough to edit. Pick the smallest implementation topology \u2014 the canonical implementation location and any delegating wrappers, preferring ONE canonical implementation plus wrappers over duplicated logic when several exported functions need the same semantics \u2014 then make the smallest faithful edit(s) with atomic_replace/atomic_create in THIS turn. You may state your topology reasoning as content alongside the tool call."
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_6r9OuGcdxjipxikGSa778516",
+          "type": "function",
+          "function": {
+            "name": "atomic_grep",
+            "arguments": "{\"pattern\": \"unittest_\", \"path\": \"src/_pytest/unittest.py\"}"
+          }
+        },
+        {
+          "index": 1,
+          "id": "call_01_RD7McobvW5uXve5QlxGE1460",
+          "type": "function",
+          "function": {
+            "name": "quick_check",
+            "arguments": "{\"code\": \"import unittest\\n\\nclass Tests(unittest.TestCase):\\n    @classmethod\\n    def setUpClass(cls):\\n        pass\\n\\n    def test_1(self):\\n        pass\\n\\nimport _pytest.unittest\\n# Let's see what the fixture name would be\\nfixture = _pytest.unittest._make_xunit_fixture(Tests, \\\"setUpClass\\\", \\\"tearDownClass\\\", \\\"doClassCleanups\\\", scope=\\\"class\\\", pass_self=False)\\nprint(\\\"Fixture name:\\\", fixture.__pytest_wrapped__.name if hasattr(fixture, '__pytest_wrapped__') else fixture.name if hasattr(fixture, 'name') else fixture)\\n\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_6r9OuGcdxjipxikGSa778516",
+      "content": "src/_pytest/unittest.py:147: name=f\"unittest_{setup_name}_fixture_{obj.__qualname__}\",\nsrc/_pytest/unittest.py:151: reason = self.__unittest_skip_why__\nsrc/_pytest/unittest.py:406: return bool(getattr(obj, \"__unittest_skip__\", False))"
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_01_RD7McobvW5uXve5QlxGE1460",
+      "content": "FAIL (exit 1)\n\n--- stderr ---\nTraceback (most recent call last):\n  File \"/private/tmp/swe/round/R074/pytest8399/atomic/tmphby43qtr.py\", line 13, in <module>\n    fixture = _pytest.unittest._make_xunit_fixture(Tests, \"setUpClass\", \"tearDownClass\", \"doClassCleanups\", scope=\"class\", pass_self=False)\nAttributeError: module '_pytest.unittest' has no attribute '_make_xunit_fixture'\n"
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_ZTWqFjWoXBc8TFcEnJQ16529",
+          "type": "function",
+          "function": {
+            "name": "quick_check",
+            "arguments": "{\"code\": \"import unittest\\nfrom _pytest.unittest import _make_xunit_fixture\\n\\nclass Tests(unittest.TestCase):\\n    @classmethod\\n    def setUpClass(cls):\\n        pass\\n\\n    def test_1(self):\\n        pass\\n\\nfixture = _make_xunit_fixture(Tests, \\\"setUpClass\\\", \\\"tearDownClass\\\", \\\"doClassCleanups\\\", scope=\\\"class\\\", pass_self=False)\\nprint(\\\"Fixture name:\\\", fixture.__pytest_wrapped__.name if hasattr(fixture, '__pytest_wrapped__') else fixture.name if hasattr(fixture, 'name') else fixture)\\n\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_ZTWqFjWoXBc8TFcEnJQ16529",
+      "content": "FAIL (exit 1)\n\n--- stderr ---\nTraceback (most recent call last):\n  File \"/private/tmp/swe/round/R074/pytest8399/atomic/tmp0bok1d2q.py\", line 2, in <module>\n    from _pytest.unittest import _make_xunit_fixture\nImportError: cannot import name '_make_xunit_fixture' from '_pytest.unittest' (/Users/danielpenin/Library/Python/3.9/lib/python/site-packages/_pytest/unittest.py)\n\n[ENV NOTE] This repo's package is NOT installed/built in this env (and there is no pip/build). quick_check can only run STANDALONE Python (pure logic), not import the repo's modules. Do NOT attempt to build/install \u2014 verify your fix by reading the source and reasoning about the specific code path instead."
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_osBO89eC3RV56qLVCMoY9386",
+          "type": "function",
+          "function": {
+            "name": "atomic_replace",
+            "arguments": "{\"file\": \"src/_pytest/unittest.py\", \"oldText\": \"name=f\\\"unittest_{setup_name}_fixture_{obj.__qualname__}\\\",\", \"newText\": \"name=f\\\"_unittest_{setup_name}_fixture_{obj.__qualname__}\\\",\", \"proofOfIncorrectness\": \"The fixture name lacks a leading underscore, causing it to appear in public `--fixtures` output instead of being hidden as a private fixture. Adding underscore prefix restores the pre-v6.2.0 behavior.\"}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_osBO89eC3RV56qLVCMoY9386",
+      "content": "\u2705 Atomic edit applied\n\nsrc/_pytest/unittest.py\n\u001b[2m--- src/_pytest/unittest.py (atomic char-level)\u001b[0m\n          autouse=True,\n          # Use a unique name to speed up lookup.\n          name=f\"\u001b[32m{+_+}\u001b[0munittest_{setup_name}_fixture_{obj.__qualname__}\",\n      )\n      def fixture(self, request: FixtureRequest) -> Generator[None, None, None]:\n\nValidation:\n- syntax: ok\n- typecheck: not-run\n- protected file: no\n- sha256: ok\n\nTrace metrics: expansion 1.12\u00d7 \u00b7 58 chars \u00b7 zeroCodeTrust 30 (unvalidated-text)\nTopology: text_span \u00b7 unclassified_code_edit \u00b7 preserved 2 \u00b7 modified 1 \u00b7 moved 0\nTrace: .atomic/traces/op_1782171150983_f742f33e.json\n{\n  \"ok\": true,\n  \"changed\": true,\n  \"file\": \"src/_pytest/unittest.py\",\n  \"target\": {\n    \"repoRoot\": \"/private/tmp/swe/round/R074/pytest8399/atomic\",\n    \"file\": \"src/_pytest/unittest.py\",\n    \"absPath\": \"/private/tmp/swe/round/R074/pytest8399/atomic/src/_pytest/unittest.py\"\n  },\n  \"validation\": {\n    \"language\": \"python\",\n    \"syntaxErrorsBefore\": 0,\n    \"syntaxErrorsAfter\": 0\n  },\n  \"intentionChars\": 58,\n  \"lineRewriteSurfaceChars\": 65,\n  \"expansionFactorAvoided\": 1.12,\n  \"bytesNet\": 1,\n  \"afterSha256\": \"035cbd7a413cd6f1cb504d93cfbe7d59d8f3b646d8799efd6467ab4351c963a0\",\n  \"op\": \"atomic_replace_text\",\n  \"operationId\": \"op_1782171150983_f742f33e\",\n  \"operation\": \"atomic_replace_text\",\n  \"validationSummary\": {\n    \"syntax\": \"ok\",\n    \"typecheck\": \"not-run\",\n    \"protectedFile\": \"no\",\n    \"sha256\": \"ok\"\n  },\n  \"tracePath\": \".atomic/traces/op_1782171150983_f742f33e.json\",\n  \"chainHash\": \"3df1047b133c3ac8d95f245f0d9033af7a642b7ba2df3541022c2de89135a45c\",\n  \"founder\": {\n    \"whatChanged\": \"Operation `atomic_replace_text` changed ~58 character(s) in `src/_pytest/unittest.py` (sub-line atomic edit, expansion 1.12\u00d7 \u2014 it did not rewrite surrounding code).\",\n    \"whatPreserved\": \"Everything outside the highlighted [-removed-]{+added+} span in that one file is byte-identical. No other file was touched by this operation.\",\n    \"howToValidate\": \"Read the atomicDiff above \u2014 it shows EXACTLY the changed characters, nothing else. Then exercise the affected behavior in the running product to confirm intent.\",\n    \"notProven\": \"Runtime/product behavior is NOT proven by this tool. Structural validity \u2260 correct behavior. Prove behavior by running the flow in the app.\",\n    \"nonTouched\": \"Single-file, single-span: every file other than `src/_pytest/unittest.py` is provably untouched by this operation. Policy/protected-file status requires the governance gate.\",\n    \"promiseClass\": \"unvalidated-text\",\n    \"zeroCodeTrust\": 30,\n    \"trustCeilingReason\": \"ceiling < 75: an edit tool proves structure + exact scope, not product behavior. Reaching 75 (validate by explanation) or 100 (validate by the product) requires running the changed flow \u2014 do that in the app, not here.\"\n  },\n  \"atomicDiff\": \"\\u001b[2m--- src/_pytest/unittest.py (atomic char-level)\\u001b[0m\\n          autouse=True,\\n          # Use a unique name to speed up lookup.\\n          name=f\\\"\\u001b[32m{+_+}\\u001b[0munittest_{setup_name}_fixture_{obj.__qualname__}\\\",\\n      )\\n      def fixture(self, request: FixtureRequest) -> Generator[None, None, None]:\"\n}\n[post-edit view] the file now reads (around your change) \u2014 no need to re-read to verify:\n144:         scope=scope,\n145:         autouse=True,\n146:         # Use a unique name to speed up lookup.\n147:         name=f\"_unittest_{setup_name}_fixture_{obj.__qualname__}\",\n148:     )\n149:     def fixture(self, request: FixtureRequest) -> Generator[None, None, None]:\n150:         if _is_skipped(self):\n151:             reason = self.__unittest_skip_why__\n152:             raise pytest.skip.Exception(reason, _use_item_location=True)\n153:         if setup is not None:\n154:             try:\n155:                 if pass_self:\n\n[SELF-VERIFY] Your first edit landed. Call quick_check NOW: write a focused Python snippet (3-5 lines with assert) testing the specific behavior you just fixed. This catches incorrect approaches BEFORE the expensive run_tests."
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "tool_calls": [
+        {
+          "index": 0,
+          "id": "call_00_9YIV82FuFKi0JluNE8839432",
+          "type": "function",
+          "function": {
+            "name": "run_tests",
+            "arguments": "{}"
+          }
+        }
+      ]
+    },
+    {
+      "role": "tool",
+      "tool_call_id": "call_00_9YIV82FuFKi0JluNE8839432",
+      "content": "pass=0 fail=0 all_green=False\n    return _get_module_details(pkg_main_name, error)\n  File \"/opt/miniconda3/envs/testbed/lib/python3.9/runpy.py\", line 111, in _get_module_details\n    __import__(pkg_name)\n  File \"/testbed/src/pytest/__init__.py\", line 5, in <module>\n    from _pytest.assertion import register_assert_rewrite\n  File \"/testbed/src/_pytest/assertion/__init__.py\", line 9, in <module>\n    from _pytest.assertion import rewrite\n  File \"/testbed/src/_pytest/assertion/rewrite.py\", line 31, in <module>\n    from _pytest._version import version\nModuleNotFoundError: No module named '_pytest._version'\n# tests 16\n# pass 0\n# fail 1\n\n\n[GATE-HOST-DIFF-RESTORED]\n[GATE-INFRA-RED] local gate infrastructure failed; preserve current source diff for official scoring.\n\n[gate-infra] The local acceptance gate failed due to environment/generated-artifact infrastructure, not a behavioral assertion. Do NOT edit setup files or generated version modules to satisfy this local container. Preserve the current source diff; the coordinator must score it with the official SWE-bench harness."
+    }
+  ]
+}

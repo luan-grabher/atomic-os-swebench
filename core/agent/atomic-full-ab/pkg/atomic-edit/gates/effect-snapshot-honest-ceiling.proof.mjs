@@ -95,6 +95,25 @@ try {
     snap.files.size === 1 && snap.files.has('tracked.txt'),
     'scratch-heavy self-evolution payloads do not crowd out real tracked bytes',
   );
+
+  // 5) generated proof/build scratch directories are not byte-coverage poison
+  reset();
+  fs.writeFileSync(path.join(fixtureRoot, 'tracked.txt'), 'real\n');
+  for (const dir of ['atomic-exec', '.atomic-closure-cache', 'dist-lkg', 'dist.broken-last', '.atomic-build-tmp']) {
+    const nested = path.join(fixtureRoot, dir, 'nested');
+    fs.mkdirSync(nested, { recursive: true });
+    fs.writeFileSync(path.join(nested, 'big.bin'), Buffer.from([0xff, 0xfe, 0x00, 0x80, 0x81]));
+    fs.writeFileSync(path.join(nested, 'big.txt'), 'z'.repeat(50));
+  }
+  snap = captureEffectSnapshot(fixtureRoot, { maxFiles: 2, maxFileBytes: 10 });
+  expect(
+    snap.limitReached === false,
+    'generated proof/build scratch dirs do not make the snapshot UNJUDGED',
+  );
+  expect(
+    snap.files.size === 1 && snap.files.has('tracked.txt'),
+    'scratch dirs do not crowd out real tracked bytes',
+  );
 } catch (error) {
   expect(false, `threw: ${error instanceof Error ? error.message : String(error)}`);
 } finally {

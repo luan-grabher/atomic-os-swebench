@@ -260,18 +260,25 @@ export function checkConnectionByteFloor(absPath: string, content: string): Conn
  */
 function resolveLanguagePackage(repoRoot: string, absPath: string, spec: string): boolean {
   const ext = absPath.slice(absPath.lastIndexOf('.')).toLowerCase();
+  // Start findUp from the FILE's directory, not repoRoot. Many repos have
+  // their manifest in a subdirectory (e.g. Go's cli/go.mod, Rust's
+  // server/Cargo.toml, Python's pkg/pyproject.toml). Walking up from the
+  // file location finds the nearest enclosing manifest; walking from
+  // repoRoot misses it entirely and the convergence check falsely reports
+  // a dangling dependency. Generalist fix (Gap D in LEDGER).
+  const fileDir = path.dirname(absPath);
 
   // Go
   if (ext === '.go') {
     // Go stdlib: check if package is in GOROOT
     if (isGoStdlib(spec)) return true;
-    // Check go.mod for module dependencies
-    return goModHasPackage(repoRoot, spec);
+    // Check go.mod for module dependencies — walk up from the FILE's dir.
+    return goModHasPackage(fileDir, spec);
   }
 
   // Rust
   if (ext === '.rs') {
-    return cargoTomlHasCrate(repoRoot, spec);
+    return cargoTomlHasCrate(fileDir, spec);
   }
 
   // Python

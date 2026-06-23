@@ -1,0 +1,9 @@
+diff --git a/pylint/__main__.py b/pylint/__main__.py
+index 278570f61..dbacb5eba 100644
+--- a/pylint/__main__.py
++++ b/pylint/__main__.py
+@@ -7,3 +7,4 @@ import pylint
+ 
+ pylint.modify_sys_path()
+ pylint.run_pylint()
++

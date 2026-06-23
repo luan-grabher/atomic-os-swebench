@@ -1,3 +1,4 @@
+import { atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
 /**
  * server-tools-exec — the universal computational-action operator for the
  * atomic OS. Closes the last gap in "atomic does every executable action":
@@ -178,14 +179,41 @@ function protectedWriteTarget(cmd: string, cwd: string): string | null {
   }
   for (const cand of candidates) {
     const abs = path.isAbsolute(cand) ? cand : path.resolve(cwd, cand);
-    const root = resolveAllowedRootForAbsolutePath(abs);
-    if (!root) continue; // outside an Atomic-controlled root; sandbox/effect proof will handle it.
-    const rel = path.relative(root, abs).split(path.sep).join('/');
-    if (rel.startsWith('..')) continue;
-    const hit = isProtectedRelative(rel);
-    if (hit) return `${rel} (matches \"${hit}\")`;
+    const hit = firstProtectedRelativeHit(abs, cwd);
+    if (hit) return hit;
   }
   return null;
+}
+
+function protectedRelativeHitsForAbs(absPath: string, fallbackRoot?: string): string[] {
+  const roots = [
+    resolveAllowedRootForAbsolutePath(absPath),
+    fallbackRoot,
+    REPO_ROOT,
+    atomicSelfSourceRoot(),
+  ]
+    .filter((root): root is string => Boolean(root))
+    .map((root) => path.resolve(root));
+  const uniqueRoots = [...new Set(roots)].sort((a, b) => b.length - a.length);
+  const hits: string[] = [];
+  const seen = new Set<string>();
+  for (const root of uniqueRoots) {
+    const relRaw = path.relative(root, absPath);
+    if (!relRaw || relRaw.startsWith('..') || path.isAbsolute(relRaw)) continue;
+    const rel = relRaw.split(path.sep).join('/');
+    const hit = isProtectedRelative(rel);
+    if (!hit) continue;
+    const rendered = rel + ' (matches "' + hit + '")';
+    if (!seen.has(rendered)) {
+      seen.add(rendered);
+      hits.push(rendered);
+    }
+  }
+  return hits;
+}
+
+function firstProtectedRelativeHit(absPath: string, fallbackRoot?: string): string | null {
+  return protectedRelativeHitsForAbs(absPath, fallbackRoot)[0] ?? null;
 }
 
 /**
@@ -200,13 +228,9 @@ export function protectedEffectHits(rootAbs: string, effects: { file: string }[]
   const hits: string[] = [];
   for (const e of effects) {
     const abs = path.isAbsolute(e.file) ? e.file : path.resolve(rootAbs, e.file);
-    const root = resolveAllowedRootForAbsolutePath(abs) ?? rootAbs;
-    const rel = path.relative(root, abs).split(path.sep).join('/');
-    if (rel.startsWith('..')) continue; // outside the resolved root - not a repo-protected file
-    const hit = isProtectedRelative(rel);
-    if (hit) hits.push(`${rel} (matches "${hit}")`);
+    hits.push(...protectedRelativeHitsForAbs(abs, rootAbs));
   }
-  return hits;
+  return [...new Set(hits)];
 }
 
 function guardCommand(cmd: string, cwd: string): GuardVerdict {
@@ -323,13 +347,20 @@ export function devValidationRunner(cmd: string): boolean {
 const DEV_VALIDATION_READONLY_SIGNAL =
   /(?:^|\s)(?:--no-?emit|--check|--dry-run|--list-different|--lint)(?:\s|=|$)/i;
 const DEV_VALIDATION_PURE_RUNNER =
-  /\b(?:vitest\s+run|jest|mocha|ava|playwright\s+test|tsc\s+--noEmit)\b/;
+  /\b(?:vitest\s+run|jest|mocha|ava|playwright\s+test|tsc\s+--noEmit|go\s+test|cargo\s+test|pytest|python\s+-m\s+pytest|python\s+-m\s+unittest|ruby\s+-Itest|bundle\s+exec\s+rake\s+test|bundle\s+exec\s+rspec|dotnet\s+test|mix\s+test|dart\s+test|elixir\s+-e\s+.*ExUnit|rake\s+test)\b/;
 const DEV_VALIDATION_MUTATING =
   /(?:^|\s)(?:--fix|--write|--build|--emit|--update(?:Snapshot)?|-u)(?:\s|=|$)/;
 export function devValidationIsReadOnly(cmd: string): boolean {
-  if (!devValidationRunner(cmd)) return false;
+  // Native pure test runners (go test, cargo test, pytest, etc.) are read-only
+  // on source: they compile to a temp/cache dir, run the binary, and do not
+  // modify source files. They go straight to the DEV_VALIDATION_PURE_RUNNER
+  // check WITHOUT requiring the npx/bunx-style devValidationRunner gate,
+  // which is JS-only. Generalist fix for cross-language benchmark/CI.
   if (DEV_VALIDATION_MUTATING.test(cmd)) return false;
-  return DEV_VALIDATION_READONLY_SIGNAL.test(cmd) || DEV_VALIDATION_PURE_RUNNER.test(cmd);
+  if (DEV_VALIDATION_PURE_RUNNER.test(cmd)) return true;
+  // JS-only package-runner path (preserves existing semantics for npx tsc etc.)
+  if (!devValidationRunner(cmd)) return false;
+  return DEV_VALIDATION_READONLY_SIGNAL.test(cmd);
 }
 
 export function externalEffectReason(cmd: string): string | null {
@@ -443,7 +474,21 @@ function sandboxWriteRules(...roots: Array<string | null>): string[] {
 function createSandboxTempRoot(): string {
   const base = path.join(fs.realpathSync(os.tmpdir()), 'atomic-exec');
   fs.mkdirSync(base, { recursive: true, mode: 0o700 });
-  return fs.mkdtempSync(path.join(base, 'run-'));
+  const root = fs.mkdtempSync(path.join(base, 'run-'));
+  // Pre-create language cache subdirectories so toolchains (go, cargo, etc.)
+  // can mkdir inside them without sandbox profile issues. Each is mode 0o700
+  // to keep them private to this run. Generalist fix for the cross-language
+  // sandbox case.
+  const cacheSubdirs = [
+    'go-build',
+    'node-compile-cache', 'xdg-cache', 'npm-cache', 'yarn-cache', 'pnpm-home',
+    'pip-cache',
+    'bundle',
+  ];
+  for (const sub of cacheSubdirs) {
+    try { fs.mkdirSync(path.join(root, sub), { recursive: true, mode: 0o700 }); } catch { /* best effort */ }
+  }
+  return root;
 }
 
 function removeSandboxTempRoot(tempRoot: string | null): void {
@@ -467,18 +512,19 @@ function sandboxTempEnv(tempRoot: string | null): Record<string, string> {
     YARN_CACHE_FOLDER: path.join(tempRoot, 'yarn-cache'),
     PNPM_HOME: path.join(tempRoot, 'pnpm-home'),
     PIP_CACHE_DIR: path.join(tempRoot, 'pip-cache'),
-    // Language toolchain caches that default to user-global paths outside the
-    // sandbox write boundary. Each is redirected into tempRoot so compile/test
-    // commands work without weakening the sandbox profile. Generalist fix for
-    // the cross-language benchmark/CI case (Gap E in LEDGER).
+    // Language BUILD-ARTIFACT caches — these are write-heavy and live under
+    // user-global paths the sandbox denies. Redirect to tempRoot (writable).
+    // NOTE: do NOT redirect GOPATH / CARGO_HOME / RUSTUP_HOME themselves —
+    // those hold the MODULE cache which only needs READ access (covered by
+    // the sandbox's `(allow file-read*)` rule). Redirecting them breaks
+    // module resolution for projects whose deps were `go mod download`-ed
+    // to the user's default GOPATH/pkg/mod.
     GOCACHE: path.join(tempRoot, 'go-build'),
-    GOPATH: path.join(tempRoot, 'gopath'),
-    CARGO_HOME: path.join(tempRoot, 'cargo'),
-    RUSTUP_HOME: path.join(tempRoot, 'rustup'),
-    GRADLE_USER_HOME: path.join(tempRoot, 'gradle'),
+    // Maven/Gradle local repo (~/.m2, ~/.gradle/caches) — read-heavy but the
+    // user's cache has the artifacts; do NOT redirect, reads are allowed.
     MAVEN_OPTS: '-Duser.home=' + tempRoot,
-    GEM_HOME: path.join(tempRoot, 'gem'),
-    GEM_PATH: path.join(tempRoot, 'gem'),
+    // Ruby bundler/GEM — write-heavy for install, but for test runs reads are
+    // enough; do NOT redirect GEM_HOME/GEM_PATH (breaks gem resolution).
     BUNDLE_PATH: path.join(tempRoot, 'bundle'),
   };
 }
@@ -671,9 +717,7 @@ function runViaBroker(
       stderr: '',
     };
   }
-  const clientPath = hostVisibleBrokerPath(
-    path.join(REPO_ROOT, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs'),
-  );
+  const clientPath = hostVisibleBrokerPath(path.join(atomicSelfSourceRoot() ?? REPO_ROOT, 'atomic-exec-broker-client.mjs'));
   const brokerCwd = hostVisibleBrokerPath(cwd);
   const brokerEffectRoot = effectRoot ? hostVisibleBrokerPath(effectRoot) : null;
   const brokerTempRoot = tempRoot ? hostVisibleBrokerPath(tempRoot) : null;
@@ -1221,7 +1265,13 @@ export function registerToolsExec(server: McpServer): void {
           return fail(`atomic_exec refused (sandbox unavailable): ${reason}`);
         }
         const sandboxWriteRoot = effectRoot;
-        const sandboxTempRoot = sandboxWriteRoot ? createSandboxTempRoot() : null;
+        // Always create a sandbox temp root when the sandbox is active, even
+        // for read-only commands (no effectRoot). Language toolchains (go,
+        // cargo, npm, etc.) need writable cache/work dirs regardless of
+        // whether the command writes product bytes — without a redirected
+        // TMPDIR/GOCACHE/etc., they fall back to user-global paths that the
+        // sandbox denies. Generalist fix for the cross-language sandbox case.
+        const sandboxTempRoot = createSandboxTempRoot();
         const sandbox = useBroker
           ? brokerSandboxReceipt(sandboxWriteRoot, sandboxTempRoot)
           : sandboxReceipt(true, sandboxWriteRoot, sandboxTempRoot);

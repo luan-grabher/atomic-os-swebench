@@ -1,0 +1,1 @@
+{"round":"R064","status":"driver_crashed_after_round_before_metrics_write","reason":"missing evidence/R064 parent before CLASS-OUT-RECEIPT-PARENT-MKDIR fix","workspace":"/tmp/swe/round/R064/pylint7080/atomic","local_gate":{"tests":16,"pass":16,"fail":0},"patch_bytes":657}

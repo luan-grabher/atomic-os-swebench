@@ -4,14 +4,9 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBReplaceBetween(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
     // ── atomic_replace_between_anchors ──
-    const replaceRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-replace-anchors.${process.pid}.ts`,
-    );
+    const replaceRel = path.posix.join(selfRel, `.smoke-replace-anchors.${process.pid}.ts`);
     const replaceAbs = path.join(repoRoot, replaceRel);
     fs.writeFileSync(replaceAbs, 'export let DATA = `BEFORE alpha MIDDLE omega AFTER`;\n');
     try {
@@ -123,12 +118,7 @@ export async function partBReplaceBetween(ctx: PartBCtx): Promise<void> {
         replaceEmptyEnd.content[0]?.text ?? '',
       );
 
-      const ambigRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-replace-anchors-ambig.${process.pid}.ts`,
-      );
+      const ambigRel = path.posix.join(selfRel, `.smoke-replace-anchors-ambig.${process.pid}.ts`);
       const ambigAbs = path.join(repoRoot, ambigRel);
       fs.writeFileSync(
         ambigAbs,

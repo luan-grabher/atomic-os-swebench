@@ -30,8 +30,11 @@ record(
 record(
   'guard normalizes repo-relative requested paths to selfRoot-relative effect paths',
   source.includes('function selfRootRelativeEffectPath') &&
-    source.includes("const prefix = 'scripts/mcp/atomic-edit/'") &&
-    source.includes('rel.startsWith(prefix) ? rel.slice(prefix.length) : rel') &&
+    source.includes("const legacyPrefix = 'scripts/mcp/atomic-edit/'") &&
+    source.includes('if (rel.startsWith(legacyPrefix)) return rel.slice(legacyPrefix.length);') &&
+    source.includes('const selfRootRel = path.relative(REPO_ROOT, atomicSelfSourceRoot()).split(path.sep).join') &&
+    source.includes('const selfPrefix = selfRootRel ? `${selfRootRel}/` :') &&
+    source.includes('return selfPrefix && rel.startsWith(selfPrefix) ? rel.slice(selfPrefix.length) : rel;') &&
     source.includes('selfRootRelativeEffectPath(entry.file)') &&
     source.includes('selfRootRelativeEffectPath(effect.file)'),
 );

@@ -15,11 +15,10 @@ const ISO = '/private/tmp/swe/iso-driver-claude/laa_iso.py'
 const ACALL = '/Users/danielpenin/atomic-os-swebench/core/atomic-edit/atomic-call.mjs'
 const WFB = '/private/tmp/swe/round/WFB'
 const INSTANCES = [
-  'astropy__astropy-14182',
-  'pytest-dev__pytest-10356',
-  'scikit-learn__scikit-learn-14496',
-  'pylint-dev__pylint-4661',
-  'sympy__sympy-18199',
+  'pytest-dev__pytest-5840',
+  'pylint-dev__pylint-6528',
+  'scikit-learn__scikit-learn-10297',
+  'astropy__astropy-14508',
 ]
 
 const SETUP_SCHEMA = { type:'object', additionalProperties:false, required:['id','ok','taskdir','native_wd','atomic_wd'],

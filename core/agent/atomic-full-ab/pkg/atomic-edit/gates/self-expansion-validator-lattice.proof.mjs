@@ -41,6 +41,14 @@ const requiredCommands = [
   'node gates/self-evolution-lesson-rules.proof.mjs --json',
   'node gates/codex-memory-note-tool.proof.mjs --json',
   'node gates/fixed-model-lift.proof.mjs --json',
+  'node gates/self-host-slice.proof.mjs --json',
+  'node gates/agent-trust-governance.proof.mjs --json',
+  'node gates/friction-router.proof.mjs --json',
+  'node gates/e1-confluent-routing.proof.mjs --json',
+  'node gates/coverage-ratchet.proof.mjs --json',
+  'node gates/agent-independence.proof.mjs --json',
+  'node gates/minimal-disproof-core.proof.mjs --json',
+  'node gates/psr-witness-refinement.proof.mjs --json',
   'node gates/atomic-agent-bench.proof.mjs',
   'node gates/test-execution-gate.proof.mjs --json',
   'node gates/vitest-package-suite.proof.mjs --json',
@@ -187,7 +195,10 @@ function main() {
     'self-expansion proof runner runs build first, then bounded parallel validators, and the handler awaits the proof promise',
     source.includes('const SELF_EXPANSION_PROOF_CONCURRENCY') &&
       source.includes('async function runProofCommands') &&
-      source.includes('await runProofCommands(proofCommands)') &&
+      source.includes('const executedProofs = await runProofCommands(proofCommands)') &&
+      source.includes("executedProofs.some((p) => p.command === 'node build.mjs' && p.ok)") &&
+      source.includes('const proofs = buildPassed ? [...executedProofs, ...buildCoveredProofs] : executedProofs') &&
+      source.includes('covered-by-build: node build.mjs') &&
       source.includes('Promise.all') &&
       source.includes('runSingleProofCommand') &&
       /commands\[0\]\s*===\s*'node build\.mjs'/.test(source) &&
@@ -195,7 +206,7 @@ function main() {
     {
       hasConcurrencyConstant: source.includes('const SELF_EXPANSION_PROOF_CONCURRENCY'),
       runProofCommandsAsync: source.includes('async function runProofCommands'),
-      handlerAwaitsProofs: source.includes('await runProofCommands(proofCommands)'),
+      handlerAwaitsProofs: source.includes('const executedProofs = await runProofCommands(proofCommands)'),
       hasParallelBatch: source.includes('Promise.all'),
       hasSingleProofRunner: source.includes('runSingleProofCommand'),
       buildFirst: /commands\[0\]\s*===\s*'node build\.mjs'/.test(source),

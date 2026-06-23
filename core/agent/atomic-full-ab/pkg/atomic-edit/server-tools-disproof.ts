@@ -65,7 +65,7 @@ function atomicSourceRoot(): string {
 }
 
 function disproofHarnessPath(): string {
-  return path.resolve(atomicSourceRoot(), '..', 'atomic-edit-evolution', 'disproof-corpus-harness.mjs');
+  return path.resolve(atomicSourceRoot(), 'disproof-corpus-harness.mjs');
 }
 
 function defaultCorpusPath(): string {
@@ -73,7 +73,7 @@ function defaultCorpusPath(): string {
 }
 
 function lessonHarnessPath(): string {
-  return path.resolve(atomicSourceRoot(), '..', 'atomic-edit-evolution', 'lesson-harness.mjs');
+  return path.resolve(atomicSourceRoot(), 'lesson-harness.mjs');
 }
 
 function defaultLessonsPath(): string {

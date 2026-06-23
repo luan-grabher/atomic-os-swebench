@@ -1,3 +1,4 @@
+import { atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
 import { spawn, spawnSync, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -139,7 +140,7 @@ type BrokerReply = {
 };
 
 function brokerClientPath(): string {
-  return path.join(REPO_ROOT, 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  return path.join(atomicSelfSourceRoot() ?? REPO_ROOT, 'atomic-exec-broker-client.mjs');
 }
 
 function shellQuote(value: string): string {

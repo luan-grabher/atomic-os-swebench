@@ -114,12 +114,40 @@ function isWithinSourceRoot(rel: string, root: string): boolean {
   return scope === '' || file === scope || file.startsWith(`${scope}/`);
 }
 
-function lensScopedSourceRoots(changedFiles: string[]): string[] {
+function nearestDeclaredSourceRoot(repoRoot: string, rel: string): string | null {
+  let dir = path.posix.dirname(rel.replaceAll('\\', '/'));
+  if (dir === '.') dir = '';
+  for (;;) {
+    if (dir !== '') {
+      const packageJson = path.join(repoRoot, dir, 'package.json');
+      const tsconfig = path.join(repoRoot, dir, 'tsconfig.json');
+      if (fs.existsSync(packageJson) || fs.existsSync(tsconfig)) return dir;
+    }
+    if (dir === '') return null;
+    const parent = path.posix.dirname(dir);
+    dir = parent === '.' ? '' : parent;
+  }
+}
+
+function lensScopedSourceRoots(repoRoot: string, changedFiles: string[]): string[] {
   const sourceFiles = changedFiles.map((rel) => rel.replaceAll('\\', '/')).filter(isSource);
   if (sourceFiles.length === 0) return [''];
-  const knownRoots = ['scripts/mcp/atomic-edit', 'backend', 'frontend', 'worker'];
+  const knownRoots = ['core/atomic-edit', 'scripts/mcp/atomic-edit', 'backend', 'frontend', 'worker'];
   for (const root of knownRoots) {
     if (sourceFiles.every((rel) => isWithinSourceRoot(rel, root))) return [root];
+  }
+  const declaredRoots: string[] = [];
+  for (const rel of sourceFiles) {
+    const root = nearestDeclaredSourceRoot(repoRoot, rel);
+    if (!root) {
+      declaredRoots.length = 0;
+      break;
+    }
+    declaredRoots.push(root);
+  }
+  if (declaredRoots.length === sourceFiles.length) {
+    const first = declaredRoots[0];
+    if (first && declaredRoots.every((root) => root === first) && sourceFiles.every((rel) => isWithinSourceRoot(rel, first))) return [first];
   }
   return [''];
 }
@@ -288,9 +316,13 @@ const reachabilityGate: GateModule = {
   async run(ctx: GateContext): Promise<GateResult> {
     const note =
       'every changed non-root source file is reachable from a root (entrypoint/route/test) over the import-edge closure';
+    const explicitTargets = ctx.changedFiles.map((rel) => rel.replaceAll('\\', '/')).filter(isSource);
+    if (explicitTargets.length > 0 && explicitTargets.every(isRoot)) {
+      return { gate: this.name, green: true, reds: [], note };
+    }
 
     // 1. The file universe the gate can SEE (overlay + bounded disk walk).
-    const sourceRoots = ctx.lensMode ? lensScopedSourceRoots(ctx.changedFiles) : [''];
+    const sourceRoots = ctx.lensMode ? lensScopedSourceRoots(ctx.repoRoot, ctx.changedFiles) : [''];
     const scopeLabel = sourceRoots.length === 1 && sourceRoots[0] !== '' ? ` in source root '${sourceRoots[0]}'` : '';
     const { files: universe, capped } = enumerateSourceFiles(ctx.repoRoot, ctx.overlay, MAX_UNIVERSE, sourceRoots);
     if (capped) {

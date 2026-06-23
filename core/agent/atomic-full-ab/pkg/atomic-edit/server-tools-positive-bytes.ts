@@ -1,3 +1,4 @@
+import { atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
 import * as childProcess from 'node:child_process';
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
@@ -75,7 +76,7 @@ function newSessionId(): string {
 }
 
 function stagingRoot(): string {
-  return path.join(REPO_ROOT, 'scripts/mcp/atomic-edit/.positive-byte-sessions');
+  return path.join(atomicSelfSourceRoot(), '.positive-byte-sessions');
 }
 
 function assertSessionId(sessionId: string): void {

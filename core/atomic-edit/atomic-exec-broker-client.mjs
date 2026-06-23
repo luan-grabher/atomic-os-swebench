@@ -46,16 +46,50 @@ function sendViaFiles(endpointValue, req) {
     emit({ ok: false, brokerUnreachable: true, error: 'broker file endpoint invalid: ' + String(error?.message || error) }, 1);
     return;
   }
+
+  const unavailable = (reason) => {
+    emit({ ok: false, brokerUnreachable: true, error: 'broker file endpoint unavailable: ' + reason }, 1);
+  };
+
+  let marker;
+  try {
+    marker = JSON.parse(fs.readFileSync(path.join(root, 'broker.json'), 'utf8'));
+  } catch (error) {
+    unavailable('missing marker: ' + String(error?.message || error));
+    return;
+  }
+  if (marker?.protocol !== 'atomic-file-broker-v1' || !Number.isInteger(marker?.pid) || marker.pid <= 1) {
+    unavailable('invalid marker');
+    return;
+  }
+  try {
+    process.kill(marker.pid, 0);
+  } catch (error) {
+    const code = typeof error === 'object' && error && 'code' in error ? error.code : undefined;
+    if (code !== 'EPERM') {
+      unavailable('owner process unavailable: ' + String(error?.message || error));
+      return;
+    }
+  }
+
   const requests = path.join(root, 'requests');
   const responses = path.join(root, 'responses');
+  try {
+    if (!fs.statSync(requests).isDirectory() || !fs.statSync(responses).isDirectory()) {
+      unavailable('queue directories missing');
+      return;
+    }
+  } catch (error) {
+    unavailable('queue directories missing: ' + String(error?.message || error));
+    return;
+  }
+
   const id = process.pid + '-' + Date.now() + '-' + crypto.randomBytes(6).toString('hex');
   const requestFile = path.join(requests, id + '.json');
   const responseFile = path.join(responses, id + '.json');
   const timeoutMs = Math.max(1000, Number(req.timeoutMs || 300000) + 5000);
   const deadline = Date.now() + timeoutMs;
   try {
-    fs.mkdirSync(requests, { recursive: true, mode: 0o700 });
-    fs.mkdirSync(responses, { recursive: true, mode: 0o700 });
     writeJsonAtomic(requestFile, req);
   } catch (error) {
     emit({ ok: false, brokerUnreachable: true, error: 'broker file request failed: ' + String(error?.message || error) }, 1);

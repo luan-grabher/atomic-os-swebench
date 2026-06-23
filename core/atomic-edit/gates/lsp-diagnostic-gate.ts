@@ -90,7 +90,8 @@ export async function queryLspMesh(
   absPath: string,
   language: string,
   content: string,
-  timeoutMs = 15000
+  timeoutMs = 15000,
+  rootUri?: string
 ): Promise<LspMeshResult> {
   return new Promise((resolve) => {
     const proc = spawn('node', [LSP_MESH_ROUTER, 'diagnostics', absPath, language], {
@@ -104,41 +105,32 @@ export async function queryLspMesh(
     proc.stdout.on('data', (chunk: Buffer) => { stdout += chunk.toString(); });
     proc.stderr.on('data', (chunk: Buffer) => { stderr += chunk.toString(); });
 
-    // Send file content via stdin for didOpen
-    proc.stdin.write(JSON.stringify({ content, language, uri: `file://${absPath}` }));
+    // Send file content via stdin for didOpen. rootUri pins the language server to the
+    // candidate workspace; without it a temp-file dirname becomes the workspace and
+    // semantic diagnostics drift between standalone and self-expansion runs.
+    const payload: Record<string, string> = { content, language, uri: 'file://' + absPath };
+    if (rootUri) payload.rootUri = rootUri;
+    proc.stdin.write(JSON.stringify(payload));
     proc.stdin.end();
 
     proc.on('close', (code: number) => {
-      if (code !== 0) {
-        resolve({
-          ok: false,
-          language,
-          workspace: 'auto',
-          error: `LSP Mesh exited ${code}: ${stderr.slice(0, 200)}`,
-        });
-        return;
-      }
       try {
         const raw = JSON.parse(stdout) as LspMeshResult;
         const diagnostics = raw.diagnostics ?? raw.data?.diagnostics ?? [];
         resolve({ ...raw, diagnostics });
+        return;
       } catch {
-        resolve({
-          ok: false,
-          language,
-          workspace: 'auto',
-          error: `Failed to parse LSP Mesh response: ${stdout.slice(0, 200)}`,
-        });
+        // Fall through to the structured transport error below.
       }
+      if (code !== 0) {
+        resolve({ ok: false, language, workspace: 'auto', error: 'LSP Mesh exited ' + code + ': ' + stderr.slice(0, 200) });
+        return;
+      }
+      resolve({ ok: false, language, workspace: 'auto', error: 'Failed to parse LSP Mesh response: ' + stdout.slice(0, 200) });
     });
 
     proc.on('error', (err: Error) => {
-      resolve({
-        ok: false,
-        language,
-        workspace: 'auto',
-        error: `LSP Mesh spawn failed: ${err.message}`,
-      });
+      resolve({ ok: false, language, workspace: 'auto', error: 'LSP Mesh spawn failed: ' + err.message });
     });
   });
 }

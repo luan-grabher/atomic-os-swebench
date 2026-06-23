@@ -24,6 +24,7 @@ const SKIP_DIRS = new Set([
   'node_modules', '.git', 'dist', 'dist-lkg', 'dist.broken-last', '.next', 'build', '.atomic-build-tmp', 'coverage', '.atomic',
   '.codex-artifacts', '.codex-hook-tmp', '.turbo', 'vendor', '.cache', '.atomic-closure-cache', 'node-compile-cache',
   'jest_dx', 'test-results', 'atomic-exec', '.serena', '.codegraph', '.claude', '.mcp-cache', '.positive-byte-sessions',
+  '__pycache__', 'docs', '.pytest_cache',
 ]);
 
 const SKIP_FILE_NAMES = new Set([
@@ -102,6 +103,7 @@ function shouldSkipEffectDir(rootAbs: string, full: string, name: string): boole
 function shouldSkipEffectFile(full: string, name: string): boolean {
   if (SKIP_FILE_NAMES.has(name)) return true;
   if (REPO_SCRATCH_PREFIXES.some((prefix) => name.startsWith(prefix))) return true;
+  if (/\.(png|jpg|jpeg|gif|pdf|pyc|pyd|so|dll|zip|tar|gz|tgz|ai)$/i.test(name)) return true;
   const repoRel = repoRelativeEffectPath(full);
   return repoRel !== null && REPO_SCRATCH_FILES.has(repoRel);
 }

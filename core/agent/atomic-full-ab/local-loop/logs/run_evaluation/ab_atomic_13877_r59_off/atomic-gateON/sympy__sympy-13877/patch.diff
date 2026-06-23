@@ -1,0 +1,13 @@
+diff --git a/sympy/core/function.py b/sympy/core/function.py
+index 28d675fc77..3d2bb5bbdb 100644
+--- a/sympy/core/function.py
++++ b/sympy/core/function.py
+@@ -1238,7 +1238,7 @@ def __new__(cls, expr, *variables, **kwargs):
+             if unhandled_non_symbol:
+                 obj = None
+             else:
+-                if isinstance(v, (collections.Iterable, Tuple, MatrixCommon, NDimArray)):
++                if isinstance(v, (collections.abc.Iterable, Tuple, MatrixCommon, NDimArray)):
+                     # Treat derivatives by arrays/matrices as much as symbols.
+                     is_symbol = True
+                 if not is_symbol:

@@ -22,7 +22,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const P = await import(path.join(root, '..', 'atomic-edit-evolution', 'psr-witness.mjs'));
+const P = await import(path.join(root, 'psr-witness.mjs'));
 const { unsatCore, witnessInformation, recomputeFactDigest, psrFeedback, refines, repairSearchSize } = P;
 
 let pass = 0, fail = 0;

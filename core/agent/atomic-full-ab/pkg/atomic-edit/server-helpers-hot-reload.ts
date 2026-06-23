@@ -21,9 +21,22 @@ const MAX_CHILD_OUTPUT = 50 * 1024 * 1024;
 // default so legitimate slow tools (large edits, audits) are unaffected;
 // override via env when needed.
 const DEFAULT_FRESH_TOOL_TIMEOUT_MS = 180_000;
-export function freshToolTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
+// The self-expansion kernel runs the FULL proof battery inside its own budget
+// (SELF_EXPANSION_PROOF_GLOBAL_BUDGET_MS = 1_800_000). When delegated to a fresh runtime it MUST get a
+// timeout above that budget or it is SIGKILLed mid-proof (the 180s default < the smoke alone) — which
+// broke self-expansion, the single legal path of all atomic evolution. Kernel gets a budget above its
+// proof budget; every OTHER tool keeps the tight 180s cap so a wedged delegated tool still fails loudly
+// (a blanket 1.8M default would make every tool able to hang the server for 30 min).
+const SELF_EXPANSION_FRESH_TOOL_TIMEOUT_MS = 1_920_000;
+const SELF_EXPANSION_KERNEL_TOOLS = new Set(['atomic_expand_self', 'atomic_self_evolution']);
+export function freshToolTimeoutMs(env: NodeJS.ProcessEnv = process.env, toolName?: string): number {
+  const isKernel = Boolean(toolName && SELF_EXPANSION_KERNEL_TOOLS.has(toolName));
+  const floor = isKernel ? SELF_EXPANSION_FRESH_TOOL_TIMEOUT_MS : DEFAULT_FRESH_TOOL_TIMEOUT_MS;
   const raw = Number(env[FRESH_TOOL_TIMEOUT_ENV]);
-  return Number.isFinite(raw) && raw >= 1_000 ? Math.trunc(raw) : DEFAULT_FRESH_TOOL_TIMEOUT_MS;
+  if (Number.isFinite(raw) && raw >= 1_000) {
+    return isKernel ? Math.max(Math.trunc(raw), floor) : Math.trunc(raw);
+  }
+  return floor;
 }
 
 // Tools that own long-lived OS resources must NEVER be delegated to a fresh,
@@ -138,7 +151,7 @@ async function defaultCallFreshTool(atomicRoot: string, env: NodeJS.ProcessEnv, 
     },
     encoding: 'utf8',
     maxBuffer: MAX_CHILD_OUTPUT,
-    timeout: freshToolTimeoutMs(env),
+    timeout: freshToolTimeoutMs(env, toolName),
     killSignal: 'SIGKILL',
   });
 
@@ -146,7 +159,7 @@ async function defaultCallFreshTool(atomicRoot: string, env: NodeJS.ProcessEnv, 
     const code = (child.error as NodeJS.ErrnoException).code;
     if (code === 'ETIMEDOUT') {
       throw new Error(
-        `fresh Atomic tool call for ${toolName} timed out after ${freshToolTimeoutMs(env)}ms (delegated runtime hung); refusing to block the server further`,
+        `fresh Atomic tool call for ${toolName} timed out after ${freshToolTimeoutMs(env, toolName)}ms (delegated runtime hung); refusing to block the server further`,
       );
     }
     throw child.error;

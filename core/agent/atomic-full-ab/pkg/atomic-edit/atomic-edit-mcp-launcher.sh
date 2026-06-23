@@ -15,7 +15,15 @@
 
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"   # flattened package dir
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "${SOURCE}" ]; do
+  TARGET="$(readlink "${SOURCE}" || true)"
+  case "${TARGET}" in
+    /*) SOURCE="${TARGET}" ;;
+    *) SOURCE="$(dirname "${SOURCE}")/${TARGET}" ;;
+  esac
+done
+SCRIPT_DIR="$(cd "$(dirname "${SOURCE}")" && pwd)"   # flattened package dir (symlink-resolved)
 SRC_DIR="${SCRIPT_DIR}"                                       # dist/supervisor/blessed are siblings here
 IMPL="${SCRIPT_DIR}/atomic-edit-mcp-launcher-impl.sh"
 SUPERVISOR="${SRC_DIR}/launcher-supervisor.mjs"

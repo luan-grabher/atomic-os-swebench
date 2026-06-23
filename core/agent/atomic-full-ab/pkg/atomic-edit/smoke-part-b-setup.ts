@@ -4,7 +4,7 @@ import { check, jsonBody, sha, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBSetup(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel, selfAbs } = ctx;
   const tools = await client.listTools();
   const names = tools.tools.map((t: { name: string }) => t.name).sort();
   const batchTool = tools.tools.find((tool: { name: string; description?: string }) =>
@@ -86,7 +86,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       batchTool?.description ?? 'missing atomic_batch_replace_text descriptor',
     );
 
-    const batchReadRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-read-symbols-batch.${process.pid}.ts`);
+    const batchReadRel = path.posix.join(selfRel, `.smoke-read-symbols-batch.${process.pid}.ts`);
     const batchReadAbs = path.join(repoRoot, batchReadRel);
     const batchReadSource = [
       'export function alphaSymbol(input: number): number {',
@@ -99,12 +99,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       '',
     ].join('\n');
     fs.writeFileSync(batchReadAbs, batchReadSource);
-    const batchNextDirRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-readcode-batch-next.${process.pid}`,
-    );
+    const batchNextDirRel = path.posix.join(selfRel, `.smoke-readcode-batch-next.${process.pid}`);
     const batchNextDirAbs = path.join(repoRoot, batchNextDirRel);
     fs.mkdirSync(batchNextDirAbs, { recursive: true });
     fs.writeFileSync(path.join(batchNextDirAbs, 'first.ts'), 'export const first = 1;\n');
@@ -200,7 +195,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       fs.rmSync(batchNextDirAbs, { recursive: true, force: true });
     }
 
-    const scanRel = path.join('scripts', 'mcp', 'atomic-edit', 'server.ts');
+    const scanRel = path.posix.join(selfRel, 'server.ts');
     const scanSource = fs.readFileSync(path.join(repoRoot, scanRel), 'utf8');
     const scan = (await client.callTool({
       name: 'atomic_scan_bytes',
@@ -237,7 +232,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       scanFiltered.content[0]?.text ?? '',
     );
 
-    const scanMdRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-scan-notes.${process.pid}.opaque`);
+    const scanMdRel = path.posix.join(selfRel, `.smoke-scan-notes.${process.pid}.opaque`);
     const scanMdAbs = path.join(repoRoot, scanMdRel);
     const scanMdSource = 'Atomic scan smoke\nOutside every declared direct-file battery.\n';
     fs.writeFileSync(scanMdAbs, scanMdSource);
@@ -306,7 +301,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
             kind: 'browser',
             status: 'passed',
             summary: 'user flow passed',
-            artifactPaths: ['scripts/mcp/atomic-edit/README.md'],
+            artifactPaths: [path.posix.join(selfRel, 'README.md')],
           },
         ],
         founderCanValidateByProduct: true,
@@ -328,7 +323,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
             kind: 'api',
             status: 'passed',
             summary: 'messages returned',
-            artifactPaths: ['scripts/mcp/atomic-edit/README.md'],
+            artifactPaths: [path.posix.join(selfRel, 'README.md')],
           },
         ],
         clickPath: ['Admin', 'Chat', 'Reload session'],
@@ -349,7 +344,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
             claim: 'API persisted message',
             evidenceKind: 'db',
             status: 'passed',
-            artifactPaths: ['scripts/mcp/atomic-edit/README.md'],
+            artifactPaths: [path.posix.join(selfRel, 'README.md')],
           },
           { claim: 'UI button is live', evidenceKind: 'stub', status: 'passed' },
         ],
@@ -398,7 +393,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       yCert.content.map((p) => p.text).join('\n'),
     );
 
-    const selfDeniedRel = path.join('scripts', 'mcp', 'atomic-edit', `.self-expansion-denied.${process.pid}.ts`);
+    const selfDeniedRel = path.posix.join(selfRel, `.self-expansion-denied.${process.pid}.ts`);
     const selfDeniedAbs = path.join(repoRoot, selfDeniedRel);
     const selfDenied = (await client.callTool({
       name: 'atomic_create_file',
@@ -411,7 +406,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       selfDeniedText,
     );
 
-    const selfAllowedRel = path.join('scripts', 'mcp', 'atomic-edit', `.self-expansion-allowed.${process.pid}.ts`);
+    const selfAllowedRel = path.posix.join(selfRel, `.self-expansion-allowed.${process.pid}.ts`);
     const selfAllowedAbs = path.join(repoRoot, selfAllowedRel);
     const selfAllowed = (await client.callTool({
       name: 'atomic_expand_self',
@@ -457,7 +452,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       name: 'atomic_exec',
       arguments: {
         command: 'pwd',
-        cwd: 'scripts/mcp/atomic-edit',
+        cwd: selfRel,
         intent: 'smoke read-only exec classification',
       },
     })) as { content: { text: string }[]; isError?: boolean };
@@ -472,13 +467,13 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
     );
 
     const execAutoFile = `smoke-exec-auto-${process.pid}.txt`;
-    const execAutoAbs = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', execAutoFile);
+    const execAutoAbs = path.join(selfAbs, execAutoFile);
     try {
       const execAuto = (await client.callTool({
         name: 'atomic_exec',
         arguments: {
           command: `node -e 'require("node:fs").writeFileSync(${JSON.stringify(execAutoFile)}, "AUTO")'`,
-          cwd: 'scripts/mcp/atomic-edit',
+          cwd: selfRel,
           intent: 'smoke omitted proveEffect auto-proves mutable shell write',
         },
       })) as { content: { text: string }[]; isError?: boolean };
@@ -500,13 +495,13 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
     }
 
     const execFalseFile = `smoke-exec-explicit-false-${process.pid}.txt`;
-    const execFalseAbs = path.join(repoRoot, 'scripts', 'mcp', 'atomic-edit', execFalseFile);
+    const execFalseAbs = path.join(selfAbs, execFalseFile);
     try {
       const execFalse = (await client.callTool({
         name: 'atomic_exec',
         arguments: {
           command: `node -e 'require("node:fs").writeFileSync(${JSON.stringify(execFalseFile)}, "FALSE")'`,
-          cwd: 'scripts/mcp/atomic-edit',
+          cwd: selfRel,
           proveEffect: false,
           intent: 'smoke explicit false shell write must be refused',
         },
@@ -527,7 +522,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       name: 'atomic_exec',
       arguments: {
         command: 'curl --max-time 1 -X POST https://example.invalid/atomic-smoke',
-        cwd: 'scripts/mcp/atomic-edit',
+        cwd: selfRel,
         proveEffect: true,
         timeoutMs: 1000,
         intent: 'smoke external effects must not be mistaken for filesystem proof',
@@ -540,7 +535,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       externalText,
     );
 
-    const execEffectRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-exec-effect.${process.pid}`);
+    const execEffectRel = path.posix.join(selfRel, `.smoke-exec-effect.${process.pid}`);
     const execEffectAbs = path.join(repoRoot, execEffectRel);
     fs.rmSync(execEffectAbs, { recursive: true, force: true });
     fs.mkdirSync(execEffectAbs, { recursive: true });
@@ -625,7 +620,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
       badSha.content[0].text,
     );
 
-    const batchRel = path.join('scripts', 'mcp', 'atomic-edit', '.smoke-batch-replace.' + process.pid + '.ts');
+    const batchRel = path.posix.join(selfRel, '.smoke-batch-replace.' + process.pid + '.ts');
     const batchAbs = path.join(repoRoot, batchRel);
     const batchBefore = 'export const alpha = 1;\nexport const beta = 2;\n';
     fs.writeFileSync(batchAbs, batchBefore);
@@ -685,7 +680,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
     // EVERY write funnels through atomicWrite, which refuses any write that would
     // INTRODUCE a dangling relative import — and commits one whose import resolves.
     // Uses its own throwaway file so the shared fixture is untouched.
-    const convRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-converge.${process.pid}.ts`);
+    const convRel = path.posix.join(selfRel, `.smoke-converge.${process.pid}.ts`);
     const convAbs = path.join(repoRoot, convRel);
     fs.writeFileSync(convAbs, 'export const y = 1;\n');
     try {
@@ -715,7 +710,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
 
     // ── The one-tool collapse: atomic_converge runs the full WRITE gate registry ──
     // (preview/commit:false → nothing written; convergeStatic runs all gates first).
-    const convPreviewRel = path.join('scripts', 'mcp', 'atomic-edit', 'gates', `.smoke-converge-${process.pid}.ts`);
+    const convPreviewRel = path.posix.join(selfRel, 'gates', `.smoke-converge-${process.pid}.ts`);
     const convRed = (await client.callTool({
       name: 'atomic_converge',
       arguments: {
@@ -745,7 +740,7 @@ export async function partBSetup(ctx: PartBCtx): Promise<void> {
 
     // ── Byte-floor supply-chain: a NEW bare import to an absent package is refused at
     // the floor (the dependency twin of the connection gate — inescapable per-write).
-    const bfRel = path.join('scripts', 'mcp', 'atomic-edit', 'gates', `.smoke-bf-${process.pid}.ts`);
+    const bfRel = path.posix.join(selfRel, 'gates', `.smoke-bf-${process.pid}.ts`);
     const bf = (await client.callTool({
       name: 'atomic_create_file',
       arguments: { file: bfRel, content: 'import { x } from "totally-absent-pkg-zzz";\nexport const y = x;\n' },

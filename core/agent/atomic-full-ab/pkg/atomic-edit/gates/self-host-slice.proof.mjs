@@ -26,7 +26,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const evo = path.join(root, '..', 'atomic-edit-evolution');
+const evo = root;
 const repoRoot = process.env.ATOMIC_EDIT_REPO_ROOT ?? path.resolve(root, '..', '..', '..');
 
 let pass = 0, fail = 0;

@@ -28,37 +28,44 @@ function gateInventory() {
 
 async function readToolCount() {
   if (!fs.existsSync(compiledServer)) return { ok: false, toolCount: 0, languageCount: 0, reason: 'compiled server missing', compiledServer };
-  const transport = new StdioClientTransport({
-    command: process.execPath,
-    args: [compiledServer],
-    cwd: repoRoot,
-    stderr: 'pipe',
-    env: {
-      ...process.env,
-      ATOMIC_EDIT_MCP_SELF_HOSTED: '1',
-      ATOMIC_EDIT_ALLOW_SELF_HOSTED: '1',
-      ATOMIC_EDIT_REPO_ROOT: repoRoot,
-      ATOMIC_WORKSPACE_ROOT: repoRoot,
-      ATOMIC_EDIT_ALLOWED_ROOTS: '',
-    },
-  });
-  const client = new Client({ name: 'atomic-doc-honesty-proof', version: '1.0.0' });
-  try {
-    await client.connect(transport);
-    const tools = (await client.listTools()).tools;
-    let languageCount = 0;
+  let lastError = null;
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [compiledServer],
+      cwd: repoRoot,
+      stderr: 'pipe',
+      env: {
+        ...process.env,
+        ATOMIC_EDIT_MCP_SELF_HOSTED: '1',
+        ATOMIC_EDIT_ALLOW_SELF_HOSTED: '1',
+        ATOMIC_EDIT_REPO_ROOT: repoRoot,
+        ATOMIC_WORKSPACE_ROOT: repoRoot,
+        ATOMIC_EDIT_ALLOWED_ROOTS: '',
+      },
+    });
+    const client = new Client({ name: 'atomic-doc-honesty-proof', version: '1.0.0' });
     try {
-      const ns = await client.callTool({ name: 'atomic_native_status', arguments: {} });
-      const txt = Array.isArray(ns?.content) ? ns.content.map((c) => c?.text ?? '').join('\n') : '';
-      const m = txt.match(/"languageCount"\s*:\s*(\d+)/);
-      if (m) languageCount = Number(m[1]);
-    } catch { /* native status optional in this proof */ }
-    return { ok: true, toolCount: tools.length, languageCount };
-  } catch (error) {
-    return { ok: false, toolCount: 0, reason: error instanceof Error ? error.message : String(error) };
-  } finally {
-    try { await client.close(); } catch {}
+      await client.connect(transport);
+      const tools = (await client.listTools()).tools;
+      let languageCount = 0;
+      try {
+        const ns = await client.callTool({ name: 'atomic_native_status', arguments: {} });
+        const txt = Array.isArray(ns?.content) ? ns.content.map((c) => c?.text ?? '').join('\n') : '';
+        const m = txt.match(/"languageCount"\s*:\s*(\d+)/);
+        if (m) languageCount = Number(m[1]);
+      } catch { /* native status optional in this proof */ }
+      return { ok: true, toolCount: tools.length, languageCount };
+    } catch (error) {
+      lastError = error;
+      if (attempt < 3) {
+        await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
+      }
+    } finally {
+      try { await client.close(); } catch {}
+    }
   }
+  return { ok: false, toolCount: 0, reason: lastError instanceof Error ? lastError.message : String(lastError) };
 }
 
 async function main() {

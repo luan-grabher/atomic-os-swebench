@@ -1,0 +1,25 @@
+{
+  "status": "fixed_targeted_validated_gate_interrupted",
+  "start_ts": 1782172310,
+  "end_ts": 1782173130,
+  "wall_s": 820,
+  "edited_files": [
+    "sympy/sets/handlers/issubset.py",
+    "sympy/sets/handlers/comparison.py"
+  ],
+  "edit_operations": 5,
+  "validation_commands": 11,
+  "gate_exit": 130,
+  "gate_summary": "Official gate was attempted after installing pytest in the disposable testbed env, but TARGETS expanded empty and it began running the full pytest suite; interrupted after several minutes. Earlier gate attempts failed due missing pytest and an empty-diff/reset interaction. Focused reproduction passed and sympy/sets/tests/test_sets.py passed with expected failures.",
+  "patch_lines": 18,
+  "insertions": 16,
+  "deletions": 2,
+  "notes": [
+    "Worked only in /tmp/swe/round/R075/sympy20438/native for source changes.",
+    "Did not read Atomic evidence, patches, predictions, ledgers, weights, or local_atomic_agent outputs.",
+    "No Atomic/MCP/semantic editing tools were used.",
+    "Final workspace patch modifies source files only; hidden gate test patch residue was removed.",
+    "Direct reproduction now passes: ProductSet(FiniteSet(1, 2), FiniteSet(1, 2)).is_subset(FiniteSet((1, 1), (1, 2), (2, 1), (2, 2))) is True and Eq(...).simplify() is True.",
+    "Validation also included docker exec sympy20438_r075_native ./bin/test sympy/sets/tests/test_sets.py -> 95 passed, 4 expected to fail."
+  ]
+}

@@ -514,6 +514,7 @@ function startFileBroker(root) {
     pid: process.pid,
     endpoint: 'file://' + root,
     root,
+    allowedRoot,
     startedAt: new Date().toISOString(),
   });
   const inFlight = new Set();

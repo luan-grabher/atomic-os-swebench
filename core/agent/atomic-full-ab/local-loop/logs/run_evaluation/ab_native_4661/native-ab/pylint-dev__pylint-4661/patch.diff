@@ -1,0 +1,104 @@
+diff --git a/pylint/config/__init__.py b/pylint/config/__init__.py
+index 84774d0e3..b49c05329 100644
+--- a/pylint/config/__init__.py
++++ b/pylint/config/__init__.py
+@@ -33,8 +33,12 @@
+ # For details: https://github.com/PyCQA/pylint/blob/main/LICENSE
+ 
+ import os
++import pathlib
+ import pickle
+ import sys
++from datetime import datetime
++
++import platformdirs
+ 
+ from pylint.config.configuration_mixin import ConfigurationMixIn
+ from pylint.config.find_default_config_files import find_default_config_files
+@@ -56,14 +60,48 @@ __all__ = [
+ ]
+ 
+ USER_HOME = os.path.expanduser("~")
+-if "PYLINTHOME" in os.environ:
+-    PYLINT_HOME = os.environ["PYLINTHOME"]
+-    if USER_HOME == "~":
+-        USER_HOME = os.path.dirname(PYLINT_HOME)
+-elif USER_HOME == "~":
+-    PYLINT_HOME = ".pylint.d"
+-else:
+-    PYLINT_HOME = os.path.join(USER_HOME, ".pylint.d")
++# TODO Remove in 3.0 with all the surrounding code
++OLD_DEFAULT_PYLINT_HOME = ".pylint.d"
++DEFAULT_PYLINT_HOME = platformdirs.user_cache_dir("pylint")
++
++
++def _get_pylint_home():
++    """Return the pylint home."""
++    if "PYLINTHOME" in os.environ:
++        return os.environ["PYLINTHOME"]
++
++    _warn_about_old_home(pathlib.Path(DEFAULT_PYLINT_HOME))
++
++    return DEFAULT_PYLINT_HOME
++
++
++def _warn_about_old_home(pylint_home: pathlib.Path):
++    """Warn users about the old pylint home being deprecated.
++
++    The spam prevention mechanism is due to pylint being used in parallel.
++    """
++    spam_prevention_file = pathlib.Path(pylint_home) / datetime.now().strftime(
++        "pylint_warned_about_old_cache_already_%Y-%m-%d.temp"
++    )
++    old_home = pathlib.Path(USER_HOME) / OLD_DEFAULT_PYLINT_HOME
++
++    if old_home.exists() and not spam_prevention_file.exists():
++        print(
++            f"PYLINTHOME is now '{pylint_home}' but obsolescent '{old_home}' is found; "
++            "you can safely remove the latter",
++            file=sys.stderr,
++        )
++
++        # Write down cache file to prevent us from spamming the warning
++        try:
++            os.makedirs(pylint_home, exist_ok=True)
++            with open(spam_prevention_file, "w", encoding="utf8") as f:
++                f.write("")
++        except IOError:
++            pass
++
++
++PYLINT_HOME = _get_pylint_home()
+ 
+ 
+ def _get_pdata_path(base_name, recurs):
+@@ -83,7 +121,7 @@ def load_results(base):
+ def save_results(results, base):
+     if not os.path.exists(PYLINT_HOME):
+         try:
+-            os.mkdir(PYLINT_HOME)
++            os.makedirs(PYLINT_HOME)
+         except OSError:
+             print("Unable to create directory %s" % PYLINT_HOME, file=sys.stderr)
+     data_file = _get_pdata_path(base, 1)
+@@ -110,7 +148,7 @@ ENV_HELP = (
+ The following environment variables are used:
+     * PYLINTHOME
+     Path to the directory where persistent data for the run will be stored. If
+-not found, it defaults to ~/.pylint.d/ or .pylint.d (in the current working
++not found, it defaults to ~/.cache/pylint or .pylint.d (in the current working
+ directory).
+     * PYLINTRC
+     Path to the configuration file. See the documentation for the method used
+diff --git a/setup.cfg b/setup.cfg
+index 62a3fd7a5..9ff77aa85 100644
+--- a/setup.cfg
++++ b/setup.cfg
+@@ -46,6 +46,7 @@ install_requires =
+     isort>=4.2.5,<6
+     mccabe>=0.6,<0.7
+     toml>=0.7.1
++    platformdirs>=2.2.0
+     colorama;sys_platform=="win32"
+ python_requires = ~=3.6
+ 

@@ -51,7 +51,7 @@ function sendViaFiles(endpointValue, req) {
   const id = process.pid + '-' + Date.now() + '-' + crypto.randomBytes(6).toString('hex');
   const requestFile = path.join(requests, id + '.json');
   const responseFile = path.join(responses, id + '.json');
-  const timeoutMs = Math.max(1000, Number(req.timeoutMs || 120000) + 5000);
+  const timeoutMs = Math.max(1000, Number(req.timeoutMs || 300000) + 5000);
   const deadline = Date.now() + timeoutMs;
   try {
     fs.mkdirSync(requests, { recursive: true, mode: 0o700 });

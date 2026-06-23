@@ -4,7 +4,18 @@ import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const sourceDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const repoRoot = path.resolve(sourceDir, '..', '..', '..');
+
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
+const repoRoot = findRepoRoot(sourceDir);
 
 function permissionDenied(error) {
   return Boolean(error && typeof error === 'object' && ['EPERM', 'EACCES', 'EROFS'].includes(error.code));
@@ -45,7 +56,7 @@ function hostVisiblePath(absPath) {
 }
 
 function brokerClientPath() {
-  return path.join(hostWriteRoot(), 'scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs');
+  return path.join(sourceDir, 'atomic-exec-broker-client.mjs');
 }
 
 function runBrokerFixtureOp(op, absPath, stdin, mode) {

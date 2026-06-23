@@ -45,7 +45,18 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || path.resolve(__dirname, '..', '..', '..');
+
+function findRepoRoot(start) {
+  let dir = start;
+  for (;;) {
+    if (existsSync(path.join(dir, '.git'))) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) return start;
+    dir = parent;
+  }
+}
+
+const REPO_ROOT = process.env.ATOMIC_EDIT_REPO_ROOT || findRepoRoot(__dirname);
 const HOME = os.homedir();
 const SANDBOX_EXEC = '/usr/bin/sandbox-exec';
 const BROKER = path.join(__dirname, 'atomic-exec-broker.mjs');

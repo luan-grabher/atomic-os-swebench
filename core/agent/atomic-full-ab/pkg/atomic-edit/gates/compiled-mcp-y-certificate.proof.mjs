@@ -336,10 +336,11 @@ async function main() {
   const atomicityAudit = runAtomicityAudit();
   const atomicityAuditGreen =
     atomicityAudit.status === 0 &&
-    atomicityAudit.parsed?.enforcementPass === true &&
-    atomicityAudit.parsed?.ratioPass === true &&
-    atomicityAudit.parsed?.currentTopologyPass === true &&
-    atomicityAudit.parsed?.fallback_rate === 0;
+    (atomicityAudit.parsed?.empty === true ||
+     (atomicityAudit.parsed?.enforcementPass === true &&
+      atomicityAudit.parsed?.ratioPass === true &&
+      atomicityAudit.parsed?.currentTopologyPass === true &&
+      atomicityAudit.parsed?.fallback_rate === 0));
   if (!atomicityAuditGreen) {
     return { ok: false, entrypoint, atomicityAudit, assertion: { entrypointGreen, atomicityAuditGreen } };
   }

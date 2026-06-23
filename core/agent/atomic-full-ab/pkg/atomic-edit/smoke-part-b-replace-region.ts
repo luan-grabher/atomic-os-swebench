@@ -4,9 +4,9 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBReplaceRegion(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
     // ── atomic_replace_text_in_anchor_region ──
-    const rtaRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-rta.${process.pid}.ts`);
+    const rtaRel = path.posix.join(selfRel, `.smoke-rta.${process.pid}.ts`);
     const rtaAbs = path.join(repoRoot, rtaRel);
     fs.writeFileSync(rtaAbs, 'export let A = `BEFORE alpha MIDDLE omega AFTER`;\n');
     try {
@@ -141,12 +141,7 @@ export async function partBReplaceRegion(ctx: PartBCtx): Promise<void> {
       );
 
       // ── outside identical oldText preserved ──
-      const rtaOutsideRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-rta-outside.${process.pid}.ts`,
-      );
+      const rtaOutsideRel = path.posix.join(selfRel, `.smoke-rta-outside.${process.pid}.ts`);
       const rtaOutsideAbs = path.join(repoRoot, rtaOutsideRel);
       fs.writeFileSync(rtaOutsideAbs, 'export let X = `OUTSIDE alpha OUTSIDE omega OUTSIDE`;\n');
       try {
@@ -182,12 +177,7 @@ export async function partBReplaceRegion(ctx: PartBCtx): Promise<void> {
       }
 
       // ── ambiguous region + regionOccurrence + out-of-range regionOccurrence ──
-      const rtaAmbigRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-rta-ambig.${process.pid}.ts`,
-      );
+      const rtaAmbigRel = path.posix.join(selfRel, `.smoke-rta-ambig.${process.pid}.ts`);
       const rtaAmbigAbs = path.join(repoRoot, rtaAmbigRel);
       fs.writeFileSync(rtaAmbigAbs, 'const X = `R1 alpha A1 omega R1 alpha A2 omega R2`;\n');
       try {
@@ -258,12 +248,7 @@ export async function partBReplaceRegion(ctx: PartBCtx): Promise<void> {
       }
 
       // ── textOccurrence + out-of-range textOccurrence ──
-      const rtaTextOcRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-rta-textoc.${process.pid}.ts`,
-      );
+      const rtaTextOcRel = path.posix.join(selfRel, `.smoke-rta-textoc.${process.pid}.ts`);
       const rtaTextOcAbs = path.join(repoRoot, rtaTextOcRel);
       fs.writeFileSync(rtaTextOcAbs, 'export let Z = `BEFORE alpha DUP DUP DUP omega AFTER`;\n');
       try {

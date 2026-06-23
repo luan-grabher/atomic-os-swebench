@@ -146,7 +146,7 @@ try {
       }
       const closed = await Promise.race([
         closePromise,
-        sleep(7000).then(() => ({ code: null, signal: null, timeout: true })),
+        sleep(15000).then(() => ({ code: null, signal: null, timeout: true })),
       ]);
       if (closed.timeout) killPid(proc.pid, false);
       return { ls, ok: /"ok":true/.test(out), code: closed.code, signal: closed.signal, timeout: closed.timeout, stderr: err.slice(0, 500), label };

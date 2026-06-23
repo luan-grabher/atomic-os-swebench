@@ -267,6 +267,9 @@ def _edit_correction(workdir, file, old_text):
 # find a regex-match decision helper that matches an OS path-like value, normalize that value to POSIX separators,
 # and let the normal gate prove or reject the result. Generalist: scans Python source for the semantic pattern;
 # no task/file/test hardcode; gate remains the judge.
+# CLASS-WEIGHT-MACRO-FIRST-MATERIALIZATION: when a matched proof-carrying macro exists and no edit has landed,
+# attempt the macro before exposing free-form edit tools; waiting for refusal-count escalation creates a window
+# for wrong-locus edits that the substrate already knows how to avoid.
 # CLASS-WEIGHT-MACRO-COVERAGE-NO-FILE-CUTOFF: large repos can place the semantic target beyond arbitrary
 # file-count cutoffs; scan the full tracked Python file set and let the proof/gate bound correctness instead.
 def _apply_path_normalization_weight_macro(workdir):
@@ -487,6 +490,29 @@ def diff_lines(d):
                if (l.startswith("+") or l.startswith("-")) and not l.startswith(("+++", "---")))
 
 
+def gate_infra_failure(out, workdir=None):
+    """CLASS-GATE-INFRA-RED-GENERATED-VERSION: classify local gate environment breakage separately from behavioral red tests."""
+    if not out:
+        return False
+    if "INFRA_FAIL:" in out:
+        return True
+    missing_generated_version = re.search(r"ModuleNotFoundError: No module named ['\"]([^'\"]*\._?version)['\"]", out)
+    if missing_generated_version:
+        changed = []
+        if workdir:
+            try:
+                changed = subprocess.run(["git", "diff", "HEAD", "--name-only"], cwd=workdir,
+                                         capture_output=True, text=True, timeout=10).stdout.splitlines()
+            except Exception:
+                changed = []
+        packaging_or_version_touched = any(
+            p.endswith(("_version.py", "version.py")) or p in {"setup.py", "setup.cfg", "pyproject.toml"}
+            for p in changed
+        )
+        return not packaging_or_version_touched
+    return False
+
+
 def green_diff_added_helper_state_machine(workdir):
     """CLASS-GREEN-MINIMIZE-HELPER-STATE-MACHINE-SURFACE: detect green patches that add a new
     helper plus loop/state-machine structure. These are often correct but surface-heavy; a bounded extra
@@ -507,6 +533,27 @@ def run_gate(workdir, gate, full_file=False):
     # CLASS-GATE-ZERO-ZERO-RETRY: a timeout or malformed infra response can surface as pass=0/fail=0 and
     # falsely push the model into over-fixing a patch that was already correct. Retry that zero-information
     # result once with the same gate; never convert a real red with failures into green.
+    # CLASS-GATE-HOST-DIFF-PRESERVATION: SWE warm-container gates often bind-mount /testbed to the host
+    # workspace, then run git checkout/clean inside the container after tests. Without a host-diff snapshot,
+    # a green in-loop gate can erase the candidate patch before final scoring. Preserve and restore the host
+    # diff around every gate call; if restoration fails, the gate is red.
+    before_gate_diff = git_diff(workdir)
+
+    def _restore_gate_diff():
+        try:
+            if git_diff(workdir) == before_gate_diff:
+                return True, ""
+            subprocess.run(["git", "checkout", "--", "."], cwd=workdir, capture_output=True)
+            subprocess.run(["git", "clean", "-fdq"], cwd=workdir, capture_output=True)
+            if before_gate_diff.strip():
+                ap = subprocess.run(["git", "apply", "-"], cwd=workdir, input=before_gate_diff,
+                                    text=True, capture_output=True)
+                if ap.returncode != 0:
+                    return False, "\n[GATE-HOST-DIFF-RESTORE-FAILED] " + (ap.stderr or ap.stdout or "git apply failed")[:300]
+            return True, "\n[GATE-HOST-DIFF-RESTORED]"
+        except Exception as exc:
+            return False, f"\n[GATE-HOST-DIFF-RESTORE-ERROR] {type(exc).__name__}: {str(exc)[:200]}"
+
     env = dict(os.environ)
     if full_file:
         env["SWE_GATE_FULL_FILE"] = "1"
@@ -517,23 +564,30 @@ def run_gate(workdir, gate, full_file=False):
             p = subprocess.run(gate, cwd=workdir, shell=True, capture_output=True, text=True,
                                timeout=timeout_s, env=env)
         except subprocess.TimeoutExpired:
-            last_out = "(gate timed out)"
-            if _gate_attempt == 0:
+            restore_ok, restore_note = _restore_gate_diff()
+            last_out = "(gate timed out)" + restore_note
+            if _gate_attempt == 0 and restore_ok:
                 time.sleep(2)
                 continue
             return False, last_out, (0, 0)
         out = (p.stdout or "") + "\n" + (p.stderr or "")
+        restore_ok, restore_note = _restore_gate_diff()
+        out += restore_note
         m_pass = re.search(r"#\s*pass\s+(\d+)", out)
         m_fail = re.search(r"#\s*fail\s+(\d+)", out)
         m_tests = re.search(r"#\s*tests\s+(\d+)", out)
         npass = int(m_pass.group(1)) if m_pass else 0
         nfail = int(m_fail.group(1)) if m_fail else 0
         ntests = int(m_tests.group(1)) if m_tests else 0
-        if p.returncode != 0 and npass == 0 and nfail == 0 and _gate_attempt == 0:
+        if gate_infra_failure(out, workdir):
+            return False, out + "\n[GATE-INFRA-RED] local gate infrastructure failed; preserve current source diff for official scoring.", (0, 0)
+        if (not restore_ok) or (p.returncode != 0 and npass == 0 and nfail == 0 and _gate_attempt == 0):
             last_out = out
-            time.sleep(2)
-            continue
-        allpass = (p.returncode == 0) and ntests > 0 and nfail == 0
+            if restore_ok:
+                time.sleep(2)
+                continue
+            return False, out, (npass, max(nfail, 1))
+        allpass = restore_ok and (p.returncode == 0) and ntests > 0 and nfail == 0
         return allpass, out, (npass, nfail)
     return False, last_out or "(gate produced no result)", (0, 0)
 
@@ -552,20 +606,27 @@ def overfix_full_file_required(workdir):
 
 def normalize_gate_command(gate):
     # CLASS-GATE-COMMAND-CWD-RELATIVE: run_gate executes with cwd=<SWE workdir>, so repo-relative gate
-    # scripts like core/agent/.../swe_docker_gate.sh vanish and return pass=0/fail=0. Absolutize only the
-    # command token when it resolves under this repo; leave arbitrary shell commands untouched.
+    # paths like core/agent/.../swe_docker_gate.sh or its taskdir argument vanish and return false
+    # zero/collection failures. Absolutize every token that resolves under this repo; leave arbitrary
+    # shell commands and non-path arguments untouched.
     try:
         parts = shlex.split(gate)
     except Exception:
         return gate
     if not parts:
         return gate
-    first = parts[0]
-    if not os.path.isabs(first):
-        candidate = REPO_ROOT / first
-        if candidate.exists():
-            parts[0] = str(candidate)
-            return " ".join(shlex.quote(p) for p in parts)
+    changed = False
+    normalized = []
+    for part in parts:
+        if part and not os.path.isabs(part):
+            candidate = REPO_ROOT / part
+            if candidate.exists():
+                normalized.append(str(candidate))
+                changed = True
+                continue
+        normalized.append(part)
+    if changed:
+        return " ".join(shlex.quote(p) for p in normalized)
     return gate
 
 
@@ -894,6 +955,8 @@ def main():
     t0 = time.time()
     model_call_error = None
     model_call_error_kind = ""
+    gate_infra_invalid = False
+    gate_infra_reason = ""
 
     survey = ("Be efficient with calls: to understand the code, FIRST call atomic_survey(glob) once to "
               "outline the region, then atomic_read_many(items) to read the relevant files in ONE call — "
@@ -953,7 +1016,9 @@ def main():
     # config already proved on the class. ATOMIC_WEIGHTS_FILE = jsonl of {class, trigger, strategy, proof_n}; inject
     # every weight whose `trigger` (a substring/regex of the task) matches — recoverable, composable, byte-cheap.
     matched_weight_classes = []
+    matched_weight_lockout_classes = []  # CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG: weak single-proof weights are advisory, not a read-starving lockout.
     matched_weight_hints = []  # CLASS-WEIGHT-LOCKOUT-REFUSAL-ULTIMATUM: lockout must carry the concrete proven strategy, not only the class name.
+    matched_weight_lockout_hints = []
     try:
         _wf = os.environ.get("ATOMIC_WEIGHTS_FILE")
         if _wf and os.path.exists(_wf):
@@ -962,6 +1027,17 @@ def main():
             if _matched:
                 matched_weight_classes = [w["class"] for w in _matched[:5]]
                 matched_weight_hints = [f"- [{w['class']}] (proven on {w.get('proof_n',1)} resolution(s)): {w['strategy']}" for w in _matched[:5]]
+                # CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG: retrieval always informs the model, but only
+                # executable macros or repeatedly proven classes may withhold reads. R075 showed weak generic
+                # weights can otherwise starve anchor reads and produce zero edits.
+                for _w in _matched[:5]:
+                    try:
+                        _proof_n = int(_w.get("proof_n", 1))
+                    except Exception:
+                        _proof_n = 1
+                    if _w.get("class") == "PATH-NORMALIZATION-BEFORE-MATCH" or _proof_n >= 2:
+                        matched_weight_lockout_classes.append(_w["class"])
+                        matched_weight_lockout_hints.append(f"- [{_w['class']}] (proven on {_w.get('proof_n',1)} resolution(s)): {_w['strategy']}")
                 _wtxt = "\n".join(matched_weight_hints)
                 system += ("\n\nLEARNED RESOLUTION STRATEGIES (atomic weights — generalized operators captured from "
                            "PROVEN resolutions of this class; apply the matching one):\n" + _wtxt)
@@ -1021,6 +1097,8 @@ def main():
     # diff, the next turn must refine the patch instead of spending the remaining budget reading/retesting the same
     # failed state. The lockout is released only by a new atomic edit, then the gate can be run again.
     red_gate_fix_reason = ""
+    red_gate_anchor_reads = 0  # CLASS-RED-GATE-REPAIR-ANCHOR-READ-ESCAPE: after a red gate, allow only a
+    red_gate_anchor_read_keys = set()  # small number of fresh, unique repair anchors before the next edit.
     pre_edit_topology_prompted = False
     pre_edit_topology_active = False
     # CLASS-S2-A: bound analysis paralysis. A model that over-reads (DeepSeek read 38× / 0 edits on
@@ -1034,6 +1112,7 @@ def main():
     EDIT_ONLY_NAMES = {"atomic_replace", "atomic_create"}
     EDIT_TEST_NAMES = {"atomic_replace", "atomic_create", "run_tests"}
     RED_FIX_NAMES = {"atomic_replace", "atomic_create", "quick_check", "run_tests"}
+    RED_GATE_ANCHOR_READ_LIMIT = 3
     MINIMIZE_NAMES = {"atomic_replace", "run_tests"}
     GREEN_MINIMIZE_MAXSTEP_RESERVE = 3  # CLASS-GREEN-AT-MAXSTEP-NO-MINIMIZE: first green at max_steps still gets
     # a tiny post-green-only budget for GREEN-MINIMIZE. The reserve is inaccessible unless green minimization is
@@ -1202,14 +1281,15 @@ def main():
             allowed = {"run_tests"} if green_minimize_edits >= 1 else MINIMIZE_NAMES
             step_tools = [t for t in active_tools if t["function"]["name"] in allowed]
         elif red_gate_fix_required:
-            step_tools = [t for t in active_tools if t["function"]["name"] in RED_FIX_NAMES]
-            metrics["transcript"].append(f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/quick-check/test-only)")
+            _red_allowed = RED_FIX_NAMES | (READ_FNS if red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT else set())
+            step_tools = [t for t in active_tools if t["function"]["name"] in _red_allowed]
+            metrics["transcript"].append(
+                f"s{step} RED-GATE-REEDIT tools withheld ({red_gate_fix_reason}; edit/quick-check/test + bounded fresh-read repairs {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
         elif force_no_edit_commit:
             step_tools = [t for t in active_tools if t["function"]["name"] in EDIT_TEST_NAMES]
             metrics["transcript"].append(f"s{step} NO-EDIT-STOP-FORBIDDEN tools withheld (edit/test-only)")
-        elif matched_weight_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER:
-            if (not weight_macro_attempted and "PATH-NORMALIZATION-BEFORE-MATCH" in matched_weight_classes
-                    and weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM):
+        elif matched_weight_lockout_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER:
+            if (not weight_macro_attempted and "PATH-NORMALIZATION-BEFORE-MATCH" in matched_weight_classes):
                 weight_macro_attempted = True
                 _macro_ok, _macro_msg = _apply_path_normalization_weight_macro(workdir)
                 metrics["transcript"].append(f"s{step} WEIGHT-MACRO PATH-NORMALIZATION attempt -> {_macro_msg}")
@@ -1234,13 +1314,13 @@ def main():
             _weight_allowed = EDIT_ONLY_NAMES if weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM else EDIT_TEST_NAMES
             step_tools = [t for t in active_tools if t["function"]["name"] in _weight_allowed]
             if not weight_force_prompted:
-                _weight_hint = "\n".join(matched_weight_hints[:3]) or ", ".join(matched_weight_classes)
+                _weight_hint = "\n".join(matched_weight_lockout_hints[:3]) or ", ".join(matched_weight_lockout_classes)
                 messages.append({"role": "user", "content": (
-                    "A proof-carrying learned strategy matched this task (" + ", ".join(matched_weight_classes) + "). "
+                    "A lockout-eligible proof-carrying learned strategy matched this task (" + ", ".join(matched_weight_lockout_classes) + "). "
                     "You have enough context to apply that operator. STOP reading now and apply this proven operator:\n"
                     + _weight_hint + "\nEmit the smallest atomic_replace/atomic_create "
                     + ("and stop." if NO_GATE else "then quick_check/run_tests; feedback will refine it if needed."))})
-                metrics["transcript"].append(f"s{step} WEIGHT-EARLY-COMMIT engaged ({','.join(matched_weight_classes)}; reads={reads_since_edit}, 0 edits) — read tools withheld")
+                metrics["transcript"].append(f"s{step} WEIGHT-EARLY-COMMIT engaged ({','.join(matched_weight_lockout_classes)}; reads={reads_since_edit}, 0 edits) — read tools withheld")
                 weight_force_prompted = True
             elif weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM:
                 metrics["transcript"].append(f"s{step} WEIGHT-EARLY-COMMIT ultimatum active (refused_reads={weight_force_refused}; edit-only)")
@@ -1398,11 +1478,11 @@ def main():
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                 continue
 
-            if fn in READ_FNS and matched_weight_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER:
+            if fn in READ_FNS and matched_weight_lockout_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER:
                 weight_force_refused += 1
-                _weight_hint = "\n".join(matched_weight_hints[:3]) or ", ".join(matched_weight_classes)
+                _weight_hint = "\n".join(matched_weight_lockout_hints[:3]) or ", ".join(matched_weight_lockout_classes)
                 _ultimatum = weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM
-                res = ("READING DISABLED — a proof-carrying learned strategy matched this task (" + ", ".join(matched_weight_classes) + "). "
+                res = ("READING DISABLED — a lockout-eligible proof-carrying learned strategy matched this task (" + ", ".join(matched_weight_lockout_classes) + "). "
                        "You have enough context to apply it. Do not request another read/search. Apply this proven operator now:\n"
                        + _weight_hint + "\nEmit one atomic_replace/atomic_create at the weighted root site now; "
                        + ("then stop." if NO_GATE else "then quick_check/run_tests."))
@@ -1463,7 +1543,26 @@ def main():
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                 continue
 
-            if red_gate_fix_required and fn not in RED_FIX_NAMES:
+            _red_gate_read_allowed = False
+            if red_gate_fix_required and fn in READ_FNS:
+                _rk = _read_target_key(fn, a)
+                if _rk not in red_gate_anchor_read_keys and red_gate_anchor_reads < RED_GATE_ANCHOR_READ_LIMIT:
+                    red_gate_anchor_read_keys.add(_rk)
+                    red_gate_anchor_reads += 1
+                    _red_gate_read_allowed = True
+                    metrics["transcript"].append(
+                        f"s{step} {fn} ALLOWED (red-gate fresh repair anchor {red_gate_anchor_reads}/{RED_GATE_ANCHOR_READ_LIMIT})")
+                else:
+                    res = ("READING DISABLED — the acceptance gate is red for the current diff "
+                           f"({red_gate_fix_reason}). Do not read/search/retest stale bytes. "
+                           "You already used the bounded fresh repair-anchor budget or requested a stale anchor; "
+                           "make one focused atomic_replace/atomic_create refinement first, then quick_check and run_tests.")
+                    metrics["invalid_states_prevented"] += 1
+                    metrics["transcript"].append(f"s{step} {fn} REFUSED (red-gate repair read stale-or-limit)")
+                    messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                    continue
+
+            if red_gate_fix_required and fn not in RED_FIX_NAMES and not _red_gate_read_allowed:
                 res = ("TOOL DISABLED — the acceptance gate is red for the current diff "
                        f"({red_gate_fix_reason}). Do not read/search/retest stale bytes. "
                        "Make one focused atomic_replace/atomic_create refinement first; then quick_check and run_tests.")
@@ -1512,11 +1611,26 @@ def main():
                     # (measured: pylint-7080 — the model added a 2nd _is_ignored_file call instead of fixing the
                     # un-normalized path inside _is_ignored_file, already called at pylinter.py:600). Steer the
                     # model to the call-graph + the function body. Pure advice on red — zero blocking, any task.
-                    if last_pass:
+                    gate_infra_red = gate_infra_failure(gate_out, workdir)
+                    if gate_infra_red:
+                        gate_infra_invalid = True
+                        gate_infra_reason = (gate_out or "")[-600:]
+                        metrics["round_invalid"] = True
+                        metrics["invalid_reason"] = "gate_infra_failure"
+                        metrics["gate_pass"] = None
+                        res += ("\n\n[gate-infra] The local acceptance gate failed due to environment/generated-artifact "
+                                "infrastructure, not a behavioral assertion. Do NOT edit setup files or generated "
+                                "version modules to satisfy this local container. Preserve the current source diff; "
+                                "the coordinator must score it with the official SWE-bench harness.")
+                        metrics["transcript"].append(f"s{step} GATE-INFRA-RED classified; preserving diff for official scoring")
+                        deadlock_break = True
+                    elif last_pass:
                         _consec_red = 0
-                    if not last_pass and metrics["edits_applied"] >= 1:
+                    elif metrics["edits_applied"] >= 1:
                         red_gate_fix_required = True
                         red_gate_fix_reason = f"pass={np_} fail={nf_}"
+                        red_gate_anchor_reads = 0
+                        red_gate_anchor_read_keys.clear()
                         _consec_red += 1
                         diagnostics = [
                             "[diagnose] The gate is red for your current non-empty diff. Do not read broadly or "
@@ -1747,6 +1861,8 @@ def main():
                         force_no_edit_commit = False
                         red_gate_fix_required = False
                         red_gate_fix_reason = ""
+                        red_gate_anchor_reads = 0
+                        red_gate_anchor_read_keys.clear()
                         if green_minimize_active and fn == "atomic_replace":
                             green_minimize_edits += 1
                         # CLASS-EDIT-RECEIPT-BLIND: show the post-edit region so the model confirms by
@@ -1887,6 +2003,12 @@ def main():
     if model_call_error:
         metrics["gate_pass"] = None
         metrics["transcript"].append(f"ROUND INVALID (model call error: {model_call_error_kind})")
+    elif gate_infra_invalid:
+        metrics["gate_pass"] = None
+        metrics["round_invalid"] = True
+        metrics["invalid_reason"] = "gate_infra_failure"
+        metrics["gate_infra_reason"] = gate_infra_reason
+        metrics["transcript"].append("ROUND INVALID (local gate infrastructure failure; official scoring required)")
     elif NO_GATE:
         metrics["gate_pass"] = None  # scored externally by the official SWE-bench Docker harness
     else:

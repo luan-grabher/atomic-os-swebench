@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const evo = path.join(root, '..', 'atomic-edit-evolution');
+const evo = root;
 const G = await import(path.join(evo, 'guidebook.mjs'));
 const P = await import(path.join(evo, 'psr-witness.mjs'));
 const { resolveGuidebook, checkInheritanceMonotonic } = G;

@@ -18,11 +18,11 @@ function record(name, ok, detail = {}) {
 const proofCommand = 'node gates/self-evolution-disproof-consumer.proof.mjs --json';
 const failedBranch = source.indexOf('if (failed.length > 0) {');
 const failedReceipt = source.indexOf('const rejectionReceipt = buildRealSelfExpansionPromotionReceipt', failedBranch);
-const failedRollback = source.indexOf("rollbackEffectStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')", failedBranch);
+const failedRollback = source.indexOf("rollbackSelfExpansionSnapshotStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')", failedBranch);
 const failedRecord = source.indexOf('recordSelfEvolutionRejection(selfRoot', failedBranch);
 const failedReturn = source.indexOf('proof failed:', failedBranch);
 const rejectBranch = source.indexOf("promotionReceipt.decision !== 'promote'");
-const rejectRollback = source.indexOf("rollbackEffectStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')", rejectBranch);
+const rejectRollback = source.indexOf("rollbackSelfExpansionSnapshotStrict(snap, effectsBeforeRejectRollback, 'atomic_expand_self')", rejectBranch);
 const rejectRecord = source.indexOf('recordSelfEvolutionRejection(selfRoot', rejectBranch);
 
 record(

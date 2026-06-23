@@ -14,6 +14,7 @@ WD="$1"; TD="$2"
 CONT="${SWE_CONTAINER:?set SWE_CONTAINER}"
 META="$TD/meta.json"; TP="$TD/.gold/test_patch.diff"
 CENV="${SWE_CONDA_ENV:-testbed}"
+FULL_FILE="${SWE_GATE_FULL_FILE:-0}"
 
 # CLASS-GATE-PARAMTEST-IDS (R043, generalist): parametrized pytest node ids contain commas/brackets/spaces
 # (e.g. test_csv_regex_comma_in_quantifier[foo, bar]). The old code space-joined them into $TARGETS and passed
@@ -21,13 +22,11 @@ CENV="${SWE_CONDA_ENV:-testbed}"
 # Render each target with Python shlex.quote instead of hand-rolled Bash escaping, then count the quoted ids.
 TARGETS=""
 ntargets=0
-while IFS= read -r quoted; do
-  [ -z "$quoted" ] && continue
-  TARGETS="$TARGETS $quoted"
-  ntargets=$((ntargets+1))
-done < <(python3 - "$META" "${SWE_P2P_SAMPLE:-15}" <<'PY'
+target_file="$(mktemp)"
+python3 - "$META" "${SWE_P2P_SAMPLE:-15}" "$FULL_FILE" > "$target_file" <<'PY'
 import json,sys,re,shlex
 m=json.load(open(sys.argv[1])); n=int(sys.argv[2])
+full_file = sys.argv[3] == "1"
 # Keep only real pytest node ids; drop dataset junk like "[100%]" progress artifacts in PASS_TO_PASS.
 def ok(t):
     t=t.strip()
@@ -38,9 +37,25 @@ def ok(t):
     # Drop ids whose brackets are unbalanced (the official harness is robust to this; our cmdline gate must be too).
     if t.count('[') != t.count(']'): return False
     return ("::" in t) or t.endswith(".py")
-print("\n".join(shlex.quote(t) for t in (m["FAIL_TO_PASS"] + m["PASS_TO_PASS"][:n]) if ok(t)))
+targets = [t for t in (m["FAIL_TO_PASS"] + (m["PASS_TO_PASS"] if full_file else m["PASS_TO_PASS"][:n])) if ok(t)]
+if full_file:
+    # CLASS-OVERFIX-FULL-FILE-GATE: direct node ids from SWE metadata can be incomplete/truncated for
+    # parametrized pytest cases. For official-like over-fix checks, run the owning test files instead of
+    # individual ids; this catches P2P regressions without false "node not found" negatives.
+    seen = []
+    for t in targets:
+        p = t.split("::", 1)[0]
+        if p and p not in seen:
+            seen.append(p)
+    targets = seen
+print("\n".join(shlex.quote(t) for t in targets))
 PY
-)
+while IFS= read -r quoted; do
+  [ -z "$quoted" ] && continue
+  TARGETS="$TARGETS $quoted"
+  ntargets=$((ntargets+1))
+done < "$target_file"
+rm -f "$target_file"
 
 infra_fail() {
   msg="$1"

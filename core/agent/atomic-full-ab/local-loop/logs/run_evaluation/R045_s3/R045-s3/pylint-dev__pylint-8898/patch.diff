@@ -1,0 +1,30 @@
+diff --git a/pylint/config/argument.py b/pylint/config/argument.py
+index 30a5fd175..e7e8b6d39 100644
+--- a/pylint/config/argument.py
++++ b/pylint/config/argument.py
+@@ -21,6 +21,7 @@ from pylint import interfaces
+ from pylint import utils as pylint_utils
+ from pylint.config.callback_actions import _CallbackAction
+ from pylint.config.deprecation_actions import _NewNamesAction, _OldNamesAction
++from pylint.utils.utils import _splitstrip_brace_aware
+ 
+ _ArgumentTypes = Union[
+     str,
+@@ -114,7 +115,7 @@ def _regex_transformer(value: str) -> Pattern[str]:
+ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _splitstrip_brace_aware(value):
+         patterns.append(_regex_transformer(pattern))
+     return patterns
+ 
+@@ -122,7 +123,7 @@ def _regexp_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+ def _regexp_paths_csv_transfomer(value: str) -> Sequence[Pattern[str]]:
+     """Transforms a comma separated list of regular expressions paths."""
+     patterns: list[Pattern[str]] = []
+-    for pattern in _csv_transformer(value):
++    for pattern in _splitstrip_brace_aware(value):
+         patterns.append(
+             re.compile(
+                 str(pathlib.PureWindowsPath(pattern)).replace("\\", "\\\\")

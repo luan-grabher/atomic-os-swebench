@@ -2,6 +2,7 @@ import * as childProcess from "node:child_process";
 import * as crypto from 'node:crypto';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { assertIntentMutationAllowed, resolveAllowedRootForAbsolutePath, REPO_ROOT } from './guard.js';
 import { checkConnectionByteFloor, checkSupplyChainByteFloor, pendingWriteCount } from './connection-gate.js';
 // Full-gate byte floor. The async WRITE_GATES (contract-edge, render-conformance,
@@ -17,7 +18,7 @@ import typeSoundnessGate from './gates/type-soundness-gate.js';
 import iacReferenceGate from './gates/iac-reference-gate.js';
 import securityGate from './gates/security-gate.js';
 import { makeContext, type GateModule } from './gates/contract.js';
-import { assertSelfExpansionAdmission } from './server-helpers-self-expansion.js';
+import { assertSelfExpansionAdmission, atomicSelfSourceRoot } from './server-helpers-self-expansion.js';
 import { recordEmergenceEvent } from './emergence-feed.js';
 // ── self-improving Gate Lattice (GAP #2) — the ADMITTED registry gates, run additively at the byte floor ──
 // The frozen SYNC_WRITE_GATES above are atomic's BUILT-IN floor. The lattice lets
@@ -116,7 +117,8 @@ function writeAtomicBytesDirect(absPath: string, tmp: string, content: string, m
 function writeAtomicBytesViaBroker(absPath: string, tmp: string, content: string, mode: number | undefined): void {
   const socket = brokerSocketPath();
   if (!socket) throw new Error("atomicWrite broker fallback unavailable: ATOMIC_EXEC_BROKER_SOCKET is unset");
-  const helper = path.join(REPO_ROOT, "scripts/mcp/atomic-edit/atomic-write-broker.mjs");
+  const atomicRoot = atomicSelfSourceRoot() ?? path.dirname(fileURLToPath(import.meta.url));
+  const helper = path.join(atomicRoot, "atomic-write-broker.mjs");
   const req = {
     command: `${shellPath(process.execPath)} ${shellPath(helper)}`,
     cwd: path.dirname(absPath),
@@ -129,7 +131,7 @@ function writeAtomicBytesViaBroker(absPath: string, tmp: string, content: string
     },
     stdin: content,
   };
-  const client = path.join(REPO_ROOT, "scripts/mcp/atomic-edit/atomic-exec-broker-client.mjs");
+  const client = path.join(atomicRoot, "atomic-exec-broker-client.mjs");
   const res = childProcess.spawnSync(process.execPath, [client, socket], {
     cwd: path.dirname(absPath),
     encoding: "utf8",

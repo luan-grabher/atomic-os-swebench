@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const jsonMode = process.argv.includes('--json');
 const dir = path.dirname(fileURLToPath(import.meta.url));   // gates/
 const root = path.join(dir, '..');                          // scripts/mcp/atomic-edit
-const R = await import(path.join(root, '..', 'atomic-edit-evolution', 'record-completeness.mjs'));
+const R = await import(path.join(root, 'record-completeness.mjs'));
 const { missingTraces, firstChainGap, recordCompleteness } = R;
 
 let pass = 0, fail = 0;

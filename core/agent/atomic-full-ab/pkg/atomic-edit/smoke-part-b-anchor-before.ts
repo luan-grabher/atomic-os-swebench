@@ -4,14 +4,9 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBAnchorBefore(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
     // ── atomic_insert_before_anchor ──
-    const beforeAnchorRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-before-anchor.${process.pid}.ts`,
-    );
+    const beforeAnchorRel = path.posix.join(selfRel, `.smoke-before-anchor.${process.pid}.ts`);
     const beforeAnchorAbs = path.join(repoRoot, beforeAnchorRel);
     fs.writeFileSync(beforeAnchorAbs, "export const ORDER = ['alpha'];\n");
     const beforeAnchorBefore = fs.readFileSync(beforeAnchorAbs, 'utf8');
@@ -86,12 +81,7 @@ export async function partBAnchorBefore(ctx: PartBCtx): Promise<void> {
         beforeAnchorEmpty.content[0]?.text ?? '',
       );
 
-      const beforeAmbigRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-before-anchor-ambig.${process.pid}.ts`,
-      );
+      const beforeAmbigRel = path.posix.join(selfRel, `.smoke-before-anchor-ambig.${process.pid}.ts`);
       const beforeAmbigAbs = path.join(repoRoot, beforeAmbigRel);
       fs.writeFileSync(beforeAmbigAbs, "export const PAIR = ['anchor', 'anchor'];\n");
       try {

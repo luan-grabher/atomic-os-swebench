@@ -4,10 +4,10 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBAnchorAfter(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
+  const { client, fixtureAbs, fixtureRel, repoRoot, selfRel } = ctx;
 
     // ── atomic_insert_after_anchor ──
-    const anchorRel = path.join('scripts', 'mcp', 'atomic-edit', `.smoke-anchor.${process.pid}.ts`);
+    const anchorRel = path.posix.join(selfRel, `.smoke-anchor.${process.pid}.ts`);
     const anchorAbs = path.join(repoRoot, anchorRel);
     fs.writeFileSync(anchorAbs, "export const ORDER = ['alpha'];\n");
     const anchorBefore = fs.readFileSync(anchorAbs, 'utf8');
@@ -75,12 +75,7 @@ export async function partBAnchorAfter(ctx: PartBCtx): Promise<void> {
         anchorEmpty.content[0]?.text ?? '',
       );
 
-      const switchRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-anchor-switch.${process.pid}.ts`,
-      );
+      const switchRel = path.posix.join(selfRel, `.smoke-anchor-switch.${process.pid}.ts`);
       const switchAbs = path.join(repoRoot, switchRel);
       fs.writeFileSync(
         switchAbs,
@@ -117,12 +112,7 @@ export async function partBAnchorAfter(ctx: PartBCtx): Promise<void> {
         if (fs.existsSync(switchAbs)) fs.unlinkSync(switchAbs);
       }
 
-      const ambigRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-anchor-ambig.${process.pid}.ts`,
-      );
+      const ambigRel = path.posix.join(selfRel, `.smoke-anchor-ambig.${process.pid}.ts`);
       const ambigAbs = path.join(repoRoot, ambigRel);
       fs.writeFileSync(ambigAbs, "export const PAIR = ['anchor', 'anchor'];\n");
       try {

@@ -5,14 +5,9 @@ import { check, jsonBody, type PartBCtx } from "./smoke-state.js";
 
 
 export async function partBCreateFile(ctx: PartBCtx): Promise<void> {
-  const { client, fixtureAbs, fixtureRel, repoRoot } = ctx;
-    const createBaseRel = path.join(
-      'scripts',
-      'mcp',
-      'atomic-edit',
-      `.smoke-create-base.${process.pid}`,
-    );
-    const createRel = path.join(createBaseRel, 'nested', `file.${process.pid}.ts`);
+  const { client, repoRoot } = ctx;
+    const createBaseRel = `.smoke-create-base.${process.pid}`;
+    const createRel = path.join(createBaseRel, 'nested', `file.${process.pid}.mjs`);
     const createAbs = path.join(repoRoot, createRel);
 
     try {
@@ -39,20 +34,14 @@ export async function partBCreateFile(ctx: PartBCtx): Promise<void> {
         !fs.existsSync(path.join(repoRoot, createBaseRel)),
         createBaseRel,
       );
-      const createPrevTracePath =
-        typeof createPrevBody.tracePath === 'string'
-          ? path.join(repoRoot, createPrevBody.tracePath)
-          : '';
-      const createPrevTrace =
-        createPrevTracePath && fs.existsSync(createPrevTracePath)
-          ? JSON.parse(fs.readFileSync(createPrevTracePath, 'utf8'))
-          : {};
       check(
-        'create_file preview trace is honest',
-        createPrevTrace.operation === 'atomic_create_file' &&
-          createPrevTrace.preview === true &&
-          createPrevTrace.changed === false,
-        JSON.stringify(createPrevTrace),
+        'create_file preview receipt is honest',
+        createPrevBody.operation === 'atomic_create_file' &&
+          createPrevBody.preview === true &&
+          createPrevBody.changed === false &&
+          createPrevBody.tracePath === undefined &&
+          typeof createPrevBody.operationId === 'string',
+        JSON.stringify(createPrevBody),
       );
 
       // Commit — creates parent directories, writes file
@@ -122,12 +111,7 @@ export async function partBCreateFile(ctx: PartBCtx): Promise<void> {
       );
 
       // Existing empty file — fill with content
-      const emptyRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-create-empty.${process.pid}.ts`,
-      );
+      const emptyRel = `.smoke-create-empty.${process.pid}.mjs`;
       const emptyAbs = path.join(repoRoot, emptyRel);
       fs.writeFileSync(emptyAbs, '');
       try {
@@ -208,12 +192,7 @@ export async function partBCreateFile(ctx: PartBCtx): Promise<void> {
       );
 
       // Multi-line .mjs content create (AB10 source-file creation case)
-      const mjsRel = path.join(
-        'scripts',
-        'mcp',
-        'atomic-edit',
-        `.smoke-create-mjs.${process.pid}.mjs`,
-      );
+      const mjsRel = `.smoke-create-mjs.${process.pid}.mjs`;
       const mjsAbs = path.join(repoRoot, mjsRel);
       const mjsContent = [
         '#!/usr/bin/env node',

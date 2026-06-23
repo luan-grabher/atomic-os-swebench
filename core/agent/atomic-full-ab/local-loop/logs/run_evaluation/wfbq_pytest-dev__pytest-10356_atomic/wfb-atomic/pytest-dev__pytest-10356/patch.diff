@@ -1,0 +1,27 @@
+diff --git a/src/_pytest/mark/structures.py b/src/_pytest/mark/structures.py
+index 800a25c92..9b59c04e0 100644
+--- a/src/_pytest/mark/structures.py
++++ b/src/_pytest/mark/structures.py
+@@ -360,6 +360,22 @@ def get_unpacked_marks(obj: object) -> Iterable[Mark]:
+     mark_list = getattr(obj, "pytestmark", [])
+     if not isinstance(mark_list, list):
+         mark_list = [mark_list]
++    if inspect.isclass(obj):
++        # For classes, also collect markers from all bases in MRO,
++        # deduplicating by marker name (MRO order determines precedence).
++        seen: set[str] = set()
++        result: list[Mark] = []
++        for base in obj.__mro__:
++            base_marks = getattr(base, "pytestmark", [])
++            if not base_marks:
++                continue
++            if not isinstance(base_marks, list):
++                base_marks = [base_marks]
++            for mark in normalize_mark_list(base_marks):
++                if mark.name not in seen:
++                    seen.add(mark.name)
++                    result.append(mark)
++        return result
+     return normalize_mark_list(mark_list)
+ 
+ 

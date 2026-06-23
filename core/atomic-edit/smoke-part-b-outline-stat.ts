@@ -134,22 +134,15 @@ export async function partBOutlineStat(ctx: PartBCtx): Promise<void> {
         fs.readFileSync(fixtureAbs, 'utf8') === literalPreviewBefore,
       literalPreview.content[0].text,
     );
-    const literalPreviewTracePath =
-      typeof literalPreviewBody.tracePath === 'string'
-        ? path.join(repoRoot, literalPreviewBody.tracePath)
-        : '';
-    const literalPreviewTrace =
-      literalPreviewTracePath && fs.existsSync(literalPreviewTracePath)
-        ? JSON.parse(fs.readFileSync(literalPreviewTracePath, 'utf8'))
-        : {};
-    const literalPreviewProposal = literalPreviewBefore.replace("'5511999999999'", 'null');
     check(
-      'literal preview trace marks proposed but not written',
-      literalPreviewTrace.preview === true &&
-        literalPreviewTrace.changed === false &&
-        literalPreviewTrace.afterSha256 === sha(literalPreviewBefore) &&
-        literalPreviewTrace.proposedSha256 === sha(literalPreviewProposal),
-      JSON.stringify(literalPreviewTrace),
+      'literal preview receipt marks proposed but not written',
+      literalPreviewBody.operation === 'atomic_edit:replace_literal' &&
+        literalPreviewBody.preview === true &&
+        literalPreviewBody.changed === false &&
+        literalPreviewBody.tracePath === undefined &&
+        typeof literalPreviewBody.operationId === 'string' &&
+        fs.readFileSync(fixtureAbs, 'utf8') === literalPreviewBefore,
+      JSON.stringify(literalPreviewBody),
     );
 
     const res = (await client.callTool({

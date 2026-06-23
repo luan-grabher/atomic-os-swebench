@@ -1,0 +1,13 @@
+{
+  "ts": 1782168688,
+  "round": "R071",
+  "task": "pylint-dev__pylint-7080",
+  "action": "absorbed",
+  "weights_before": 7,
+  "weights_after": 7,
+  "class": "PATH-NORMALIZATION-BEFORE-MATCH",
+  "proof_n": 4,
+  "fidelity_ok": true,
+  "failures": [],
+  "instance": "pylint-7080-R071-atomic-macrofirst"
+}

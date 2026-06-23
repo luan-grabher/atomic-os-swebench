@@ -35,5 +35,6 @@ atomic-rt-proof-*
 converge-*-proof-*
 converge-symbol-mutation-proof-*
 readcode-*-root-*
+dist-lkg.tmp-*
 *.tmp
 .hygiene-canary-leak.*

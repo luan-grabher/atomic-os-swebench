@@ -1,11 +1,11 @@
 {
   "version": 1,
   "files": {
-    "atomic-edit-mcp-launcher.sh": "9140a48ec8852dd06ecac953508095cdf5920e63da365b7d01c047170c448622",
-    "atomic-edit-mcp-launcher-impl.sh": "170b9016d7bb8b01a8ccaa40ede679e754a3b16361e1917d9c8a54e6826d6811",
-    "launcher-supervisor.mjs": "6a0c897d615f8bb058398907f9c2e065ef7e4ab05a06dba38f603f29c47dacb8",
+    "atomic-edit-mcp-launcher.sh": "eb5b35c57483b3f2427b8d0e539a9dddacf6acfda9e0c0abc35affa50bb2dcc4",
+    "atomic-edit-mcp-launcher-impl.sh": "8e6e81719a94e1afe9e3c9085585d75fdf0b50286783ab47b8e32c2ed3bdacaf",
+    "launcher-supervisor.mjs": "742b6be0dc09e169c162c139b5db15de43ffb9084a970840084beb23c34a2e0b",
     "dist-freshness.mjs": "7d3667a03c6f281271502dd5548eccdea4fedb667bd48ba7ad154a59424ac62d",
     "build.mjs": "e50f95736e0bc9e5593e5266664c68adec69d9e8446d7c2bed579d153cda6836"
   },
-  "blessedAt": "2026-06-20T14:43:36.849Z"
+  "blessedAt": "2026-06-20T19:12:47.374Z"
 }

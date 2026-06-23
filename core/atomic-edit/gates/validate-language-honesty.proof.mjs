@@ -6,14 +6,11 @@
  * real language label. Run: node gates/validate-language-honesty.proof.mjs
  */
 import { validate } from '../dist/engine.js';
-import { prewarmGrammars } from '../dist/native-bridge.js';
 import { validateLanguage } from '../dist/lang-bridge.js';
 
 let pass = 0;
 let fail = 0;
 const check = (name, cond) => { if (cond) { pass += 1; } else { fail += 1; console.log('FAIL:', name); } };
-
-await prewarmGrammars(['css', 'html', 'sql']);
 
 // HTML -- the headline false-green: a broken edit must be CAUGHT, not generic ok:true.
 const hOk = validate('x.html', '<div><p>a</p></div>', '<div><p>b</p></div>');
@@ -42,6 +39,13 @@ const lc = validateLanguage('x.css', '.a{color:red}');
 check('lang-bridge does NOT claim a JS-grammar real parse for CSS', !(lc.realParser === true && lc.language === 'javascript'));
 const ls = validateLanguage('x.sql', 'SELECT 1;');
 check('lang-bridge does NOT claim a JS-grammar real parse for SQL', !(ls.realParser === true && ls.language === 'javascript'));
+
+// Python syntax honesty: invalid string/docstring escapes must be caught before disk.
+const pyBadEscape = validateLanguage('x.py', 'def f():\n    """bad \\, doc"""\n    return 1\n');
+check('python invalid escape in string/docstring is CAUGHT',
+  pyBadEscape.language === 'python' && pyBadEscape.errorCount > 0 && /invalid escape|escape sequence/.test(pyBadEscape.firstError || ''));
+const pyRawEscape = validateLanguage('x.py', 'def f():\n    r"""raw \\, doc"""\n    return 1\n');
+check('python raw string/docstring escape stays valid', pyRawEscape.language === 'python' && pyRawEscape.errorCount === 0);
 
 console.log(`\nVALIDATE-LANGUAGE-HONESTY ${pass}/${pass + fail}`);
 if (fail) process.exit(1);

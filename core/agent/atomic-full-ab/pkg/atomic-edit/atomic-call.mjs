@@ -8,7 +8,7 @@
  * Example: node atomic-call.mjs code_readcode '{"path":"src/foo.ts"}'
  */
 
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import * as path from 'node:path';
 import * as fs from 'node:fs';
@@ -17,10 +17,27 @@ const nodeBin = process.env.ATOMIC_NODE_BIN || process.execPath;
 const dir = path.dirname(fileURLToPath(import.meta.url));
 const serverPath = path.join(dir, 'dist', 'server.js');
 
-if (!fs.existsSync(serverPath)) {
-  process.stderr.write(`atomic-call: server not found at ${serverPath}\n`);
-  process.exit(1);
+function ensureServerBuilt() {
+  if (fs.existsSync(serverPath)) return;
+  const buildPath = path.join(dir, 'build.mjs');
+  if (!fs.existsSync(buildPath)) {
+    process.stderr.write(`atomic-call: server not found at ${serverPath} and build script not found at ${buildPath}\n`);
+    process.exit(1);
+  }
+  const res = spawnSync(nodeBin, [buildPath], {
+    cwd: dir,
+    env: { ...process.env, ATOMIC_DISABLE_HOT_RELOAD: '1' },
+    encoding: 'utf8',
+    timeout: Number(process.env.ATOMIC_CALL_BUILD_TIMEOUT_MS || 300000),
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  if (res.status === 0 && fs.existsSync(serverPath)) return;
+  const detail = `${res.stdout || ''}\n${res.stderr || ''}`.trim().slice(-2000);
+  process.stderr.write(`atomic-call: failed to build ${serverPath}${detail ? `\n${detail}\n` : '\n'}`);
+  process.exit(res.status || 1);
 }
+
+ensureServerBuilt();
 
 const tool = process.argv[2];
 if (!tool) {
