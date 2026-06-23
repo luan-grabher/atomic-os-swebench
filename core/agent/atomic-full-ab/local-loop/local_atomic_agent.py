@@ -2183,6 +2183,49 @@ def main():
                             messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                             continue
                         _consec_red += 1
+                        # CLASS-FAIL-FLOOR-PLATEAU-ABANDON-RESURVEY (Claude-track, generalist): a sustained plateau
+                        # at the SAME fail floor (nf_ == baseline_fail_floor, never improved below it) means the
+                        # current candidate's LOCUS is wrong, not merely incomplete. seq614 catastrophic rollback only
+                        # fires on WORSE (nf_ > floor); the R055 scope-expansion steer (>=3) only adds files while
+                        # keeping the dead edit. Neither escapes a no-gain plateau, so the model defends the wrong
+                        # locus until budget death (R098: ~36 steps stuck at fail=2, found the gold locus only at s79,
+                        # out of budget). After _PLATEAU_ABANDON_LIMIT consecutive plateau reds with NO sub-floor
+                        # improvement ever captured, restore clean, drop the dead scope, and force a fresh
+                        # different-root-cause survey+edit. Monotonic: clean restore is always byte-safe; fires strictly
+                        # after the scope-expansion steer; never fires once any sub-floor gain exists.
+                        _PLATEAU_ABANDON_LIMIT = 6
+                        _no_improving_red = (best_red_score is None or (baseline_fail_floor is not None and best_red_score[0] >= baseline_fail_floor))
+                        if (baseline_fail_floor is not None and nf_ == baseline_fail_floor
+                                and _consec_red >= _PLATEAU_ABANDON_LIMIT and _no_improving_red):
+                            _plateau_n = _consec_red
+                            try:
+                                subprocess.run(["git", "checkout", "--", "."], cwd=workdir, capture_output=True)
+                                subprocess.run(["git", "clean", "-fdq"], cwd=workdir, capture_output=True)
+                            except Exception as _e:
+                                metrics["transcript"].append(f"s{step} PLATEAU-ABANDON rollback error: {str(_e)[:120]}")
+                            red_gate_fix_required = False
+                            red_gate_fix_reason = ""
+                            red_gate_anchor_reads = 0
+                            red_gate_anchor_read_keys.clear()
+                            red_gate_quick_checks = 0
+                            red_scope_target_files = set()
+                            red_scope_memory_files = set()
+                            post_edit_gate_required = False
+                            post_edit_quick_checks = 0
+                            post_rollback_edit_required = True
+                            _consec_red = 0
+                            metrics["invalid_states_prevented"] += 1
+                            res += ("\n\n[plateau-abandon] The gate stayed at fail=%d (the no-patch floor) for %d "
+                                    "consecutive tests with no improvement below it — your current approach is in the "
+                                    "WRONG root-cause locus, not merely incomplete. The clean baseline is restored. Do "
+                                    "NOT reapply or refine that candidate. Survey for a DIFFERENT root cause (a different "
+                                    "function/file/handler than the one you just edited) before the next atomic edit." % (nf_, _plateau_n))
+                            metrics["transcript"].append(
+                                f"s{step} PLATEAU-ABANDON clean (fail={nf_}, floor={baseline_fail_floor}, consec={_plateau_n}); resurvey forced")
+                            reads_since_edit = 0; distinct_since_edit.clear()
+                            metrics["transcript"].append(f"s{step} run_tests -> {res.splitlines()[0][:120]}")
+                            messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                            continue
                         diagnostics = [
                             "[diagnose] The gate is red for your current non-empty diff. Do not read broadly or "
                             "rerun the same test. Preserve any passing cases and make exactly one focused "
