@@ -1353,7 +1353,9 @@ def main():
                 # prose advice. Fires only for weights carrying an `executable` spec (additive; live prose weights
                 # unaffected → monotonic).
                 for _w in _matched[:5]:
-                    _exspec = _w.get("executable")
+                    _act = _w.get("act") if isinstance(_w.get("act"), dict) else {}
+                    _transformation = _act.get("transformation") if isinstance(_act.get("transformation"), dict) else {}
+                    _exspec = _w.get("executable") or _transformation.get("executable")
                     if _exspec:
                         _exinj = _execute_weight_operator(_exspec, workdir, _w.get("trigger", ""), task)
                         if _exinj:
@@ -2896,11 +2898,37 @@ def main():
             _corpus_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".corpus")
             os.makedirs(_corpus_dir, exist_ok=True)
             _corpus_file = os.path.join(_corpus_dir, "repair-triples.jsonl")
-            _triple = {"ts": int(time.time()),
+            # CLASS-WEIGHT-CAPTURE-INPUTS-PERSISTED (Phase 0, the unmet precondition for MECHANICAL operator-capture):
+            # the prior triple stored only diff_sha256 — so no mechanical autoclass/capture could ever run (verified:
+            # 0/19 rows had raw diff or edited functions). Persist the actual capture inputs on each GATE-GREEN
+            # resolution: the raw diff, the edited UNITS (file + enclosing symbol + start line, recovered
+            # DETERMINISTICALLY from git's hunk-header function context — NO LLM), and the task text. This is what lets
+            # 'same class' later become a CHECKABLE structural fact (autoclass) instead of a model-assigned label.
+            _edited_units = []
+            _cur_file = None
+            for _l in d.splitlines():
+                if _l.startswith("diff --git "):
+                    _mf = re.search(r" b/(.+)$", _l)
+                    _cur_file = _mf.group(1) if _mf else None
+                elif _l.startswith("@@") and _cur_file:
+                    _hm = re.match(r"@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@ ?(.*)", _l)
+                    if _hm:
+                        _ctx = _hm.group(2).strip()
+                        _fn = re.search(r"(?:def|class|function|func|fn|sub)\s+([A-Za-z_$][\w$]*)", _ctx)
+                        _edited_units.append({"file": _cur_file, "start_line": int(_hm.group(1)),
+                                              "enclosing": (_fn.group(1) if _fn else None), "ctx": _ctx[:80]})
+            try:
+                _task_text = open(args.task, encoding="utf-8", errors="ignore").read()[:4000]
+            except Exception:
+                _task_text = ""
+            _triple = {"ts": int(time.time()), "schema": 2,
                 "task": os.path.basename(os.path.dirname(args.task)),
                 "diff_lines": metrics["diff_lines"],
                 "files_changed": len([l for l in d.splitlines() if l.startswith("diff --git ")]),
                 "diff_sha256": hashlib.sha256(d.encode()).hexdigest()[:16],
+                "raw_diff": d,
+                "edited_units": _edited_units,
+                "task_text": _task_text,
                 "steps": metrics["steps"], "edits": metrics["edits_applied"],
                 "tokens": metrics["tokens"], "wall_s": metrics["wall_s"]}
             with open(_corpus_file, "a") as _cf:
