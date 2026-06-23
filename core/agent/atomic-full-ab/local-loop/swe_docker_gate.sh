@@ -84,13 +84,13 @@ rm -rf "$tmpd"
 
 out="$(docker exec "$CONT" bash -lc "
 cd /testbed || exit 9
-git checkout -- . >/dev/null 2>&1; git clean -fdq >/dev/null 2>&1 || true
-git apply /tmp/arm.diff 2>/tmp/aerr || { echo ARM_PATCH_FAILED; sed -n '1,5p' /tmp/aerr; git checkout -- . >/dev/null 2>&1; exit 3; }
+git reset --hard HEAD >/dev/null 2>&1; git clean -fdq >/dev/null 2>&1 || true  # CLASS-GATE-RESET-INCOMPLETE-ON-MERGE-CONFLICT (R078): --hard resolves UU/unmerged left by a prior --3way conflict (plain 'git checkout -- .' cannot); clean WITHOUT -x so gitignored build artifacts (.so/Cython) survive
+git apply /tmp/arm.diff 2>/tmp/aerr || { echo ARM_PATCH_FAILED; sed -n '1,5p' /tmp/aerr; git reset --hard HEAD >/dev/null 2>&1; git clean -fdq >/dev/null 2>&1; exit 3; }
 git apply /tmp/test.diff >/dev/null 2>&1 || git apply --3way /tmp/test.diff >/dev/null 2>&1 || true
 source /opt/miniconda3/bin/activate $CENV >/dev/null 2>&1 || source activate $CENV >/dev/null 2>&1 || true
 python -m pytest -p no:cacheprovider -q $TARGETS 2>&1 | tail -12
 rc=\${PIPESTATUS[0]}
-git checkout -- . >/dev/null 2>&1; git clean -fdq >/dev/null 2>&1 || true
+git reset --hard HEAD >/dev/null 2>&1; git clean -fdq >/dev/null 2>&1 || true  # CLASS-GATE-RESET-INCOMPLETE-ON-MERGE-CONFLICT (R078): --hard resolves UU/unmerged left by a prior --3way conflict (plain 'git checkout -- .' cannot); clean WITHOUT -x so gitignored build artifacts (.so/Cython) survive
 exit \$rc
 ")"
 rc=$?
