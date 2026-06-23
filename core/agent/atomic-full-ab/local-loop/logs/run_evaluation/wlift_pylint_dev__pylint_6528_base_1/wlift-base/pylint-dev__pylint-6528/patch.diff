@@ -1,0 +1,24 @@
+diff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py
+index b20cd873c..42d3a64c5 100644
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -67,6 +67,19 @@ def expand_modules(
+             or _is_in_ignore_list_re(something, ignore_list_paths_re)
+         ):
+             continue
++        # Check directory components against ignore lists to properly
++        # support ignore patterns in recursive mode, where individual
++        # file paths are passed without parent-directory context.
++        dirname = os.path.dirname(something)
++        if dirname:
++            if any(
++                component in ignore_list
++                or _is_in_ignore_list_re(component, ignore_list_re)
++                or _is_in_ignore_list_re(component, ignore_list_paths_re)
++                for component in dirname.replace("\\", "/").split("/")
++                if component and component not in (".", "..")
++            ):
++                continue
+         module_path = get_python_path(something)
+         additional_search_path = [".", module_path] + path
+         if os.path.exists(something):

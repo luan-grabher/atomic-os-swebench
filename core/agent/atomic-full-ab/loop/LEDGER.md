@@ -2355,3 +2355,26 @@ Next exact step: implement/prove best-red-candidate restore, then run R079 Atomi
 - Fresh verification passed: marker RED before edit, Python compile, `atomic-agent-green-minimize.proof.mjs --json`, and `git diff --check`.
 
 Next exact step: run R079 Atomic-only on frozen Level 4 `sympy__sympy-20438` against observed `Cicero`. Do not rerun native.
+
+### Codex-paired track pointer update - 2026-06-23 R079 official red; seq598 exception-count gate truth active
+- Active Level 4 frozen task remains SWE-Bench Verified `sympy__sympy-20438`, base `33b47e4bd60e2302e42616141e76285038b724d6`; frozen native baseline remains observed `Cicero`.
+- R079 Atomic local metrics: `gate_pass=false`, `round_invalid=false`, `steps=80`, `edits=7`, `reads=48`, `body_reads=27`, `run_tests=6`, `quick_check=5`, `invalid_states_prevented=16`, `diff_lines=5`, `tokens=1,319,218`, `wall=2009.2s`.
+- R079 official result: patch applied, `resolved=false`, F2P `0/2` (`test_Eq`, `test_issue_19378`), P2P `89/93` with regressions `test_Complement`, `test_product_basic`, `test_boundary_ProductSet_line`, `test_DisjointUnion`; summary `atomic-gateON.R079_sympy20438_atomic.json`, report `logs/run_evaluation/R079_sympy20438_atomic/atomic-gateON/sympy__sympy-20438/report.json`.
+- Seq596 reduced final red surface (R078 `49` patch-file lines / 2 files -> R079 `16` patch-file lines / 1 file), but official scoring showed the restored red candidate introduced P2P regressions. No dominance; no escalation.
+- Root cause mined: the local SWE gate counted `1 failed, 4 exceptions` as `# fail 1` because it ignored `exceptions` and kept only the first failed/error count. Reproduction after the fix on the exact R079 patch now reports `# fail 5`, matching the hidden P2P-regression signal instead of hiding it.
+- Sequence `598` promoted `CLASS-GATE-EXCEPTION-COUNT-FAILURES`: candidate `real-self-expansion-candidate:3d3a7e6d014df9a40f9df0ceefca9c7bbcb9097a26e5f887db467aeac86909e2`, receipt `d6c54600f8d111be6474954c98f9884b1664fa834ceabf3db48c71c07682d43c`, archive entry `5f2359aca012043ba1b42b77512cfe676d87d0925f017a1e05f555a858b9323f`; deltas: `proofCoverage +1`, `semanticOperators +1`.
+- Gate change: canonical `swe_docker_gate.sh` and live `/private/tmp/swe/iso-driver-claude/swe_gate_iso.sh` now sum `failed|failures|error|errors|exception|exceptions` into the failure marker. Proof `swe-docker-gate-paramtest-ids.proof.mjs` is 14/14 green.
+- Fresh verification: `bash -n` passed for canonical and live gates, `node gates/swe-docker-gate-paramtest-ids.proof.mjs --json` passed, `git diff --check` passed, and exact R079 reproduction with fixed live gate returned `# fail 5`.
+
+Next exact step: run R080 Atomic-only on the same frozen `sympy__sympy-20438` snapshot against observed `Cicero`, with seq598 and the fixed live gate active. Do not rerun native.
+
+### Codex-paired track pointer update - 2026-06-23 R080 official red; seq599 semantic best-red guard active
+- Active Level 4 frozen task remains SWE-Bench Verified `sympy__sympy-20438`, base `33b47e4bd60e2302e42616141e76285038b724d6`; frozen native baseline remains observed `Cicero`.
+- R080 Atomic local metrics: `gate_pass=false`, `round_invalid=false`, `steps=80`, `edits=17`, `reads=40`, `body_reads=26`, `run_tests=8`, `quick_check=11`, `invalid_states_prevented=7`, `diff_lines=1`, `tokens=1,883,286`, `wall=2821.0s`.
+- R080 official result: patch applied, `resolved=false`, F2P `0/2` (`test_Eq`, `test_issue_19378`), P2P `93/93`, no errors; summary `atomic-gateON-R080.R080_sympy20438_atomic.json`, report `logs/run_evaluation/R080_sympy20438_atomic/atomic-gateON-R080/sympy__sympy-20438/report.json`.
+- Root cause mined: seq596 best-red restore over-optimized surface and selected a `fail=2,diff_lines=1` candidate that was only a blank-line insertion in `sympy/sets/handlers/issubset.py`. That gives clean P2P but zero semantic progress. This is a scoring wall, not a model verdict.
+- Sequence `599` promoted `CLASS-RED-BEST-CANDIDATE-NONTRIVIAL-SEMANTIC`: candidate `real-self-expansion-candidate:ae23fb8496605ae100728fce2c6b5fdcdeef5d697e75d5da02e870c5b403bbd0`, receipt `50d24a417dcb2f3b0e2402e41e03c98057282a21211db69f2d0c26acd3aa24f8`, archive entry `fdc6465d62f24cd455d2ff2cead236fe69efb5077f17de017f0d0cea1428030c`; deltas: `proofCoverage +1`, `semanticOperators +4`.
+- Active behavior: best-red capture now requires `semantic_diff_lines(diff) > 0`, ignoring whitespace/comment-only diffs; the final restore path repeats the same semantic-empty guard. This keeps red evidence small without emitting semantic no-ops as the final patch.
+- Fresh verification: `py_compile`, `atomic-agent-green-minimize.proof.mjs --json` (`43/43`), and `git diff --check` passed.
+
+Next exact step: run R081 Atomic-only on the same frozen `sympy__sympy-20438` snapshot against observed `Cicero`, with seq599 active. Do not rerun native.

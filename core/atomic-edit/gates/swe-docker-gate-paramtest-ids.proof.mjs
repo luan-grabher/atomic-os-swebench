@@ -20,6 +20,15 @@ check('swe_docker_gate.sh is syntactically valid bash', syntax.status === 0, { s
 check('gate uses Python shlex.quote for pytest node ids', src.includes('import json,sys,re,shlex') && src.includes('shlex.quote(t)'), {});
 check('gate no longer uses brittle Bash single-quote replacement', !src.includes('esc=${l//'), {});
 check('gate drops bracket-unbalanced malformed node ids', src.includes("t.count('[') != t.count(']')"), {});
+check('CLASS-GATE-EXCEPTION-COUNT-FAILURES marker is present', src.includes('CLASS-GATE-EXCEPTION-COUNT-FAILURES'), {});
+check('gate counts failed/error/exception summary categories', src.includes('failed|failures|error|errors|exception|exceptions'), {});
+check('gate sums all failure categories instead of taking the first category only', src.includes("awk '{s += $1} END {print s+0}'") && !src.includes('grep -oE "[0-9]+ (failed|error)" | grep -oE "[0-9]+" | head -1'), {});
+function summedFailureCount(text) {
+  return Array.from(text.matchAll(/[0-9]+ (failed|failures|error|errors|exception|exceptions)/g))
+    .reduce((sum, match) => sum + Number(match[0].split(' ')[0]), 0);
+}
+check('failure parser counts exceptions as failures', summedFailureCount('91 passed, 1 failed, 4 expected to fail, 4 exceptions,') === 5, {});
+check('failure parser keeps clean summaries at zero failures', summedFailureCount('92 passed') === 0, {});
 
 const render = spawnSync('python3', ['-', metaPath, '18'], {
   encoding: 'utf8',

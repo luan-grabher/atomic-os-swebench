@@ -96,7 +96,8 @@ exit \$rc
 rc=$?
 echo "$out" | grep -vE '^\s*$' | tail -10
 passed=$(echo "$out" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" | head -1); passed=${passed:-0}
-failed=$(echo "$out" | grep -oE "[0-9]+ (failed|error)" | grep -oE "[0-9]+" | head -1); failed=${failed:-0}
+# CLASS-GATE-EXCEPTION-COUNT-FAILURES: pytest runners can report exceptions separately; every failed/error/exception summary count is byte-negative for the gate.
+failed=$(echo "$out" | grep -oE "[0-9]+ (failed|failures|error|errors|exception|exceptions)" | awk '{s += $1} END {print s+0}'); failed=${failed:-0}
 if [ "$rc" -ne 0 ] && [ "$failed" -eq 0 ]; then failed=1; fi
 echo "# tests ${ntargets}"
 echo "# pass ${passed}"

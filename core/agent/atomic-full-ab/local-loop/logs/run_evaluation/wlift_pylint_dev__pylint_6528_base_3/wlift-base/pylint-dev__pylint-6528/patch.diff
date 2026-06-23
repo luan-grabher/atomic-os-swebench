@@ -1,0 +1,41 @@
+diff --git a/pylint/lint/expand_modules.py b/pylint/lint/expand_modules.py
+index b20cd873c..7754668e4 100644
+--- a/pylint/lint/expand_modules.py
++++ b/pylint/lint/expand_modules.py
+@@ -109,6 +109,12 @@ def expand_modules(
+             is_namespace = modutils.is_namespace(spec)
+             is_directory = modutils.is_directory(spec)
+         if not is_namespace:
++            if os.path.basename(filepath) in ignore_list:
++                continue
++            if _is_in_ignore_list_re(
++                os.path.basename(filepath), ignore_list_re
++            ) or _is_in_ignore_list_re(filepath, ignore_list_paths_re):
++                continue
+             result.append(
+                 {
+                     "path": filepath,
+diff --git a/pylint/lint/pylinter.py b/pylint/lint/pylinter.py
+index 53345a6b1..ea6d8d7cb 100644
+--- a/pylint/lint/pylinter.py
++++ b/pylint/lint/pylinter.py
+@@ -564,8 +564,9 @@ class PyLinter(
+             if not msg.may_be_emitted():
+                 self._msgs_state[msg.msgid] = False
+ 
+-    @staticmethod
+-    def _discover_files(files_or_modules: Sequence[str]) -> Iterator[str]:
++    def _discover_files(
++        self, files_or_modules: Sequence[str]
++    ) -> Iterator[str]:
+         """Discover python modules and packages in sub-directory.
+ 
+         Returns iterator of paths to discovered modules and packages.
+@@ -577,7 +578,6 @@ class PyLinter(
+                 skip_subtrees: list[str] = []
+                 for root, _, files in os.walk(something):
+                     if any(root.startswith(s) for s in skip_subtrees):
+-                        # Skip subtree of already discovered package.
+                         continue
+                     if "__init__.py" in files:
+                         skip_subtrees.append(root)

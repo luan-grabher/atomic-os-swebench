@@ -1,0 +1,9 @@
+diff --git a/sympy/sets/handlers/issubset.py b/sympy/sets/handlers/issubset.py
+index fdca06025a..ef7752ee03 100644
+--- a/sympy/sets/handlers/issubset.py
++++ b/sympy/sets/handlers/issubset.py
+@@ -133,3 +133,4 @@ def is_subset_sets(a, b): # noqa:F811
+ @dispatch(Rationals, Range)  # type: ignore # noqa:F811
+ def is_subset_sets(a, b): # noqa:F811
+     return False
++

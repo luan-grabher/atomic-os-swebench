@@ -603,6 +603,25 @@ record('CLASS-RED-BEST-CANDIDATE-RESTORE: when no green is reached, final output
     restoreTrace: source.includes('RED-BEST-CANDIDATE: restored best red diff'),
     noFalseGreen: source.includes('final remains RED') && source.includes('metrics["gate_pass"] = final_pass'),
   });
+record('CLASS-RED-BEST-CANDIDATE-NONTRIVIAL-SEMANTIC: best-red restore never captures or restores whitespace/comment-only diffs',
+  source.includes('CLASS-RED-BEST-CANDIDATE-NONTRIVIAL-SEMANTIC') &&
+  source.includes('def semantic_diff_lines(d):') &&
+  source.includes('_red_semantic_lines = semantic_diff_lines(_red_diff)') &&
+  source.includes('if _red_semantic_lines > 0:') &&
+  source.includes('RED-BEST candidate skipped (semantic_diff_lines=0)') &&
+  source.includes('semantic_diff_lines(best_red_diff) == 0') &&
+  source.includes('RED-BEST-CANDIDATE: skipped semantic-empty best red diff') &&
+  source.includes('RED-BEST-CANDIDATE: restored best red diff'),
+  {
+    marker: source.includes('CLASS-RED-BEST-CANDIDATE-NONTRIVIAL-SEMANTIC'),
+    helper: source.includes('def semantic_diff_lines(d):'),
+    captureMetric: source.includes('_red_semantic_lines = semantic_diff_lines(_red_diff)'),
+    positiveGuard: source.includes('if _red_semantic_lines > 0:'),
+    skipTrace: source.includes('RED-BEST candidate skipped (semantic_diff_lines=0)'),
+    finalGuard: source.includes('semantic_diff_lines(best_red_diff) == 0'),
+    finalSkipTrace: source.includes('RED-BEST-CANDIDATE: skipped semantic-empty best red diff'),
+    restoreStillRed: source.includes('RED-BEST-CANDIDATE: restored best red diff'),
+  });
 const py = spawnSync('python3', ['-m', 'py_compile', agentPath], { cwd: repoRoot, encoding: 'utf8', timeout: 20000, maxBuffer: 1024 * 1024 });
 record('local_atomic_agent.py remains valid Python after green-minimize update', py.status === 0, { status: py.status, signal: py.signal, stderr: py.stderr });
 
