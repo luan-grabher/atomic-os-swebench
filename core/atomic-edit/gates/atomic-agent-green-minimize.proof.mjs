@@ -442,6 +442,18 @@ record('CLASS-WEIGHT-LOCKOUT-REFUSAL-ULTIMATUM: matched-weight lockout carries t
     ultimatum: source.includes('ULTIMATUM: repeated stale reads are being refused'),
     traceCount: source.includes('refused={weight_force_refused}'),
   });
+record('CLASS-WEIGHT-ULTIMATUM-NONEDIT-DISPATCH-GUARD: learned-weight edit-only ultimatum refuses every non-edit historical tool call until bytes change',
+  source.includes('CLASS-WEIGHT-ULTIMATUM-NONEDIT-DISPATCH-GUARD') &&
+  source.includes('weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM and fn not in EDIT_ONLY_NAMES') &&
+  source.includes('learned-weight early-commit ultimatum is edit-only until bytes change') &&
+  source.includes('Reading, quick_check, and run_tests on an empty diff only burn turns') &&
+  source.includes('weight early-commit edit-only ultimatum'),
+  {
+    marker: source.includes('CLASS-WEIGHT-ULTIMATUM-NONEDIT-DISPATCH-GUARD'),
+    ultimatumCondition: source.includes('weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM and fn not in EDIT_ONLY_NAMES'),
+    nonEditMessage: source.includes('Reading, quick_check, and run_tests on an empty diff only burn turns'),
+    refusalTrace: source.includes('weight early-commit edit-only ultimatum'),
+  });
 record('CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG: learned weights are advisory unless executable or repeatedly proven, preventing weak-weight read starvation',
   source.includes('CLASS-WEIGHT-LOCKOUT-EXECUTABLE-OR-STRONG') &&
   source.includes('matched_weight_lockout_classes') &&

@@ -1893,6 +1893,18 @@ def main():
                 messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
                 continue
 
+            if matched_weight_lockout_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER \
+                    and weight_force_refused >= WEIGHT_FORCE_REFUSAL_ULTIMATUM and fn not in EDIT_ONLY_NAMES:
+                # CLASS-WEIGHT-ULTIMATUM-NONEDIT-DISPATCH-GUARD: once learned-weight pressure reaches its
+                # edit-only ultimatum, historical tool calls must not escape through quick_check/run_tests.
+                res = ("TOOL DISABLED — the learned-weight early-commit ultimatum is edit-only until bytes change. "
+                       "Reading, quick_check, and run_tests on an empty diff only burn turns. "
+                       "Emit atomic_replace/atomic_create first; then quick_check and run_tests.")
+                metrics["invalid_states_prevented"] += 1
+                metrics["transcript"].append(f"s{step} {fn} REFUSED (weight early-commit edit-only ultimatum)")
+                messages.append({"role": "tool", "tool_call_id": c["id"], "content": res})
+                continue
+
             if fn in READ_FNS and matched_weight_lockout_classes and metrics["edits_applied"] == 0 and reads_since_edit >= WEIGHT_FORCE_EDIT_AFTER:
                 weight_force_refused += 1
                 _weight_hint = "\n".join(matched_weight_lockout_hints[:3]) or ", ".join(matched_weight_lockout_classes)
