@@ -89,3 +89,13 @@ next instrument — a legitimate stop point per the doctrine ("sinal que exija h
   3 attempts, none shows lift — AND proven structurally unmeasurable on SWE-bench (0 fix re-occurrences).
 - VERDICT: thesis UNTESTED on the right instrument, not falsified. SWE-bench held-out = wrong instrument (distinct bugs).
   Next instrument = re-occurrence (real recurring-bug corpus, or synthetic w/ circularity guards) = a deliberate fresh build.
+
+## SYNTHETIC RE-OCCURRENCE PROBE (2026-06-24) — CEILING by number, confirming the liftability tension
+Built a synthetic re-occurrence fix-class (shared-mutable-class-attr; 3 surface-distinct occurrences; crisp local
+acceptance test = per-instance state isolation, NO Docker). Goldilocks probe: v4-pro base one-shot on the held-out = 3/3
+CEILING. So a fix-class simple enough to cleanly recur + author K instances is ALSO simple enough that the model already
+knows the fix → no room for lift. THE LIFTABILITY TENSION (proven from 2 directions now): a measurable lift needs (a) same-
+transform recurrence + (b) weak model fails one-shot + (c) learnable-from-K — and these FIGHT: (a)+(c)→simple/known→ceiling;
+(b)→hard/novel→no recurrence. The intersection = model-UNKNOWN-but-SYSTEMATIC = project-specific non-obvious conventions =
+needs a harvested real corpus (authoring it = circular = the strong model relocated into the loop). Cross-model lift is
+UNTESTED on the right instrument, not falsified. Refused to fabricate a circular synthetic lift (anti-facade > stop-hook).
