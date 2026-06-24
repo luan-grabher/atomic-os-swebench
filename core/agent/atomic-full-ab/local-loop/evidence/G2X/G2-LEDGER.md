@@ -144,3 +144,26 @@ NET: the substrate's transferable value = blocking recurring ERRORS + suggesting
 the missing piece is SEMANTIC representation of the conexionist content (so a trava/suggestion matches by MEANING, not
 words). Elevation remains UNPROVEN; the next real construction is semantic encoding (likely model-backed embeddings),
 not more lexical-VSA. No number was fabricated; every null/weak result recorded.
+
+## SEMANTIC-ENCODING BOUNDARY (2026-06-24) — the precise requirement is blocked on a representation capability
+The trava layer's value needs SEMANTIC generalization (match errors by meaning, not words). Checked the available
+semantic-representation tools: DeepSeek API = chat-only (no /embeddings, 404); no local embedder (sentence-transformers
+not installed); disk at 16GB (a torch install risks re-triggering ENOSPC). The non-model options are CIRCULAR (a
+hand-authored synonym/concept map = me, the strong model, injecting the abstraction = the user's axis = forbidden) or
+MODEL-DEPENDENT-AT-APPLY (DeepSeek-chat as a semantic judge per trava-check = expensive + doesn't cleanly test "does the
+SUBSTRATE elevate", since the model does the semantic work). So the trava's semantic generalization is BLOCKED on adding
+a semantic-representation capability (a small local embedding model, or an embeddings API) — a deliberate infra/tooling
+decision. This is the honest §5 frontier reached concretely: deterministic locus/lexical representation = real + works,
+no model; SEMANTIC generalization across distinct bugs = needs a semantic representation = needs a model/embedding.
+
+## ★ THE COMPLETE, HONEST, BY-NUMBER ENDPOINT OF THE WHOLE ARC
+Every angle measured, nothing fabricated:
+- Symbolic/deterministic layer (locus, lexical, exact-match, autoclass precision 1.0, proof gates) = REAL, runs, no model.
+- Conexionist finetuning = FIXED (reinforce real+cumulative, 70e3f7c).
+- TRAVA block primitive = BUILT + proven precise (95d32bd).
+- BUT transferable Elevation needs SEMANTIC generalization (errors recur by meaning), which needs a SEMANTIC representation
+  that is currently unavailable non-circularly/non-model-dependently in this env.
+ELEVAÇÃO/lift = UNPROVEN by number (G2 ×3 null, ELEVAÇÃO-001 null, trava generalization lexical-bounded 1/4). The condition
+"weak model + substrate >= frontier" is not met; the precise gap is a semantic-representation capability for the conexionist
+content. NEXT INFRA DECISION (human): add a small local embedding model (semantic VSA content) OR an embeddings API, then
+re-test trava semantic generalization → wire into the loop → measure Elevation. No fabrication; anti-facade held throughout.
