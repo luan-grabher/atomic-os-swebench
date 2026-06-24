@@ -55,3 +55,19 @@ structure), and its marginal value over the exact key is the open question, not 
   is the smallest-gold = best bet to land base in the measurable band (0<base<8), unlike django-11885 (130-line gold, floored).
 - operator: MECHANICAL {compiler.py,'sql'} (canonical_act=true, no model label), captured from 12965/14007/15563, held-out 11490.
 - gold feasibility PASSED (django-11490 gold resolved 1/1, image builds). v4-pro base+weight arms running. Number pending.
+
+## G2-003 (RESULT) — 2026-06-23 — FIRST MEASURABLE G2: ZERO lift, the bottleneck is the FIX not the locus
+- FIXED model v4-pro, MECHANICAL operator {compiler.py,'sql'} (canonical_act=true, sha 3e6a39cc), held-out django-11490.
+- base=1/8 weight=0/8 lift=-1 (within noise: 1 vs 0 at N=8 → NULL-to-slightly-negative, NO lift). base_goldilocks=YES (measurable).
+- ANTI-FACADE VERIFIED (read the agents): nav fired 8/8; ALL 8 weight agents routed to compiler.py (the gold file) and edited
+  there (1-4 lines) — NONE resolved. The one base success (base_2) resolved WITHOUT touching compiler.py.
+- ★ THE KEY BY-NUMBER FINDING (sharp, across all 3 G2): the operator delivers the WHERE (navigation/locus — it routed every
+  agent to the correct gold file), but NOT the HOW (the transformation). Routing to the right locus does NOT lift resolution;
+  the model still failed to author the correct 1-line fix. The cross-model lift the thesis needs requires capturing the
+  TRANSFORMATION (the edit shape), not just the locus.
+- SCOREBOARD (3 G2, NONE shows lift): G2-001 +1/8 null (exec strong-authored), G2-002 0/0 floor (mech), G2-003 -1/8 null/neg
+  MEASURABLE (mech). Cross-model substrate lift = NOT demonstrated; on the first measurable instance it is null-to-negative.
+- NEXT RUNG (per the finding, NOT VSA-locus which is still about the WHERE): TRANSFORMATION-TEMPLATE operator — anti-unify the
+  K cluster-mates' gold AST-diffs into a parameterized edit shape, inject it (the HOW). Phase 0 (commit 661378f) persists
+  raw_diff + edited_units → this rung is now buildable. Whether a generic anti-unified template helps or is too generic is the
+  open question — the next G2.
