@@ -32,9 +32,15 @@ export function matchesGlob(pattern: string, filePath: string): boolean {
 }
 
 export function matchesGlobPart(part: string, name: string): boolean {
-  if (!part.includes('*')) return part === name;
+  if (!part.includes('*') && !part.includes('{')) return part === name;
   const regex = new RegExp(
-    '^' + part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\\\*/g, '[^/]*') + '$',
+    '^' +
+      part
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        // brace expansion: rewrite the escaped `\{a,b\}` into an alternation.
+        .replace(/\\\{([^{}]*)\\\}/g, (_, body) => '(?:' + body.split(',').join('|') + ')')
+        .replace(/\\\*/g, '[^/]*') +
+      '$',
   );
   return regex.test(name);
 }

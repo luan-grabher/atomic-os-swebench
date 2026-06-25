@@ -316,6 +316,9 @@ function globToRe(glob: string): RegExp {
   const tokenAny = '__ATOMIC_GLOBSTAR__';
   const source = normalized
     .replace(/[.+^${}()|[\]\\]/g, '\\$&')
+    // brace expansion: the escape above turned `{a,b}` into the literals `\{a,b\}`;
+    // rewrite those back into a regex alternation `(?:a|b)` so `*.{ts,tsx}` matches.
+    .replace(/\\\{([^{}]*)\\\}/g, (_, body) => '(?:' + body.split(',').join('|') + ')')
     .replace(/\*\*\//g, tokenSlash)
     .replace(/\*\*/g, tokenAny)
     .replace(/\*/g, '[^/]*')
